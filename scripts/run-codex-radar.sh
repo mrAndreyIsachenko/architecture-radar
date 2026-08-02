@@ -25,7 +25,7 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
 
 codex exec \
   --cd "$PWD" \
-  --model "${CODEX_MODEL:-gpt-5.5}" \
+  --model "${CODEX_MODEL:-gpt-5.4-mini}" \
   --search \
   --sandbox workspace-write \
   --ask-for-approval never \
