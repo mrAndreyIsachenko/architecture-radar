@@ -40,7 +40,9 @@ Use this state to avoid duplicate reviews, duplicate pattern names, and repeated
 
 Prioritize repositories related to:
 
+- AI systems and LLM infrastructure
 - AI agents and agent runtimes
+- LLM evaluation, memory, context engineering, and tool use
 - event intelligence and event correlation
 - OSINT and real-time monitoring
 - knowledge graphs and GraphRAG
@@ -50,8 +52,10 @@ Prioritize repositories related to:
 - execution traces and observability
 - codebase intelligence
 - blockchain indexing and transaction interpretation
+- wallets, protocol analysis, and on-chain intelligence
+- VPN, privacy networking, secure tunnels, traffic routing, and access control
+- drones, robotics, autonomy, mission planning, telemetry, and fleet coordination
 - durable workflows and long-running agents
-- LLM evaluation, memory, context engineering, and tool use
 
 Every selected repository must map to at least one concrete unresolved problem or research priority explicitly present in `interests.md`.
 

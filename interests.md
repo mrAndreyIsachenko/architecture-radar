@@ -2,7 +2,47 @@
 
 This file is the authoritative source for Architecture Radar research priorities. Repository analysis must connect findings to concrete problems listed here rather than inferred project needs.
 
+## Topic Scope
+
+The radar should cast a wider net than the initial project list. Repositories may be relevant when they expose reusable engineering mechanisms in:
+
+- AI systems, LLM infrastructure, agents, evaluation, memory, context engineering, and tool use.
+- Blockchain indexing, transaction interpretation, wallets, protocol analysis, and on-chain intelligence.
+- VPN, privacy networking, secure tunnels, traffic routing, access control, censorship resistance, and network observability.
+- Drones, robotics, autonomy, fleet coordination, mission planning, telemetry, ground control, perception, and safety/recovery systems.
+
+Broad topical relevance is not enough. A selected repository still needs an inspectable mechanism, source evidence, and a concrete link to an open problem below.
+
 ## Current Priorities
+
+### LLM systems, evaluation, memory, and context engineering
+
+We need mechanisms for building reliable LLM-powered systems beyond simple chat or prompt wrappers.
+
+Open problems:
+
+- Evaluate agent, tool-use, retrieval, and reasoning behavior with reproducible evidence.
+- Version prompts, model settings, context construction, tools, memory writes, and evaluation datasets.
+- Preserve provenance from source material through context assembly to model outputs and downstream actions.
+- Manage long-context selection, compression, eviction, and retrieval without losing auditability.
+- Compare models and agent policies using task-level traces rather than isolated benchmark scores.
+
+Useful mechanisms:
+
+- LLM evaluation harnesses.
+- Trace-backed model comparison.
+- Context assembly pipelines.
+- Memory write policies.
+- Prompt and tool-schema versioning.
+- Evidence-aware judges and graders.
+- Regression tests for agent behavior.
+
+Avoid:
+
+- Prompt collections.
+- Generic chat UIs.
+- Benchmarks with no reproducible harness or source evidence.
+- Memory systems that cannot explain why information was written, retrieved, or trusted.
 
 ### Evidence-backed semantic execution graph
 
@@ -32,7 +72,7 @@ Avoid:
 
 ### Blockchain transaction interpretation
 
-We need mechanisms for interpreting blockchain transactions beyond raw indexing.
+We need mechanisms for interpreting blockchain transactions and protocol behavior beyond raw indexing.
 
 Open problems:
 
@@ -41,6 +81,7 @@ Open problems:
 - Explain causality across transactions, contracts, addresses, and time windows.
 - Maintain provenance from interpretation back to chain evidence.
 - Handle reorgs, partial data, ambiguous ABIs, and protocol-specific semantics.
+- Detect suspicious flows, bridge behavior, MEV, liquidation, wallet behavior, and protocol-specific state transitions.
 
 Useful mechanisms:
 
@@ -50,12 +91,77 @@ Useful mechanisms:
 - Entity resolution.
 - Confidence-aware interpretation.
 - Reorg-safe materialization.
+- Address clustering and wallet/entity attribution with explicit uncertainty.
+- Protocol adapters with provenance-preserving outputs.
 
 Avoid:
 
 - Indexers that only expose generic SQL over raw chain data.
 - Hard-coded protocol interpretations without provenance.
 - Architectures that cannot recover from chain reorganizations.
+- Wallet dashboards that do not expose interpretation evidence.
+
+### Privacy networking, VPN, and traffic-control systems
+
+We need mechanisms for secure private networking, policy-controlled tunnels, and observable network access without turning the radar into consumer VPN product tracking.
+
+Open problems:
+
+- Provision peers, keys, routes, DNS, and access policies safely across many devices or environments.
+- Rotate and revoke credentials without breaking active sessions unexpectedly.
+- Support split tunneling, policy routing, NAT traversal, relay fallback, and multi-hop paths.
+- Preserve useful observability while minimizing sensitive traffic/content exposure.
+- Detect misconfiguration, DNS leaks, route leaks, captive portals, blocked transports, and degraded connectivity.
+- Apply least-privilege access control to networks, hosts, services, and developer/admin workflows.
+
+Useful mechanisms:
+
+- WireGuard/OpenVPN control planes.
+- Mesh networking coordination.
+- Policy-based routing.
+- Key lifecycle management.
+- Capability-scoped network access.
+- Connectivity probes and health models.
+- DNS and traffic leak detection.
+- Relay selection and failover.
+
+Avoid:
+
+- Consumer VPN ranking sites or marketing clients.
+- Projects whose only mechanism is wrapping WireGuard commands with a UI.
+- Traffic inspection designs that require unnecessary content capture.
+- Security claims without tests, threat model, or operational evidence.
+
+### Drones, robotics, autonomy, and telemetry
+
+We need mechanisms from drone and robotics systems that can inform long-running autonomous agents, real-time monitoring, evidence capture, fleet coordination, and safety-aware execution.
+
+Open problems:
+
+- Represent missions, waypoints, constraints, geofences, telemetry, events, and operator interventions as auditable state.
+- Coordinate multiple vehicles, ground stations, sensors, and control loops under intermittent connectivity.
+- Recover safely from lost links, partial commands, sensor failures, low battery, localization drift, and mission aborts.
+- Fuse telemetry, perception, maps, and external events while preserving provenance and confidence.
+- Simulate, replay, and evaluate autonomy behavior before deployment.
+- Bridge low-level protocols such as MAVLink, PX4, ArduPilot, ROS 2, and ground-control software into higher-level mission models.
+
+Useful mechanisms:
+
+- Mission planning state machines.
+- Telemetry ingestion and event correlation.
+- Safety envelopes and geofence enforcement.
+- Command acknowledgment and retry models.
+- Simulation and replay harnesses.
+- Fleet coordination protocols.
+- Sensor fusion with confidence propagation.
+- Human override and review queues.
+
+Avoid:
+
+- Pure hardware projects with no reusable software mechanism.
+- Demo flight scripts with no recovery or safety model.
+- Black-box autonomy claims without logs, simulation, or test evidence.
+- Projects focused only on visual dashboards without mission or telemetry semantics.
 
 ### AI knowledge layer and metadata systems
 
