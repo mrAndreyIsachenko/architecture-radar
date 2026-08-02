@@ -31,7 +31,7 @@ This repository is a persistent knowledge base, not a newsletter archive. Each r
 
 The GitHub Actions workflow checks cadence daily, but runs the expensive Codex research step every three days at 08:00 Europe/Moscow. It can also be started manually from the Actions tab.
 
-The default Codex model is `gpt-5.4-mini` to keep recurring research costs under control. Manual runs can override the model, for example to use `gpt-5.5` for a high-stakes follow-up.
+The default Codex model is `gpt-5.5`, because this repository's OpenAI project is known to have access to it. To switch recurring runs to a cheaper allowed model, set the repository variable `ARCHITECTURE_RADAR_CODEX_MODEL`; manual runs can also override the model from the Actions tab.
 
 Required repository setup:
 
