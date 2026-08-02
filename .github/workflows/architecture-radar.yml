@@ -26,7 +26,7 @@ jobs:
     env:
       TZ: Europe/Moscow
       CODEX_HOME: ${{ runner.temp }}/codex-home
-      CODEX_MODEL: gpt-5.4-mini
+      CODEX_MODEL: gpt-5.5
       ARCHITECTURE_RADAR_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.run_date || '' }}
 
     steps:
