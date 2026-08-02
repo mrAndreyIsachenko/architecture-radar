@@ -259,6 +259,12 @@ Classify important claims explicitly:
 - `I interpretation`: architectural interpretation derived from evidence.
 - `H hypothesis`: plausible but not sufficiently verified.
 
+Normalize evidence labels before writing repository reviews, reports, patterns, or `radar.json`:
+
+- If the evidence path is a test file or test directory, use `E2 test verified`, not `E1 source verified`.
+- If the evidence path is `README`, `docs/`, `NEWS`, `CHANGELOG`, `RELEASE`, `ADR`, `spec/`, issue, pull request, or release-note material, use `E3 maintainer stated`, not `E1 source verified`.
+- Use `E1 source verified` only for implementation code that defines runtime behavior at the reviewed commit.
+
 Attach evidence using, where possible:
 
 - full commit SHA
