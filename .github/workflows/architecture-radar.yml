@@ -25,9 +25,9 @@ jobs:
     timeout-minutes: 360
     env:
       TZ: Europe/Moscow
-      CODEX_HOME: ${{ runner.temp }}/codex-home
+      CODEX_HOME: /tmp/codex-home
       CODEX_MODEL: gpt-5.5
-      ARCHITECTURE_RADAR_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.run_date || '' }}
+      ARCHITECTURE_RADAR_DATE: ${{ github.event.inputs.run_date || '' }}
 
     steps:
       - name: Check out repository
