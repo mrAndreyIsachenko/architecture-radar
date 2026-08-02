@@ -188,7 +188,32 @@ You may revisit a cooldown repository only when at least one of these material-c
 
 Every cooldown exception must be justified in the daily report with the exact trigger, URL or commit SHA, previous commit reviewed, current commit reviewed, and why the change is material.
 
-For same-day reruns, do not deep-review repositories already selected in that date's report unless a cooldown exception applies. Prefer new candidates, a diagnostic update, or no selection over repeatedly refining the same repositories.
+For same-day reruns, do not deep-review repositories already selected in that date's report unless a cooldown exception applies. Prefer new candidates, a diagnostic update, a supplement report, or no selection over repeatedly refining the same repositories.
+
+## Supplemental Runs
+
+An existing `reports/YYYY-MM-DD.md` does not automatically make a run a no-op.
+
+When the CI run context says `Supplement required` is `true`, create the requested supplement report instead of rewriting the existing daily report. Use the provided supplement path, normally `reports/YYYY-MM-DD-supplement-N.md`.
+
+A supplement run should focus on:
+
+- topic families added or materially changed in `interests.md`
+- operating rules materially changed in `docs/architecture-radar-agent.md`
+- topic families missing from the existing report
+- explicit user-requested follow-up scope
+
+For a supplement run:
+
+- read the existing daily report first
+- do not repeat deep reviews already selected in that report
+- preserve cooldown rules for previously reviewed repositories
+- inspect fresh candidates for the changed or under-covered topic families
+- include a compact candidate ledger for the supplement scope
+- update `repositories/`, `patterns/`, and `radar.json` only when new source-backed evidence clears the normal quality bar
+- explicitly state if no candidate in the supplement scope clears the threshold
+
+Do not create a supplement merely to restate that nothing changed.
 
 ## Source-level Review
 

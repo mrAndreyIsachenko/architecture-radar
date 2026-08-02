@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path.cwd()
 RUN_DATE = os.environ.get("ARCHITECTURE_RADAR_RUN_DATE")
+SUPPLEMENT_REQUIRED = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REQUIRED", "").lower()
+SUPPLEMENT_REPORT = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT", "")
 
 
 def fail(message: str) -> None:
@@ -54,5 +56,14 @@ if RUN_DATE:
         fail(f"missing daily report: {report_path}")
     if not report_path.read_text(encoding="utf-8").strip():
         fail(f"daily report is empty: {report_path}")
+
+if SUPPLEMENT_REQUIRED in {"1", "true", "yes", "on"}:
+    if not SUPPLEMENT_REPORT:
+        fail("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT is required when supplement is required")
+    supplement_path = ROOT / SUPPLEMENT_REPORT
+    if not supplement_path.is_file():
+        fail(f"missing supplement report: {supplement_path}")
+    if not supplement_path.read_text(encoding="utf-8").strip():
+        fail(f"supplement report is empty: {supplement_path}")
 
 print("radar artifacts validated")

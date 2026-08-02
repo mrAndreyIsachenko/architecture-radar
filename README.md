@@ -33,6 +33,8 @@ The GitHub Actions workflow checks cadence daily, but runs the expensive Codex r
 
 The default Codex model is `gpt-5.4-mini` to keep recurring research costs under control. To switch recurring runs to another allowed model, set the repository variable `ARCHITECTURE_RADAR_CODEX_MODEL`; manual runs can also override the model from the Actions tab, for example to use `gpt-5.5` for a high-stakes follow-up.
 
+Same-day manual reruns are guarded to avoid spending model tokens when `reports/YYYY-MM-DD.md` already exists. The guard still allows a supplemental run when `interests.md` or `docs/architecture-radar-agent.md` changed after the existing report. In that case the agent writes `reports/YYYY-MM-DD-supplement-N.md` and focuses on changed or under-covered topic families. Use the `force_research` workflow input only when you explicitly want another same-day supplement without a scope change.
+
 Required repository setup:
 
 - Add an `OPENAI_API_KEY` repository secret.
