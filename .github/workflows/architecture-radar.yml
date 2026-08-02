@@ -31,7 +31,7 @@ jobs:
     env:
       TZ: Europe/Moscow
       CODEX_HOME: /home/runner/.codex
-      CODEX_MODEL: ${{ github.event.inputs.model || vars.ARCHITECTURE_RADAR_CODEX_MODEL || 'gpt-5.5' }}
+      CODEX_MODEL: ${{ github.event.inputs.model || vars.ARCHITECTURE_RADAR_CODEX_MODEL || 'gpt-5.4-mini' }}
       ARCHITECTURE_RADAR_DATE: ${{ github.event.inputs.run_date || '' }}
       ARCHITECTURE_RADAR_CADENCE_ANCHOR: "2026-08-02"
       ARCHITECTURE_RADAR_CADENCE_DAYS: "3"
