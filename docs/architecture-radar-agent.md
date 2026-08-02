@@ -100,7 +100,14 @@ Exclude:
 
 ## Candidate Accounting
 
-Inspect at least 20 candidates per normal run.
+Treat the top-level topic families in `interests.md` as:
+
+- `ai-llm-systems`
+- `blockchain-intelligence`
+- `privacy-networking-vpn`
+- `drones-robotics-autonomy`
+
+Inspect at least 20 candidates per normal run, and prefer broad coverage across all four topic families when candidate supply allows it.
 
 Use the following stages precisely:
 
@@ -117,6 +124,7 @@ Record every triaged candidate in the daily candidate ledger with:
 - URL
 - full commit SHA
 - discovery source
+- topic family
 - triage stage reached
 - categories
 - activity signal
@@ -129,7 +137,9 @@ Do not state candidate totals that are not represented in this ledger.
 
 ## Selection
 
-Select no more than three repositories for deep review.
+For each topic family, attempt to carry at least three candidates to the `source-inspected` stage when the discovery pool is strong enough.
+
+Select no more than three repositories per topic family for deep review, and no more than twelve repositories total in one normal run.
 
 Do not select repositories merely to fill the quota. Selecting zero or one is preferable to selecting weak candidates.
 
@@ -140,6 +150,21 @@ A selected repository should normally satisfy all of the following:
 - sufficient source evidence
 - implementation depth beyond a demo or wrapper
 - a reason it is more informative than already reviewed alternatives
+
+When breadth, quality, and cost conflict, prioritize one high-confidence deep review per represented topic family before selecting second or third repositories in the same family.
+
+If a topic family has no strong candidate, explicitly record the gap instead of filling the slot with a weak repository.
+
+## Cost Discipline
+
+This research runs on metered model usage. Use tokens as an engineering budget, not an unlimited resource.
+
+- Use targeted source inspection instead of broad file dumping.
+- Prefer shallow clones, sparse reads, GitHub file views, and `rg` over cloning or reading large repositories indiscriminately.
+- Stop inspecting a candidate as soon as it clearly fails the quality bar, and record the rejection reason.
+- Do not perform deep review work on repositories that are in cooldown unless a material-change exception applies.
+- If a full per-topic deep-review target would force superficial analysis, select fewer repositories and preserve evidence quality.
+- Keep daily reports concise; put only reusable evidence and decisions into persistent artifacts.
 
 ## Revisit Discipline
 

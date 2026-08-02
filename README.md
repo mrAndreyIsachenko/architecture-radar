@@ -29,7 +29,9 @@ This repository is a persistent knowledge base, not a newsletter archive. Each r
 
 ## Scheduled Research
 
-The GitHub Actions workflow runs daily at 08:00 Europe/Moscow and can also be started manually from the Actions tab.
+The GitHub Actions workflow checks cadence daily, but runs the expensive Codex research step every three days at 08:00 Europe/Moscow. It can also be started manually from the Actions tab.
+
+The default Codex model is `gpt-5.4-mini` to keep recurring research costs under control. Manual runs can override the model, for example to use `gpt-5.5` for a high-stakes follow-up.
 
 Required repository setup:
 

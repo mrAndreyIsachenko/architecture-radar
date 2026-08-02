@@ -13,6 +13,13 @@ The radar should cast a wider net than the initial project list. Repositories ma
 
 Broad topical relevance is not enough. A selected repository still needs an inspectable mechanism, source evidence, and a concrete link to an open problem below.
 
+Use these top-level topic families for candidate accounting and per-topic selection:
+
+- `ai-llm-systems`: AI agents, LLM infrastructure, evaluation, memory, context engineering, knowledge layers, event intelligence, OSINT, metadata, lineage, observability, and codebase intelligence.
+- `blockchain-intelligence`: blockchain indexing, transaction interpretation, wallets, protocol analysis, address/entity attribution, and on-chain intelligence.
+- `privacy-networking-vpn`: VPN, private networking, secure tunnels, mesh networking, traffic routing, access control, censorship resistance, and network observability.
+- `drones-robotics-autonomy`: drones, robotics, autonomy, mission planning, telemetry, ground control, perception, fleet coordination, safety, and recovery systems.
+
 ## Current Priorities
 
 ### LLM systems, evaluation, memory, and context engineering

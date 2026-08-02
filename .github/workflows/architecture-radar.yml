@@ -2,12 +2,17 @@ name: Architecture Radar
 
 on:
   schedule:
-    # GitHub cron is UTC. 05:00 UTC is 08:00 in Europe/Moscow.
+    # GitHub cron is UTC. A lightweight cadence gate below lets the
+    # expensive Codex research run every three days at 08:00 Europe/Moscow.
     - cron: "0 5 * * *"
   workflow_dispatch:
     inputs:
       run_date:
         description: "Override report date in YYYY-MM-DD format"
+        required: false
+        type: string
+      model:
+        description: "Override Codex model for this manual run"
         required: false
         type: string
 
@@ -26,8 +31,10 @@ jobs:
     env:
       TZ: Europe/Moscow
       CODEX_HOME: /home/runner/.codex
-      CODEX_MODEL: gpt-5.5
+      CODEX_MODEL: ${{ github.event.inputs.model || 'gpt-5.4-mini' }}
       ARCHITECTURE_RADAR_DATE: ${{ github.event.inputs.run_date || '' }}
+      ARCHITECTURE_RADAR_CADENCE_ANCHOR: "2026-08-02"
+      ARCHITECTURE_RADAR_CADENCE_DAYS: "3"
 
     steps:
       - name: Check out repository
@@ -36,15 +43,27 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Check research cadence
+        id: cadence
+        run: scripts/check-radar-cadence.sh
+
+      - name: Skip scheduled run
+        if: steps.cadence.outputs.should_run != 'true'
+        run: |
+          echo "Skipping expensive research step: ${{ steps.cadence.outputs.reason }}"
+
       - name: Set up Node.js
+        if: steps.cadence.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install Codex CLI
+        if: steps.cadence.outputs.should_run == 'true'
         run: npm install -g @openai/codex@0.146.0
 
       - name: Authenticate Codex
+        if: steps.cadence.outputs.should_run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -53,15 +72,19 @@ jobs:
           printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key
 
       - name: Prepare dated branch
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/prepare-radar-run.sh
 
       - name: Run research agent
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/run-codex-radar.sh
 
       - name: Validate radar artifacts
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/validate-radar-state.py
 
       - name: Publish pull request
+        if: steps.cadence.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: scripts/publish-radar-run.sh
