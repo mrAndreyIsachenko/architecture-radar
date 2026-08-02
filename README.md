@@ -26,6 +26,7 @@ This repository is a persistent knowledge base, not a newsletter archive. Each r
 ## Current Radar Themes
 
 - Evidence-carrying execution envelopes: checkpoint, lineage-event, and source-episode envelopes that preserve producer/schema identity, parent-child causality, recovery state, and links from derived claims back to source evidence.
+- Reorg-safe materialization windows: provisional/finalized block splits plus explicit rollback and catchup workers that keep blockchain indexes recoverable after chain reorganizations.
 
 ## Scheduled Research
 
