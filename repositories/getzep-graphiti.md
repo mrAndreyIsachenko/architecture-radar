@@ -26,8 +26,11 @@ Episode input (`name`, body, source description, reference time, source type, gr
 - E1 source verified: `graphiti_core/utils/maintenance/edge_operations.py`, `resolve_edge_contradictions` sets `invalid_at` and `expired_at` when a newer edge contradicts an older valid edge.
 - E1 source verified: `graphiti_core/graphiti.py`, `_process_episode_data` builds episodic edges from nodes to episode UUIDs, stores raw episode content unless disabled, and bulk saves episodes, episodic edges, nodes, and entity edges.
 - E1 source verified: `graphiti_core/search/search.py` executes edge, node, episode, and community searches concurrently and supports BM25, cosine similarity, BFS, RRF, MMR, cross-encoder, node-distance, and episode-mentions reranking.
+- E1 source verified: `graphiti_core/nodes.py` gives `EpisodicNode` a `valid_at`, while `EntityNode` has mutable `attributes` but no `valid_at`/`invalid_at` equivalent; `graphiti_core/edges.py` gives `EntityEdge` `valid_at`, `invalid_at`, and `expired_at`.
 - E2 test verified: `tests/test_add_triplet.py::test_add_triplet_edge_uuid_with_different_nodes_creates_new_edge` verifies UUID collision handling preserves the original edge and creates a distinct edge when endpoints differ.
+- E2 test verified: `tests/test_add_triplet.py` includes attribute merge/update tests that preserve some existing entity attributes while updating others, which confirms current mutable node-attribute behavior rather than historical attribute versioning.
 - E2 test verified: `tests/utils/maintenance/test_edge_operations.py` covers duplicate/episode attachment and invalidation-related edge resolution cases.
+- E3 issue stated: GitHub issue #1166 reports missing temporal versioning for node attributes, and issue #1684 reports that FalkorDB `group_id` can act as a physical graph selector rather than only a record-level tenant scope. These reports align with source-level adoption risks but remain maintainer/user issue evidence, not source-verified defect conclusions.
 
 ## Architecture
 
@@ -40,9 +43,9 @@ Principal components:
 - Resolution pipeline: semantic search, deterministic exact matching, LLM deduplication, contradiction detection, temporal invalidation, and attribute extraction.
 - Search pipeline: parallel hybrid retrieval across graph scopes with multiple rerankers and tracing spans.
 
-Most interesting mechanism: Graphiti keeps episodes as first-class provenance anchors and links derived facts back to episode UUIDs while preserving temporal validity (`valid_at`, `invalid_at`, `expired_at`). This is useful even if the product-specific memory layer is not adopted.
+Most interesting mechanism: Graphiti keeps episodes as first-class provenance anchors and links derived relationship facts back to episode UUIDs while preserving edge temporal validity (`valid_at`, `invalid_at`, `expired_at`). This is useful even if the product-specific memory layer is not adopted, but node attributes should be treated as mutable summaries unless an application adds attribute-level history.
 
-Baseline comparison: a typical GraphRAG ingestion pipeline chunks text, embeds chunks, extracts entities, and upserts a graph without preserving raw evidence boundaries or temporal invalidation. Graphiti preserves episodes and invalidates facts instead of blindly overwriting them.
+Baseline comparison: a typical GraphRAG ingestion pipeline chunks text, embeds chunks, extracts entities, and upserts a graph without preserving raw evidence boundaries or temporal invalidation. Graphiti preserves episodes and invalidates relationship facts instead of blindly overwriting them, but entity attributes still need a separate temporal model for historical reconstruction.
 
 ## Reuse Guidance
 
@@ -72,14 +75,16 @@ Experimental or incomplete for our needs:
 - Confidence scoring is not first-class in the reviewed flow.
 - Important extraction, deduplication, contradiction, and timestamp decisions rely on LLM calls.
 - Evidence hashes/source references beyond episode UUIDs are not first-class.
+- Entity node attributes are not first-class temporal facts in the reviewed source; copy edge-level temporality, not mutable node summaries, for auditable history.
 - The review did not run Graphiti tests locally.
 
 Hidden costs and failure modes:
 
 - Sequential ingestion is recommended in the source docstring; concurrent ingestion may create duplicate or stale resolution states without external ordering.
+- `group_id` behavior must be reviewed per graph provider before using it as a tenant or authorization boundary.
 - Hybrid search and LLM resolution can be expensive at scale.
 - Raw episode storage must be governed because it may contain sensitive source text.
 
 Adoption experiment:
 
-Prototype an episode-anchored fact memory for a small OSINT/event-monitoring feed. Require every extracted fact to carry `episode_uuid`, source URL/hash, extraction prompt/version, confidence, and reviewer status. Measure duplicate alert reduction and false invalidations before using it for automated conclusions.
+Prototype an episode-anchored fact memory for a small OSINT/event-monitoring feed. Require every extracted relationship and every mutable entity attribute claim to carry `episode_uuid`, source URL/hash, extraction prompt/version, confidence, temporal validity, and reviewer status. Measure duplicate alert reduction, false invalidations, and historical attribute reconstruction before using it for automated conclusions.

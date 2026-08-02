@@ -37,7 +37,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 
 - Checkpoint envelope: LangGraph stores checkpoint ID, thread ID, namespace, parent checkpoint ID, channel versions, metadata, and pending writes.
 - Lineage event envelope: OpenLineage stores event time, producer, schema URL, run/job/dataset identity, input/output datasets, parent run facets, and typed facets.
-- Episode evidence envelope: Graphiti stores source episodes with source type, source description, valid time, raw content policy, entity edges, and derived fact links.
+- Episode evidence envelope: Graphiti stores source episodes with source type, source description, valid time, raw content policy, entity edges, and derived relationship fact links.
 
 ## Known Repositories
 
@@ -51,7 +51,7 @@ LangGraph is strongest for runtime recovery. Its checkpoint envelope captures ex
 
 OpenLineage is strongest for cross-system provenance. Its envelope requires producer and schema URL, separates base event identity from facets, and models parent/root run causality, but it does not by itself guarantee replay or factual correctness.
 
-Graphiti is strongest for temporal memory. Its episode/fact model preserves source episodes and invalidates contradictory edges over time, but extraction and contradiction resolution are LLM-mediated and need explicit confidence and validation layers.
+Graphiti is strongest for temporal memory around relationship facts. Its episode/fact model preserves source episodes and invalidates contradictory edges over time, but entity node attributes are mutable summaries in the reviewed source and extraction/contradiction resolution are LLM-mediated, so it needs explicit confidence, validation, and attribute-history layers before adoption.
 
 ## Failure Modes
 
@@ -59,7 +59,9 @@ Graphiti is strongest for temporal memory. Its episode/fact model preserves sour
 - Parent links can become incomplete when side effects occur outside the instrumented runtime.
 - Schema/facet drift can make consumers silently drop evidence fields.
 - LLM extraction can collapse facts, interpretations, and hypotheses unless claims are typed.
+- Relationship-level temporal validity can be mistaken for full graph temporality when node attributes are still mutable.
 - Async checkpoint persistence can leave crash windows unless durability mode is explicit.
+- User-visible streamed state can diverge from persisted checkpoint state unless cancellation and disconnect paths flush or record partial state.
 - Sensitive source content can leak if raw evidence retention is not governed.
 
 ## Trade-Offs
@@ -93,3 +95,5 @@ Graphiti is strongest for temporal memory. Its episode/fact model preserves sour
 - E1 source verified: OpenLineage `spec/facets/ParentRunFacet.json` models parent/root run and job identity.
 - E1 source verified: Graphiti `graphiti_core/graphiti.py` creates episodic nodes and saves episode UUID links to derived entity edges.
 - E1 source verified: Graphiti `graphiti_core/utils/maintenance/edge_operations.py` invalidates contradictory edges by setting `invalid_at` and `expired_at`.
+- E1 source verified: Graphiti `graphiti_core/nodes.py` gives `EntityNode` mutable attributes without edge-style `valid_at`/`invalid_at` fields.
+- E3 issue stated: LangGraph issues #5672/#7714 and Graphiti issues #1166/#1684 identify adoption risks around streamed-state persistence, checkpoint serialization cost, node-attribute temporality, and `group_id` routing.

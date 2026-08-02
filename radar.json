@@ -25,9 +25,9 @@
         "durability-mode checkpoint scheduling"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show a reusable mechanism for representing long-running agent workflows as typed graph state plus checkpoint metadata, parent checkpoint links, pending writes, durability modes, task streams, and interrupt/error recovery.",
-      "revisit_reason": "Review production checkpointer behavior and any post-0.6 changes to durable interrupt semantics.",
-      "next_revisit_condition": "Revisit after a material change to checkpoint storage, interrupt handling, or managed runtime semantics."
+      "decision_reason": "Source and tests show a reusable mechanism for representing long-running agent workflows as typed graph state plus checkpoint metadata, parent checkpoint links, pending writes, durability modes, task streams, and interrupt/error recovery. Open issue evidence around streamed-state persistence and checkpoint serialization means adoption should be gated by crash, cancellation, and serializer tests.",
+      "revisit_reason": "Review production checkpointer behavior, streamed-state cancellation persistence, serializer customization, and any post-0.6 changes to durable interrupt semantics.",
+      "next_revisit_condition": "Revisit after a material change to checkpoint storage, interrupt handling, serializer behavior, cancellation semantics, or managed runtime semantics."
     },
     {
       "repository": "OpenLineage/OpenLineage",
@@ -82,9 +82,9 @@
         "LLM-assisted contradiction invalidation"
       ],
       "decision": "watch",
-      "decision_reason": "Graphiti has source evidence for episode-anchored entity/fact extraction, edge deduplication, temporal invalidation, and hybrid retrieval, but important extraction and contradiction decisions are LLM-mediated and need stronger confidence/evidence modeling before adoption.",
-      "revisit_reason": "Track whether Graphiti adds explicit confidence, evidence hashes, or deterministic validation around extracted facts.",
-      "next_revisit_condition": "Revisit after releases that add confidence scoring, provenance export, or deterministic validation of LLM-extracted facts."
+      "decision_reason": "Graphiti has source evidence for episode-anchored entity/fact extraction, edge deduplication, temporal invalidation, and hybrid retrieval. The reusable mechanism is strongest for relationship facts; entity node attributes are mutable in the reviewed source, and important extraction/contradiction decisions remain LLM-mediated.",
+      "revisit_reason": "Track whether Graphiti adds explicit confidence, evidence hashes, deterministic validation around extracted facts, attribute-level temporal history, or clarified provider-level group routing.",
+      "next_revisit_condition": "Revisit after releases that add confidence scoring, provenance export, deterministic validation of LLM-extracted facts, temporal node attributes, or fixed tenant/group routing semantics."
     }
   ]
 }
