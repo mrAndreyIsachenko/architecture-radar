@@ -139,7 +139,7 @@ A selected repository should normally satisfy all of the following:
 
 ## Revisit Discipline
 
-A repository selected for deep review enters a review cooldown for seven calendar days after its `last_reviewed` date in `radar.json`.
+A repository selected for deep review enters a review cooldown for seven full calendar days after its `last_reviewed` date in `radar.json`. The first normal eligible revisit date is the eighth calendar day after `last_reviewed`.
 
 During the cooldown:
 
