@@ -86,5 +86,218 @@
       "revisit_reason": "Track whether Graphiti adds explicit confidence, evidence hashes, deterministic validation around extracted facts, attribute-level temporal history, or clarified provider-level group routing.",
       "next_revisit_condition": "Revisit after releases that add confidence scoring, provenance export, deterministic validation of LLM-extracted facts, temporal node attributes, or fixed tenant/group routing semantics."
     }
+    ,
+    {
+      "repository": "DeusData/codebase-memory-mcp",
+      "URL": "https://github.com/DeusData/codebase-memory-mcp",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "d6be58ef9d43c574a2d1b0827ecc1e3c4846f0fe",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "codebase intelligence",
+        "context engineering",
+        "incremental indexing"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "post-dump plausibility gate",
+        "auto-index admission governor"
+      ],
+      "decision": "track",
+      "decision_reason": "The reviewed source and tests show a reusable codebase-indexing mechanism with tool coverage, daemon admission control, and a post-index plausibility gate that can reject implausible dumps before they are treated as trusted context.",
+      "revisit_reason": "Revisit if the dump-verification threshold logic, auto-index admission policy, or cross-repo tool set materially changes.",
+      "next_revisit_condition": "Revisit after a release that changes index admission, dump verification, or the coverage/search/trace tool contract."
+    },
+    {
+      "repository": "cocoindex-io/cocoindex",
+      "URL": "https://github.com/cocoindex-io/cocoindex",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "5aa593f4c5ca5e982d4c6df8e40d60510b69c2ef",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "incremental indexing",
+        "context construction",
+        "durable workflows"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "declarative delta reconciliation loop",
+        "target-state provider registry"
+      ],
+      "decision": "track",
+      "decision_reason": "The engine exposes a declarative target-state model, memoization invalidation, and live filesystem reconciliation that can be reused as a delta-oriented indexing mechanism for context assembly and source refresh.",
+      "revisit_reason": "Revisit if the engine adds stronger evidence provenance or the memoization semantics change materially.",
+      "next_revisit_condition": "Revisit after a change to memoization, target-state reconciliation, or live filesystem handling."
+    },
+    {
+      "repository": "firezone/firezone",
+      "URL": "https://github.com/firezone/firezone",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "2b4ffb54ec248ca26cb327af2717f7f8801e3b2f",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN",
+        "policy control",
+        "secure tunnels"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "policy-guarded tunnel event loop",
+        "queue-durable session merge"
+      ],
+      "decision": "track",
+      "decision_reason": "The gateway/eventloop split turns portal authorization and relay updates into explicit route, DNS, and tunnel state changes; that is directly reusable for least-privilege network control planes.",
+      "revisit_reason": "Revisit if the tunnel event loop, resolver handling, or portal queue durability changes materially.",
+      "next_revisit_condition": "Revisit after a material change to gateway permissions, tunnel event routing, or portal queue persistence."
+    },
+    {
+      "repository": "netbirdio/netbird",
+      "URL": "https://github.com/netbirdio/netbird",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "f2318a8fef230219110c9eeb58ca7f60e247ad98",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mesh networking",
+        "network observability",
+        "access control"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "normalized connectivity status snapshot",
+        "overlay control-plane summary"
+      ],
+      "decision": "track",
+      "decision_reason": "The status-conversion layer normalizes peers, relays, DNS, SSH, and session expiry into one operator-facing snapshot that is useful for network observability and health models.",
+      "revisit_reason": "Revisit if the status model or relay/connectivity semantics change materially.",
+      "next_revisit_condition": "Revisit after a material change to the client status protobuf, relay state model, or DNS/SSH summary rendering."
+    },
+    {
+      "repository": "PX4/PX4-Autopilot",
+      "URL": "https://github.com/PX4/PX4-Autopilot",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "43cccdea0e57cf92a58562d2d7a1cba0854395f7",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "autonomy safety",
+        "mission planning",
+        "failsafe"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "failsafe command acknowledgment matrix",
+        "mission sensor-loss recovery"
+      ],
+      "decision": "track",
+      "decision_reason": "Commander, RC update, parameter validation, and MAVSDK integration tests form a reusable safety model for high-risk autonomy transitions and failure recovery.",
+      "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
+      "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
+    },
+    {
+      "repository": "mavlink/qgroundcontrol",
+      "URL": "https://github.com/mavlink/qgroundcontrol",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "de77da5f84aa95a8dcafd314eb45072e6810dfe6",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "ground control",
+        "telemetry observability",
+        "mission workflow"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "transport-fallback log recovery pipeline",
+        "cancel-safe telemetry teardown"
+      ],
+      "decision": "track",
+      "decision_reason": "The onboard log controller and its tests provide a cancel-safe, vehicle-disconnect-safe pattern for telemetry retrieval and log recovery.",
+      "revisit_reason": "Revisit if transport fallback or teardown behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to onboard log retrieval, FTP fallback, or cancel/disconnect teardown behavior."
+    },
+    {
+      "repository": "fystack/multichain-indexer",
+      "URL": "https://github.com/fystack/multichain-indexer",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "90f4b3156c36bf048ec513e395f7dadef66f32e1",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "transaction interpretation",
+        "incremental indexing",
+        "reorg recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "bloom-filter address fanout",
+        "reorg-safe materialization workers"
+      ],
+      "decision": "track",
+      "decision_reason": "The worker ring, persisted progress, and reorg-safe catchup/manual repair loops are reusable for transaction interpretation and deposit detection where replay safety matters.",
+      "revisit_reason": "Revisit if the worker recovery contract or downstream event sink changes materially.",
+      "next_revisit_condition": "Revisit after a material change to reorg handling, retry queues, or checkpoint persistence."
+    },
+    {
+      "repository": "graphprotocol/graph-node",
+      "URL": "https://github.com/graphprotocol/graph-node",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "2adda68a79dff3703ab444ac8d846c189d9ce3c0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "deterministic materialization",
+        "queryable logs"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "queryable log store abstraction",
+        "reorg-safe materialization window"
+      ],
+      "decision": "track",
+      "decision_reason": "The chain stream, reorg threshold, and store-layer cleanup together show a durable finalized/provisional split that is directly relevant to blockchain interpretation and materialization.",
+      "revisit_reason": "Revisit if the chain stream, log-store abstraction, or reorg threshold semantics materially change.",
+      "next_revisit_condition": "Revisit after a material release that changes reorg handling, call-cache cleanup, or the log-store API."
+    }
   ]
 }
