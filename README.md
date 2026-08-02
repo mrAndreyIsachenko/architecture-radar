@@ -14,6 +14,11 @@ This repository is a persistent knowledge base, not a newsletter archive. Each r
 - `docs/architecture-radar-agent.md` - operating prompt for the research agent.
 - `.github/workflows/architecture-radar.yml` - scheduled GitHub Actions runner.
 
+## Current Radar Highlights
+
+- [Schema-Faceted Provenance Event Envelope](patterns/schema-faceted-provenance-event-envelope.md) - typed, producer-scoped event facets for evidence-backed execution graphs.
+- [Finality-Aware Hot/Cold Projection](patterns/finality-aware-hot-cold-projection.md) - reorg-aware blockchain materialization with finalized and hot block state.
+
 ## Operating Principles
 
 - Treat `interests.md` as authoritative.

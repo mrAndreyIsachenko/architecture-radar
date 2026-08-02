@@ -1,4 +1,81 @@
 {
   "schema_version": 1,
-  "repositories": []
+  "repositories": [
+    {
+      "repository": "getzep/graphiti",
+      "url": "https://github.com/getzep/graphiti",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "7cf0cab4b43f55d768b64584ffa9829bbeec1e9d",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "AI knowledge layer and metadata systems",
+        "Evidence-backed semantic execution graph",
+        "GraphRAG",
+        "temporal memory"
+      ],
+      "maturity": "emerging",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "episodic evidence graph with temporal canonical facts"
+      ],
+      "decision": "watch",
+      "decision_reason": "Source review verified a useful separation between raw episodic evidence, canonical entity facts, temporal validity fields, episode provenance, and saga sequencing. Adoption should wait for deterministic replay, evidence hashes, and stronger confidence/review modeling.",
+      "revisit_reason": "High relevance to temporal knowledge graphs for agent memory and evidence-backed retrieval.",
+      "next_revisit_condition": "Revisit when Graphiti adds deterministic replay/provenance hashing or when Architecture Radar prototypes an episodic evidence graph projection."
+    },
+    {
+      "repository": "OpenLineage/OpenLineage",
+      "url": "https://github.com/OpenLineage/OpenLineage",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "13f1b0ac406bc276b3fa23445062c2f119b4fe91",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "Evidence-backed semantic execution graph",
+        "AI knowledge layer and metadata systems",
+        "data lineage and provenance"
+      ],
+      "maturity": "established",
+      "novelty_score": 3,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Schema-Faceted Provenance Event Envelope"
+      ],
+      "candidate_patterns": [],
+      "decision": "adopt-pattern",
+      "decision_reason": "The repository provides a well-evidenced event envelope with schema-scoped facets, producer identity, parent run causality, and tested serialization/transport behavior. The reusable value is the envelope/facet mechanism, not the data-pipeline vocabulary wholesale.",
+      "revisit_reason": "Use as a baseline for typed evidence envelopes in agent execution graphs.",
+      "next_revisit_condition": "Revisit after defining Architecture Radar custom facets for evidence hashes, confidence, model/tool provenance, decisions, and human review."
+    },
+    {
+      "repository": "subsquid/squid-sdk",
+      "url": "https://github.com/subsquid/squid-sdk",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "26f7703e127604a40522449eedff3823d6183662",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "Blockchain transaction interpretation",
+        "incremental indexing",
+        "reorg-safe materialization"
+      ],
+      "maturity": "established",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high-with-gap",
+      "extracted_patterns": [
+        "Finality-Aware Hot/Cold Projection"
+      ],
+      "candidate_patterns": [],
+      "decision": "prototype",
+      "decision_reason": "Source review verified a reusable hot/cold projection contract with block-hash progress, finalized-head promotion, fork rollback, and tests for finality-only and reorg scenarios. It still needs protocol-specific interpretation and end-to-end EVM reorg validation before adoption.",
+      "revisit_reason": "Strong candidate mechanism for reorg-safe blockchain interpretation pipelines.",
+      "next_revisit_condition": "Prototype one protocol-specific decoded event projection with transaction/log/trace/block-hash provenance and a real storage-backed reorg test."
+    }
+  ]
 }
