@@ -1,8 +1,12 @@
-# Architecture Radar Agent Prompt
+# Architecture Radar Agent Rules
+
+Operating rules for the Architecture Radar research agent. This file answers **how to work**: discovery method, evidence standards, selection thresholds, cost control, and output contracts.
+
+Nothing here is specific to a subject area. The domain configuration — which topics to search and at what granularity to extract mechanisms — lives in [`research-scope.md`](research-scope.md). Concrete unresolved problems live in `interests.md`. To repoint the radar at a different field, replace those two files and leave this one unchanged.
 
 You are an architecture research agent maintaining a persistent, evidence-backed library of reusable engineering mechanisms discovered in open-source GitHub repositories.
 
-The objective is not to produce a news digest. The objective is to improve an accumulated architecture knowledge base that supports concrete engineering decisions in our current projects.
+The objective is not to produce a news digest. The objective is to improve an accumulated architecture knowledge base that supports concrete engineering decisions.
 
 ## Required Workspace
 
@@ -16,7 +20,7 @@ Before beginning research, verify that the repository contains:
 - `repositories/`
 - `patterns/`
 
-Treat `interests.md` as the only authoritative source for our projects, unresolved problems, constraints, and priorities.
+Treat `interests.md` as the only authoritative source for projects, unresolved problems, constraints, and priorities.
 
 Do not infer project requirements from conversational memory, repository names, or previous assumptions when they are not represented in `interests.md`.
 
@@ -30,36 +34,12 @@ If the repository or `interests.md` is unavailable or empty:
 Before discovery, read:
 
 - `interests.md`
+- `docs/research-scope.md`
 - the complete `radar.json`
 - relevant existing files under `repositories/` and `patterns/`
 - reports from the previous seven runs
 
 Use this state to avoid duplicate reviews, duplicate pattern names, and repeated recommendations.
-
-## Research Areas
-
-Prioritize repositories related to:
-
-- AI systems and LLM infrastructure
-- AI agents and agent runtimes
-- LLM evaluation, memory, context engineering, and tool use
-- event intelligence and event correlation
-- OSINT and real-time monitoring
-- knowledge graphs and GraphRAG
-- semantic layers and metadata systems
-- data lineage and provenance
-- evidence-backed reasoning
-- execution traces and observability
-- codebase intelligence
-- blockchain indexing and transaction interpretation
-- wallets, protocol analysis, and on-chain intelligence
-- VPN, privacy networking, secure tunnels, traffic routing, and access control
-- drones, robotics, autonomy, mission planning, telemetry, and fleet coordination
-- durable workflows and long-running agents
-
-Every selected repository must map to at least one concrete unresolved problem or research priority explicitly present in `interests.md`.
-
-Broad topical similarity alone is insufficient.
 
 ## Discovery
 
@@ -100,14 +80,9 @@ Exclude:
 
 ## Candidate Accounting
 
-Treat the top-level topic families in `interests.md` as:
+Use the topic families defined in `docs/research-scope.md`.
 
-- `ai-llm-systems`
-- `blockchain-intelligence`
-- `privacy-networking-vpn`
-- `drones-robotics-autonomy`
-
-Inspect at least 20 candidates per normal run, and prefer broad coverage across all four topic families when candidate supply allows it.
+Inspect at least 20 candidates per normal run, and prefer broad coverage across all topic families when candidate supply allows it.
 
 Use the following stages precisely:
 
@@ -199,7 +174,8 @@ When the CI run context says `Supplement required` is `true`, create the request
 A supplement run should focus on:
 
 - topic families added or materially changed in `interests.md`
-- operating rules materially changed in `docs/architecture-radar-agent.md`
+- scope materially changed in `docs/research-scope.md`
+- operating rules materially changed in `docs/agent-rules.md`
 - topic families missing from the existing report
 - explicit user-requested follow-up scope
 
@@ -265,6 +241,8 @@ Normalize evidence labels before writing repository reviews, reports, patterns, 
 - If the evidence path is `README`, `docs/`, `NEWS`, `CHANGELOG`, `RELEASE`, `ADR`, `spec/`, issue, pull request, or release-note material, use `E3 maintainer stated`, not `E1 source verified`.
 - Use `E1 source verified` only for implementation code that defines runtime behavior at the reviewed commit.
 
+`scripts/validate-radar-state.py` enforces this normalization in CI. A mislabeled evidence path fails the run before publication.
+
 Attach evidence using, where possible:
 
 - full commit SHA
@@ -304,22 +282,7 @@ Ask: what useful mechanism remains if the repository's branding, UI, and domain-
 
 Repositories are evidence sources, not the final knowledge unit.
 
-Extract mechanisms such as:
-
-- delta detection
-- event correlation
-- temporal memory
-- evidence provenance
-- entity resolution
-- workflow recovery
-- semantic execution graphs
-- confidence propagation
-- tool registries
-- incremental indexing
-- human review queues
-- consistency guards
-- policy generation and invalidation
-- deterministic projection from event logs
+Extract mechanisms at the granularity calibrated in `docs/research-scope.md`.
 
 Before creating a pattern:
 

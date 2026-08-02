@@ -37,7 +37,7 @@ Manual runs are available through `workflow_dispatch`. The optional `run_date` i
 2. Install Codex CLI from npm.
 3. Authenticate Codex with `OPENAI_API_KEY`.
 4. Create a dated branch.
-5. Run Codex against `docs/architecture-radar-agent.md`.
+5. Run Codex against `docs/agent-rules.md` plus `docs/research-scope.md`.
 6. Validate required artifacts and `radar.json`.
 7. Commit changes.
 8. Push the branch.

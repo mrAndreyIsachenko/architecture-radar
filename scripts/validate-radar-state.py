@@ -142,7 +142,8 @@ require_path("radar.json")
 require_path("reports", directory=True)
 require_path("repositories", directory=True)
 require_path("patterns", directory=True)
-require_path("docs/architecture-radar-agent.md")
+require_path("docs/agent-rules.md")
+require_path("docs/research-scope.md")
 
 if not require_path("interests.md").read_text(encoding="utf-8").strip():
     fail("interests.md is empty")

@@ -87,7 +87,7 @@ if [[ -z "$latest_report_commit" ]]; then
 fi
 
 changed_scope_files="$(
-  git diff --name-only "${latest_report_commit}..HEAD" -- interests.md docs/architecture-radar-agent.md \
+  git diff --name-only "${latest_report_commit}..HEAD" -- interests.md docs/agent-rules.md docs/research-scope.md \
     | paste -sd ',' -
 )"
 
