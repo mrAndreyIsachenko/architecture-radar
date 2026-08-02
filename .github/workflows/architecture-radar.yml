@@ -1,0 +1,67 @@
+name: Architecture Radar
+
+on:
+  schedule:
+    # GitHub cron is UTC. 05:00 UTC is 08:00 in Europe/Moscow.
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Override report date in YYYY-MM-DD format"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: architecture-radar
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      TZ: Europe/Moscow
+      CODEX_HOME: ${{ runner.temp }}/codex-home
+      CODEX_MODEL: gpt-5.5
+      ARCHITECTURE_RADAR_DATE: ${{ github.event_name == 'workflow_dispatch' && inputs.run_date || '' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex@0.146.0
+
+      - name: Authenticate Codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          mkdir -p "$CODEX_HOME"
+          printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key
+
+      - name: Prepare dated branch
+        run: scripts/prepare-radar-run.sh
+
+      - name: Run research agent
+        run: scripts/run-codex-radar.sh
+
+      - name: Validate radar artifacts
+        run: scripts/validate-radar-state.py
+
+      - name: Publish pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/publish-radar-run.sh
