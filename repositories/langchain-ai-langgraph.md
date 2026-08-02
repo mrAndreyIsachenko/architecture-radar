@@ -22,8 +22,10 @@ LangGraph informs the `Agent runtime and long-running workflows` priority in `in
 - E1 source verified: `libs/langgraph/langgraph/pregel/main.py`, `Pregel.stream` supports `values`, `updates`, `messages`, `checkpoints`, `tasks`, and `debug` stream modes plus durability modes `sync`, `async`, and `exit`.
 - E1 source verified: `libs/checkpoint/langgraph/checkpoint/memory/__init__.py`, `InMemorySaver.put` stores checkpoint payloads, metadata, parent checkpoint ID, and per-channel version blobs by `(thread_id, checkpoint_ns, channel, version)`.
 - E1 source verified: `libs/checkpoint/langgraph/checkpoint/memory/__init__.py`, `get_tuple` reconstructs checkpoints with `channel_values`, `metadata`, `pending_writes`, and `parent_config`.
+- E1 source verified: `libs/checkpoint/langgraph/checkpoint/base/__init__.py` and `libs/checkpoint/langgraph/checkpoint/serde/base.py` expose a `SerializerProtocol` and saver-level `serde`, so checkpoint serialization is structurally pluggable even though the default serializer remains an adoption concern.
 - E2 test verified: `libs/langgraph/tests/test_retry.py::test_graph_error_handler_error_context_survives_checkpoint_resume` pauses before an error handler, resumes with serialized error context, and verifies recovery.
 - E2 test verified: `libs/langgraph/tests/test_retry.py::test_graph_error_handler_does_not_swallow_interrupt_concurrent` verifies that a concurrent `interrupt()` remains pending rather than being swallowed by error handling.
+- E3 issue stated: GitHub issues #5672, #6623, and #7714 report cancellation losing streamed state before a checkpoint, mixed `thread_id` formats in `checkpoint_writes`, and checkpoint serialization overhead/validation gaps. These are not treated as source-verified facts, but they should drive adoption tests.
 
 ## Architecture
 
@@ -71,8 +73,10 @@ Hidden costs and failure modes:
 
 - `async` durability can persist while the next step executes; users must understand crash windows.
 - Checkpoint namespace/thread ID design becomes an operational contract.
+- Streamed outputs can be visible to users before they are checkpointed; adoption needs an explicit cancel/disconnect persistence policy.
+- Checkpoint serialization format affects storage cost, replay compatibility, and validation boundaries.
 - Human review and authorization policies remain application responsibilities.
 
 Adoption experiment:
 
-Build a thin adapter that maps a LangGraph checkpoint tuple into an internal evidence envelope with `step_id`, `parent_step_id`, `tool_call`, `input_hash`, `output_hash`, `decision_rationale`, and `source_refs`. Test crash/resume around a human interrupt and verify that replay can reconstruct parent-child causality.
+Build a thin adapter that maps a LangGraph checkpoint tuple into an internal evidence envelope with `step_id`, `parent_step_id`, `tool_call`, `input_hash`, `output_hash`, `decision_rationale`, and `source_refs`. Test crash/resume around a human interrupt, cancellation during streaming, and a production checkpointer with a custom serializer; verify that replay can reconstruct parent-child causality and that no user-visible streamed state disappears after cancellation.
