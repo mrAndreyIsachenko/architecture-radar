@@ -23,6 +23,10 @@ This repository is a persistent knowledge base, not a newsletter archive. Each r
 - Extract narrow reusable mechanisms, not product recommendations.
 - Update `README.md` only when the cumulative architecture radar materially changes.
 
+## Current Radar Themes
+
+- Evidence-carrying execution envelopes: checkpoint, lineage-event, and source-episode envelopes that preserve producer/schema identity, parent-child causality, recovery state, and links from derived claims back to source evidence.
+
 ## Scheduled Research
 
 The GitHub Actions workflow runs daily at 08:00 Europe/Moscow and can also be started manually from the Actions tab.

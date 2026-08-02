@@ -1,4 +1,90 @@
 {
   "schema_version": 1,
-  "repositories": []
+  "repositories": [
+    {
+      "repository": "langchain-ai/langgraph",
+      "URL": "https://github.com/langchain-ai/langgraph",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "b2926a0ff9589c28c7e01fe7cdbb337b86d5a4b4",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "execution tracing"
+      ],
+      "maturity": "adopt-mechanism",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "checkpointed human interrupt gates",
+        "durability-mode checkpoint scheduling"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a reusable mechanism for representing long-running agent workflows as typed graph state plus checkpoint metadata, parent checkpoint links, pending writes, durability modes, task streams, and interrupt/error recovery.",
+      "revisit_reason": "Review production checkpointer behavior and any post-0.6 changes to durable interrupt semantics.",
+      "next_revisit_condition": "Revisit after a material change to checkpoint storage, interrupt handling, or managed runtime semantics."
+    },
+    {
+      "repository": "OpenLineage/OpenLineage",
+      "URL": "https://github.com/OpenLineage/OpenLineage",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "13f1b0ac406bc276b3fa23445062c2f119b4fe91",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "metadata lineage",
+        "evidence provenance",
+        "semantic execution graph"
+      ],
+      "maturity": "adopt-concept",
+      "novelty_score": 3,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "facet-versioned lineage envelope",
+        "parent-run causal facet"
+      ],
+      "decision": "track",
+      "decision_reason": "The reviewed spec and client code provide a stable, versioned envelope for run/job/dataset events, producer identity, schema identity, parent runs, column lineage, and pluggable transports.",
+      "revisit_reason": "Compare with DataHub/OpenMetadata ingestion models before standardizing an internal provenance envelope.",
+      "next_revisit_condition": "Revisit when adopting lineage events for non-data workflows or when OpenLineage changes major schema versions."
+    },
+    {
+      "repository": "getzep/graphiti",
+      "URL": "https://github.com/getzep/graphiti",
+      "first_seen": "2026-08-02",
+      "last_reviewed": "2026-08-02",
+      "commit_reviewed": "7cf0cab4b43f55d768b64584ffa9829bbeec1e9d",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "knowledge graph",
+        "GraphRAG",
+        "temporal memory",
+        "evidence-backed retrieval"
+      ],
+      "maturity": "watch-mechanism",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "medium",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "episode-anchored temporal fact memory",
+        "LLM-assisted contradiction invalidation"
+      ],
+      "decision": "watch",
+      "decision_reason": "Graphiti has source evidence for episode-anchored entity/fact extraction, edge deduplication, temporal invalidation, and hybrid retrieval, but important extraction and contradiction decisions are LLM-mediated and need stronger confidence/evidence modeling before adoption.",
+      "revisit_reason": "Track whether Graphiti adds explicit confidence, evidence hashes, or deterministic validation around extracted facts.",
+      "next_revisit_condition": "Revisit after releases that add confidence scoring, provenance export, or deterministic validation of LLM-extracted facts."
+    }
+  ]
 }
