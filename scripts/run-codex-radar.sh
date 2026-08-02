@@ -23,10 +23,9 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   cat docs/architecture-radar-agent.md
 } > "$prompt_file"
 
-codex exec \
+codex --search exec \
   --cd "$PWD" \
   --model "${CODEX_MODEL:-gpt-5.5}" \
-  --search \
   --sandbox workspace-write \
   --ask-for-approval never \
   --ephemeral \
