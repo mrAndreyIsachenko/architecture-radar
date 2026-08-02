@@ -137,6 +137,30 @@ A selected repository should normally satisfy all of the following:
 - implementation depth beyond a demo or wrapper
 - a reason it is more informative than already reviewed alternatives
 
+## Revisit Discipline
+
+A repository selected for deep review enters a review cooldown for seven calendar days after its `last_reviewed` date in `radar.json`.
+
+During the cooldown:
+
+- do not select the repository for another deep review
+- do not update its repository review for minor caveats, wording improvements, or evidence that does not change the decision
+- do not use it as the primary evidence source for a new pattern
+- mention it only as prior evidence, a comparison baseline, or a deferred candidate in the daily candidate ledger
+
+If a cooldown repository appears during discovery, record the decision as `deferred-cooldown`, include its `last_reviewed` date, and continue searching for other candidates.
+
+You may revisit a cooldown repository only when at least one of these material-change triggers is present:
+
+- the user explicitly asks for a follow-up on that repository
+- a new release, tag, or default-branch commit materially changes the mechanism previously reviewed
+- a maintainer ADR, issue, pull request, or release note materially changes the known limitations or adoption decision
+- the previous review failed validation and must be corrected
+
+Every cooldown exception must be justified in the daily report with the exact trigger, URL or commit SHA, previous commit reviewed, current commit reviewed, and why the change is material.
+
+For same-day reruns, do not deep-review repositories already selected in that date's report unless a cooldown exception applies. Prefer new candidates, a diagnostic update, or no selection over repeatedly refining the same repositories.
+
 ## Source-level Review
 
 Pin every review to:
