@@ -298,6 +298,162 @@
       "decision_reason": "The chain stream, reorg threshold, and store-layer cleanup together show a durable finalized/provisional split that is directly relevant to blockchain interpretation and materialization.",
       "revisit_reason": "Revisit if the chain stream, log-store abstraction, or reorg threshold semantics materially change.",
       "next_revisit_condition": "Revisit after a material release that changes reorg handling, call-cache cleanup, or the log-store API."
+    },
+    {
+      "repository": "microsoft/agent-framework-go",
+      "URL": "https://github.com/microsoft/agent-framework-go",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "421d96b86baf8f0e307a64ce4c63fc1d5b06cd18",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "tool authorization"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "approval-gated tool loop",
+        "durable checkpoint index"
+      ],
+      "decision": "track",
+      "decision_reason": "The durable JSON checkpoint store, approval translation, and workflow resume tests provide a reusable runtime mechanism for long-running agents and human review checkpoints.",
+      "revisit_reason": "Revisit if checkpoint storage, approval semantics, or workflow resume behavior materially changes.",
+      "next_revisit_condition": "Revisit after a material change to checkpoint persistence, tool approval handling, or workflow observability."
+    },
+    {
+      "repository": "probelabs/probe",
+      "URL": "https://github.com/probelabs/probe",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "76f0843cb0221e0eb79ca4982b63c931082dd706",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "codebase intelligence",
+        "context engineering",
+        "incremental indexing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "AST-backed search plan",
+        "branch-sensitive reindexing"
+      ],
+      "decision": "track",
+      "decision_reason": "Probe combines AST-backed query planning, early ranking, and branch-aware reindexing into a reusable code intelligence mechanism that is directly relevant to context engineering.",
+      "revisit_reason": "Revisit if the query planner, branch invalidation, or extraction pipeline materially changes.",
+      "next_revisit_condition": "Revisit after a material change to search planning, ranking, or git-aware workspace invalidation."
+    },
+    {
+      "repository": "Layr-Labs/chain-indexer",
+      "URL": "https://github.com/Layr-Labs/chain-indexer",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "7d774750b49b0d8b527edc2124bb6f248f56d006",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "transaction interpretation",
+        "incremental indexing",
+        "reorg recovery"
+      ],
+      "maturity": "watch-mechanism",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "reorg-safe block reconciliation",
+        "block-history pruning window"
+      ],
+      "decision": "watch",
+      "decision_reason": "The poller, log decoding, and ancestor-walk reorg recovery path are directly relevant to blockchain interpretation, but the project still describes itself as testing-only.",
+      "revisit_reason": "Revisit if the reorg handling contract, persistence layer, or production readiness materially changes.",
+      "next_revisit_condition": "Revisit after a material change to reorg reconciliation, checkpoint persistence, or downstream sink semantics."
+    },
+    {
+      "repository": "geiserx/tailscale-rs",
+      "URL": "https://github.com/geiserx/tailscale-rs",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "ec52d873bb78f260ae6b2a71c82c63d51d9fd54c",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN",
+        "access control",
+        "network observability"
+      ],
+      "maturity": "watch-mechanism",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "fail-closed leak firewall",
+        "Go-shaped lazy tsnet facade"
+      ],
+      "decision": "watch",
+      "decision_reason": "The lazy tsnet facade and repo-local leak-firewall checks are excellent reusable mechanisms for private networking, but the fork is still WIP and requires live Tailscale credentials for full validation.",
+      "revisit_reason": "Revisit if the facade, state store, or leak-firewall checks materially change.",
+      "next_revisit_condition": "Revisit after a material change to the facade API, the guard checks, or live E2E coverage."
+    },
+    {
+      "repository": "angad7600123/Mavlink-companion-log-service",
+      "URL": "https://github.com/angad7600123/Mavlink-companion-log-service",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "8326e3366ca696632167b79826fe4afe30a1341e",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "telemetry observability",
+        "log recovery",
+        "mission workflow"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "range-tracked streaming log recovery",
+        "idle gap fill request loop"
+      ],
+      "decision": "track",
+      "decision_reason": "The byte-range session, gap-fill loop, and overlap detection provide a reusable recovery mechanism for telemetry archival and mission log retrieval.",
+      "revisit_reason": "Revisit if the download session, companion protocol, or recovery policy materially changes.",
+      "next_revisit_condition": "Revisit after a material change to range recovery, protocol budget handling, or reconnect logic."
+    },
+    {
+      "repository": "grisuno/estorides",
+      "URL": "https://github.com/grisuno/estorides",
+      "first_seen": "2026-08-05",
+      "last_reviewed": "2026-08-05",
+      "commit_reviewed": "324c2a45c9d7a9f3545b785d3c42322b77cc4449",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "OSINT",
+        "entity resolution",
+        "evidence-backed reasoning"
+      ],
+      "maturity": "track",
+      "novelty_score": 5,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "deterministic canonical identity",
+        "confidence-weighted fact fusion"
+      ],
+      "decision": "track",
+      "decision_reason": "The canonical-ID resolver plus provenance-preserving fusion store provide a reusable evidence-backed reasoning layer for OSINT and related metadata systems.",
+      "revisit_reason": "Revisit if the resolver thresholds, fusion scoring, or backend optionality materially changes.",
+      "next_revisit_condition": "Revisit after a material change to entity resolution, fusion confidence scoring, or persistence backends."
     }
   ]
 }
