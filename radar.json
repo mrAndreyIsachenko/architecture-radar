@@ -537,6 +537,133 @@
       "decision_reason": "The gateway's configuration-diff loop, interface recreation, disconnect grace period, firewall mutation, and mTLS tests provide a reusable control-plane recovery mechanism for private networking. It is more informative than a client-side VPN wrapper and directly maps to the privacy-networking priority.",
       "revisit_reason": "Revisit if the gateway reconfiguration, firewall diffing, or mTLS handshake model materially changes.",
       "next_revisit_condition": "Revisit after a material change to reconnect handling, interface recovery, or certificate validation."
+    },
+    {
+      "repository": "docling-project/docling",
+      "URL": "https://github.com/docling-project/docling",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
+      "previous_commit_reviewed": null,
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "docling/document_converter.py",
+        "docling/pipeline/standard_pdf_pipeline.py",
+        "tests/test_failed_pages.py",
+        "tests/test_threaded_pipeline.py"
+      ],
+      "operational_blockers": [
+        "broad surface",
+        "backend/model combinations still need local validation"
+      ],
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "confidence propagation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "page-number-preserving partial-success pipeline",
+        "timeout-bounded stage shutdown",
+        "confidence aggregation across page outputs"
+      ],
+      "decision": "track",
+      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The source and tests show behavior that is directly reusable in batch document-AI pipelines without adopting the broader product surface.",
+      "revisit_reason": "Revisit if the pipeline, backend adapters, or confidence aggregation semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, or backend behavior."
+    },
+    {
+      "repository": "datalab-to/marker",
+      "URL": "https://github.com/datalab-to/marker",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "e1a6226adfaab4cd573cfa96e12d60905ee38036",
+      "previous_commit_reviewed": null,
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "marker/converters/pdf.py",
+        "marker/builders/document.py",
+        "marker/builders/layout.py",
+        "marker/builders/ocr.py",
+        "marker/processors/table.py",
+        "tests/builders/test_document_builder.py",
+        "tests/processors/test_table_processor.py"
+      ],
+      "operational_blockers": [
+        "external model services",
+        "heuristic thresholds need workload-specific validation"
+      ],
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR fallback"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "pdftext-first table reconstruction with OCR fallback",
+        "repeat-loop HTML scrubbing",
+        "balanced/fast layout split"
+      ],
+      "decision": "track",
+      "decision_reason": "Marker provides a reusable pdftext-first document pipeline with deferred high-resolution promotion, table reconstruction from the text layer, OCR fallback, and output scrubbing. That combination is directly relevant to layout-aware extraction and document-AI guardrails.",
+      "revisit_reason": "Revisit if the mode split, high-res promotion, or table/OCR fallback changes materially.",
+      "next_revisit_condition": "Revisit after a material change to page promotion, table heuristics, repeat-loop cleanup, or external model integration."
+    },
+    {
+      "repository": "baidu/Unlimited-OCR",
+      "URL": "https://github.com/baidu/Unlimited-OCR",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "d49ff64afffc1f47ab563dc1c589bc2f78808fa4",
+      "previous_commit_reviewed": null,
+      "artifact_type": "model",
+      "external_artifacts": [
+        "https://huggingface.co/baidu/Unlimited-OCR",
+        "https://arxiv.org/abs/2606.23050",
+        "https://recipes.vllm.ai/baidu/Unlimited-OCR"
+      ],
+      "runtime_paths": [
+        "README.md",
+        "infer.py"
+      ],
+      "operational_blockers": [
+        "thin source surface",
+        "repetition-loop issues are still reported in open GitHub issues",
+        "adoption depends on companion runtime support"
+      ],
+      "categories": [
+        "document parsing",
+        "model release",
+        "runtime adapter"
+      ],
+      "maturity": "watch-mechanism",
+      "novelty_score": 5,
+      "relevance_score": 4,
+      "evidence_quality": "medium",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "constant-KV long-horizon parsing",
+        "vLLM batch inference surface",
+        "repeat-output mitigation"
+      ],
+      "decision": "watch",
+      "decision_reason": "The repository is a high-signal model release with runtime support links, but the inspectable source remains thin and the known operational issues are still centered on repetition loops and deployment-specific inference behavior. It is better treated as a watch-model than a deep source review.",
+      "revisit_reason": "Revisit if the repository gains deeper runtime code, a companion adapter, or a material release note resolving repeated-output failures.",
+      "next_revisit_condition": "Revisit after a new runtime adapter, a substantive source rewrite, or issue/release evidence that changes the deployment picture."
     }
   ]
 }
