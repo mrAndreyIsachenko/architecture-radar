@@ -11,6 +11,37 @@ ROOT = Path.cwd()
 RUN_DATE = os.environ.get("ARCHITECTURE_RADAR_RUN_DATE")
 SUPPLEMENT_REQUIRED = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REQUIRED", "").lower()
 SUPPLEMENT_REPORT = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT", "")
+WATCHLIST_SCALAR_FIELDS = {
+    "repository",
+    "url",
+    "family",
+    "artifact_type",
+    "priority",
+    "status",
+    "review_mode",
+    "reason",
+}
+WATCHLIST_LIST_FIELDS = {"external_artifacts", "search_terms"}
+WATCHLIST_ALLOWED_ARTIFACT_TYPES = {
+    "repository",
+    "model",
+    "dataset",
+    "benchmark",
+    "runtime-adapter",
+    "paper",
+    "recipe",
+}
+WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
+WATCHLIST_ALLOWED_STATUSES = {"pending", "watch", "triaged", "reviewed", "deferred", "closed"}
+WATCHLIST_ALLOWED_REVIEW_MODES = {
+    "deep-review",
+    "source-inspect",
+    "triage-only",
+    "watch-model",
+    "watch-dataset",
+    "watch-benchmark",
+    "watch-runtime",
+}
 
 
 def fail(message: str) -> None:
@@ -137,7 +168,142 @@ def validate_evidence_labels() -> None:
                     )
 
 
+def clean_yaml_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
+
+
+def topic_families() -> set[str]:
+    scope = require_path("docs/research-scope.md").read_text(encoding="utf-8")
+    families: set[str] = set()
+    in_section = False
+
+    for line in scope.splitlines():
+        if line.startswith("## "):
+            in_section = line == "## Topic Families"
+            continue
+        if not in_section:
+            continue
+        match = re.match(r"- `([^`]+)`", line)
+        if match:
+            families.add(match.group(1))
+
+    if not families:
+        fail("docs/research-scope.md has no topic families")
+    return families
+
+
+def validate_watchlist() -> None:
+    path = require_path("watchlist.yml")
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        fail("watchlist.yml is empty")
+    if "\t" in text:
+        fail("watchlist.yml must use spaces, not tabs")
+
+    entries: list[dict[str, object]] = []
+    current: dict[str, object] | None = None
+    current_list_key: str | None = None
+    saw_entries = False
+
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+        if raw_line == "entries:":
+            saw_entries = True
+            current_list_key = None
+            continue
+
+        if not saw_entries:
+            fail(f"watchlist.yml:{line_number} expected top-level `entries:` before entries")
+
+        if raw_line.startswith("  - "):
+            if current is not None:
+                entries.append(current)
+            current = {}
+            current_list_key = None
+            payload = raw_line[4:]
+            if ": " not in payload:
+                fail(f"watchlist.yml:{line_number} expected `key: value` after list marker")
+            key, value = payload.split(": ", 1)
+            if key not in WATCHLIST_SCALAR_FIELDS:
+                fail(f"watchlist.yml:{line_number} unsupported watchlist field: {key}")
+            current[key] = clean_yaml_scalar(value)
+            continue
+
+        if current is None:
+            fail(f"watchlist.yml:{line_number} expected a watchlist entry")
+
+        if raw_line.startswith("    ") and not raw_line.startswith("      "):
+            payload = raw_line[4:]
+            if payload.endswith(":"):
+                key = payload[:-1]
+                if key not in WATCHLIST_LIST_FIELDS:
+                    fail(f"watchlist.yml:{line_number} unsupported watchlist list field: {key}")
+                current[key] = []
+                current_list_key = key
+                continue
+            if ": " not in payload:
+                fail(f"watchlist.yml:{line_number} expected `key: value`")
+            key, value = payload.split(": ", 1)
+            if key not in WATCHLIST_SCALAR_FIELDS:
+                fail(f"watchlist.yml:{line_number} unsupported watchlist field: {key}")
+            current[key] = clean_yaml_scalar(value)
+            current_list_key = None
+            continue
+
+        if raw_line.startswith("      - "):
+            if current_list_key is None:
+                fail(f"watchlist.yml:{line_number} list item without a list field")
+            list_value = current.get(current_list_key)
+            if not isinstance(list_value, list):
+                fail(f"watchlist.yml:{line_number} invalid list field: {current_list_key}")
+            list_value.append(clean_yaml_scalar(raw_line[8:]))
+            continue
+
+        fail(f"watchlist.yml:{line_number} unsupported indentation or syntax")
+
+    if current is not None:
+        entries.append(current)
+    if not saw_entries:
+        fail("watchlist.yml is missing top-level `entries:`")
+    if not entries:
+        fail("watchlist.yml must contain at least one entry")
+
+    families = topic_families()
+    required = {"repository", "family", "artifact_type", "priority", "status", "review_mode", "reason"}
+
+    for index, entry in enumerate(entries, start=1):
+        missing = required - set(entry)
+        if missing:
+            fail(f"watchlist.yml entry {index} missing required fields: {', '.join(sorted(missing))}")
+        repository = str(entry["repository"])
+        if not re.fullmatch(r"[^/\s]+/[^/\s]+", repository):
+            fail(f"watchlist.yml entry {index} has invalid repository: {repository}")
+        family = str(entry["family"])
+        if family not in families:
+            fail(f"watchlist.yml entry {index} has unknown family: {family}")
+        artifact_type = str(entry["artifact_type"])
+        if artifact_type not in WATCHLIST_ALLOWED_ARTIFACT_TYPES:
+            fail(f"watchlist.yml entry {index} has unsupported artifact_type: {artifact_type}")
+        priority = str(entry["priority"])
+        if priority not in WATCHLIST_ALLOWED_PRIORITIES:
+            fail(f"watchlist.yml entry {index} has unsupported priority: {priority}")
+        status = str(entry["status"])
+        if status not in WATCHLIST_ALLOWED_STATUSES:
+            fail(f"watchlist.yml entry {index} has unsupported status: {status}")
+        review_mode = str(entry["review_mode"])
+        if review_mode not in WATCHLIST_ALLOWED_REVIEW_MODES:
+            fail(f"watchlist.yml entry {index} has unsupported review_mode: {review_mode}")
+        reason = str(entry["reason"]).strip()
+        if len(reason) < 20:
+            fail(f"watchlist.yml entry {index} reason is too short")
+
+
 require_path("interests.md")
+require_path("watchlist.yml")
 require_path("radar.json")
 require_path("reports", directory=True)
 require_path("repositories", directory=True)
@@ -178,5 +344,6 @@ if SUPPLEMENT_REQUIRED in {"1", "true", "yes", "on"}:
         fail(f"supplement report is empty: {supplement_path}")
 
 validate_evidence_labels()
+validate_watchlist()
 
 print("radar artifacts validated")

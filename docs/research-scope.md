@@ -84,3 +84,14 @@ Document AI / OCR / multimodal evidence ingestion:
 - `Layout-Parser/layout-parser`
 
 When a seed is model-heavy or benchmark-heavy rather than source-heavy, apply the model/research release watch rules in `docs/agent-rules.md` instead of forcing a deep review.
+
+## Watchlist
+
+`watchlist.yml` is the explicit override for repositories or adjacent artifacts that broad discovery must not miss. The watchlist is for high-signal items that may fail normal discovery because they lack GitHub Releases, topics, large source trees, or obvious architecture keywords.
+
+Watchlist entries are not automatic recommendations. They force accounting:
+
+- inspect or explicitly defer the entry;
+- record the exact decision in the candidate ledger;
+- use `watch-model`, `watch-dataset`, `watch-benchmark`, or `watch-runtime` when source-level deep review is not the right unit;
+- prefer companion runtime/eval/adapter repositories when the primary repository is model-heavy.
