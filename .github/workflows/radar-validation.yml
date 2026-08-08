@@ -1,0 +1,44 @@
+name: Radar Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radar-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check script syntax
+        run: |
+          bash -n scripts/check-radar-cadence.sh
+          bash -n scripts/check-radar-rerun.sh
+          bash -n scripts/prepare-radar-run.sh
+          bash -n scripts/publish-radar-run.sh
+          bash -n scripts/run-codex-radar.sh
+          python3 -m py_compile scripts/validate-radar-state.py
+
+      - name: Check changed-file whitespace
+        if: github.event_name == 'pull_request'
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+
+      - name: Validate radar artifacts
+        env:
+          ARCHITECTURE_RADAR_BASE_REF: ${{ github.base_ref }}
+        run: scripts/validate-radar-state.py

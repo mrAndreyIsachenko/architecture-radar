@@ -61,6 +61,21 @@ def require_path(path: str, *, directory: bool = False) -> Path:
 
 def changed_artifact_files() -> list[Path]:
     names: set[str] = set()
+    base_ref = os.environ.get("ARCHITECTURE_RADAR_BASE_REF") or os.environ.get("GITHUB_BASE_REF")
+    diff_range = ["HEAD"]
+
+    if base_ref:
+        remote_base = f"origin/{base_ref}"
+        try:
+            subprocess.run(
+                ["git", "rev-parse", "--verify", remote_base],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            remote_base = base_ref
+        diff_range = [f"{remote_base}...HEAD"]
 
     try:
         diff_result = subprocess.run(
@@ -69,7 +84,7 @@ def changed_artifact_files() -> list[Path]:
                 "diff",
                 "--name-only",
                 "--diff-filter=ACMRT",
-                "HEAD",
+                *diff_range,
                 "--",
                 "reports",
                 "repositories",
