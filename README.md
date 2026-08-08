@@ -166,6 +166,7 @@ Mechanisms extracted so far, each backed by two or more independent implementati
 
 - **[Evidence-carrying execution envelopes](patterns/evidence-carrying-execution-envelopes.md)** — checkpoint, lineage-event, and source-episode envelopes preserving producer and schema identity, parent-child causality, recovery state, and links from derived claims back to source evidence.
 - **[Reorg-safe materialization windows](patterns/reorg-safe-materialization-windows.md)** — provisional/finalized block splits with explicit rollback and catchup paths, keeping blockchain indexes recoverable after chain reorganizations.
+- **[Deferred image materialization](patterns/deferred-image-materialization.md)** — lowres-first document parsing that promotes expensive page images or crops only after structural decisions prove they are needed.
 
 ## Operating principles
 
