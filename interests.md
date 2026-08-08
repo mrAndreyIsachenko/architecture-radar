@@ -7,6 +7,7 @@ This file is the authoritative source for Architecture Radar research priorities
 The radar should cast a wider net than the initial project list. Repositories may be relevant when they expose reusable engineering mechanisms in:
 
 - AI systems, LLM infrastructure, agents, evaluation, memory, context engineering, and tool use.
+- Document AI, OCR, VLM document parsing, layout extraction, PDF/table/form parsing, and multimodal evidence ingestion.
 - Blockchain indexing, transaction interpretation, wallets, protocol analysis, and on-chain intelligence.
 - VPN, privacy networking, secure tunnels, traffic routing, access control, censorship resistance, and network observability.
 - Drones, robotics, autonomy, fleet coordination, mission planning, telemetry, ground control, perception, and safety/recovery systems.
@@ -16,6 +17,7 @@ Broad topical relevance is not enough. A selected repository still needs an insp
 Use these top-level topic families for candidate accounting and per-topic selection:
 
 - `ai-llm-systems`: AI agents, LLM infrastructure, evaluation, memory, context engineering, knowledge layers, event intelligence, OSINT, metadata, lineage, observability, and codebase intelligence.
+- `document-ai-ocr`: OCR, document AI, VLM document parsing, layout extraction, PDF/table/form parsing, multimodal evidence ingestion, and document extraction evaluation.
 - `blockchain-intelligence`: blockchain indexing, transaction interpretation, wallets, protocol analysis, address/entity attribution, and on-chain intelligence.
 - `privacy-networking-vpn`: VPN, private networking, secure tunnels, mesh networking, traffic routing, access control, censorship resistance, and network observability.
 - `drones-robotics-autonomy`: drones, robotics, autonomy, mission planning, telemetry, ground control, perception, fleet coordination, safety, and recovery systems.
@@ -76,6 +78,38 @@ Avoid:
 - Unverifiable narrative summaries.
 - Graph models that cannot preserve source evidence.
 - Systems that require all execution to happen inside one proprietary runtime.
+
+### Document AI, OCR, and multimodal evidence ingestion
+
+We need mechanisms for turning PDFs, scans, screenshots, tables, forms, and long documents into evidence that downstream LLM, OSINT, metadata, and knowledge-graph systems can trust.
+
+Open problems:
+
+- Parse long, multi-page, multilingual, or layout-heavy documents while preserving page, region, reading-order, table, and figure provenance.
+- Convert OCR/layout outputs into evidence records with source file hashes, page spans, bounding regions, confidence, model/runtime version, and extraction settings.
+- Evaluate document parsing quality on representative PDFs, scans, tables, forms, screenshots, and degraded inputs.
+- Detect hallucinated OCR text, repetition loops, dropped rotated text, broken markdown/table structure, and partial-page failures.
+- Run document parsing models reproducibly across inference backends such as Transformers, vLLM, SGLang, llama.cpp, cloud APIs, and local GPU/CPU/MPS/ROCm setups.
+- Support batch processing, resumability, cleanup, retry, and memory/VRAM control for large document sets.
+
+Useful mechanisms:
+
+- VLM/OCR document parsers.
+- Layout-aware extraction and reading-order reconstruction.
+- Page/region provenance and confidence propagation.
+- Structured Markdown/JSON/table extraction.
+- OCR and document parsing eval harnesses.
+- Repetition guardrails and output sanity checks.
+- Batch/resumable PDF processing.
+- Runtime adapters for vLLM, SGLang, Transformers, Ollama, llama.cpp, ModelScope, and Hugging Face.
+
+Avoid:
+
+- Demo notebooks with no reusable parsing, batching, or evaluation mechanism.
+- Cloud API wrappers with no provenance or failure handling.
+- Model announcements with no runnable inference path, issue evidence, or operational constraints.
+- OCR outputs that cannot be tied back to source pages, regions, model versions, and confidence.
+- Benchmarks without data, prompts/settings, scoring logic, or reproducible harnesses.
 
 ### Blockchain transaction interpretation
 
