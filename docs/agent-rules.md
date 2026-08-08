@@ -49,6 +49,8 @@ Discover repositories through a mix of:
 - topic pages
 - recently updated repositories
 - release activity
+- README release logs, model-card release logs, and announcement commits when a project does not use GitHub Releases
+- model hubs and adjacent artifacts such as Hugging Face, ModelScope, Papers with Code, arXiv, and official runtime recipes when they point back to inspectable GitHub repositories
 - dependency and reverse-dependency links
 - references in issues, ADRs, papers, and documentation
 - repositories cited by previously reviewed projects
@@ -65,6 +67,7 @@ Prefer candidates showing several of the following:
 - substantive tests
 - architectural documentation or ADRs
 - unusual, reusable engineering decisions
+- notable model, dataset, benchmark, or runtime releases that materially affect a problem in `interests.md`, even when the repository is not itself architecture-heavy
 - direct relevance to `interests.md`
 
 Exclude:
@@ -109,6 +112,19 @@ Record every triaged candidate in the daily candidate ledger with:
 - rejection or deferral reason
 
 Do not state candidate totals that are not represented in this ledger.
+
+### Model And Research Release Watch
+
+Some important repositories are model releases, datasets, benchmarks, or inference recipes rather than architecture-heavy software projects. They can still matter when they materially change an evidence-ingestion, evaluation, context-construction, OCR/document-parsing, or runtime capability named in `interests.md`.
+
+Handle these explicitly instead of letting them disappear between discovery and deep review:
+
+- If a release has strong adoption or relevance signals but thin source code, carry it at least to `triaged` when it maps to `interests.md`.
+- Use decisions such as `watch-model`, `watch-dataset`, `watch-benchmark`, or `deferred-model-release` when the artifact matters but does not clear the source-level review bar.
+- Record concrete evidence in the candidate ledger: repository URL, commit SHA, release/model-card date, linked model hub or paper, runtime paths, eval claims, issue signals, and operational blockers.
+- Do not deep-review a model release merely because it is popular. Deep review requires an inspectable engineering mechanism such as batching, resumability, runtime integration, eval harnesses, provenance capture, safety checks, or deployment recovery.
+- When a model release exposes important failure modes through issues or pull requests, record those as `E3 maintainer stated` unless verified in source or tests.
+- Prefer inspecting companion runtime, container, eval, or adapter repositories when the primary model repository has too little implementation code.
 
 ## Selection
 

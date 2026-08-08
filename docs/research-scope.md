@@ -11,6 +11,7 @@ The operating rules — how to discover, verify, and record findings — live in
 Use these families for candidate accounting and per-topic selection. They match the families defined in `interests.md`:
 
 - `ai-llm-systems`
+- `document-ai-ocr`
 - `blockchain-intelligence`
 - `privacy-networking-vpn`
 - `drones-robotics-autonomy`
@@ -22,6 +23,8 @@ Prioritize repositories related to:
 - AI systems and LLM infrastructure
 - AI agents and agent runtimes
 - LLM evaluation, memory, context engineering, and tool use
+- document AI, OCR, VLM document parsing, layout extraction, PDF/table/form parsing, and multimodal evidence ingestion
+- OCR/document parsing model releases, runtime adapters, eval harnesses, and deployment failure modes
 - event intelligence and event correlation
 - OSINT and real-time monitoring
 - knowledge graphs and GraphRAG
@@ -48,6 +51,8 @@ Examples of the abstraction level worth extracting. Not a checklist — a calibr
 - event correlation
 - temporal memory
 - evidence provenance
+- page and region provenance
+- layout-aware extraction
 - entity resolution
 - workflow recovery
 - semantic execution graphs
@@ -58,5 +63,24 @@ Examples of the abstraction level worth extracting. Not a checklist — a calibr
 - consistency guards
 - policy generation and invalidation
 - deterministic projection from event logs
+- model release watchlists when a model materially changes an evidence-ingestion capability
 
 A mechanism at this level survives removal of the repository's branding, UI, and product domain. A finding that does not survive that removal is a product observation, not a mechanism.
+
+## Discovery Seeds
+
+Use these as search anchors and comparison baselines, not as automatic selections.
+
+Document AI / OCR / multimodal evidence ingestion:
+
+- `baidu/Unlimited-OCR`
+- `deepseek-ai/DeepSeek-OCR`
+- `PaddlePaddle/PaddleOCR`
+- `studio-dots-ai/dots.ocr`
+- `allenai/olmocr`
+- `ds4sd/docling`
+- `datalab-to/marker`
+- `run-llama/ParseBench`
+- `Layout-Parser/layout-parser`
+
+When a seed is model-heavy or benchmark-heavy rather than source-heavy, apply the model/research release watch rules in `docs/agent-rules.md` instead of forcing a deep review.
