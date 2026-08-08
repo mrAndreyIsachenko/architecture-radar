@@ -39,6 +39,8 @@ The predictable failure is label inflation — the model reads a README, and `E1
 
 No model grades another model here. It is path classification, and it runs in CI.
 
+The scheduled research workflow validates artifacts before it can publish a PR. The separate `Radar Validation` workflow runs the same deterministic checks on pull requests without Codex, OpenAI credentials, or repository write permissions.
+
 ### 2. The agent cannot publish
 
 The research step runs with `--dangerously-bypass-approvals-and-sandbox`, so it has full reign over the runner filesystem. It has no route to the repository.
@@ -132,7 +134,7 @@ Patterns require independent convergence. One repository doing something interes
 
 Worth stating precisely, since the distinction is the whole point.
 
-**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and non-emptiness, the commit path allowlist, and the absence of a GitHub token during the agent step.
+**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and non-emptiness, script syntax, changed-file whitespace, the commit path allowlist, and the absence of a GitHub token during the agent step.
 
 **Instructed in the prompt only** — pinning SHAs, honest candidate accounting, cost discipline, selecting zero, not reading CI credentials. Nothing mechanically stops the agent from ignoring these; pull request review is the backstop.
 
