@@ -1,0 +1,22 @@
+# Repositories or adjacent artifacts that the radar must not miss.
+#
+# This is an input to discovery, not a generated artifact. Keep entries
+# focused on things that are easy for broad search queries to miss.
+
+entries:
+  - repository: baidu/Unlimited-OCR
+    url: https://github.com/baidu/Unlimited-OCR
+    family: document-ai-ocr
+    artifact_type: model
+    priority: high
+    status: pending
+    review_mode: watch-model
+    reason: Long-horizon OCR/model release; inspect inference paths, runtime adapters, provenance gaps, and operational failure modes.
+    external_artifacts:
+      - https://huggingface.co/baidu/Unlimited-OCR
+      - https://arxiv.org/abs/2606.23050
+      - https://recipes.vllm.ai/baidu/Unlimited-OCR
+    search_terms:
+      - Unlimited-OCR
+      - long-horizon OCR
+      - VLM document parsing

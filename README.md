@@ -63,7 +63,7 @@ Two guards decide whether to spend tokens at all, both before the expensive step
 
 [`check-radar-cadence.sh`](scripts/check-radar-cadence.sh) — the workflow wakes daily, but research fires every third day, computed against a fixed anchor date. A daily cron with a cheap gate is easier to reason about than a cron expression encoding the real cadence.
 
-[`check-radar-rerun.sh`](scripts/check-radar-rerun.sh) — the more interesting one. When today's report already exists, it finds the commit that last touched it and diffs `interests.md`, `docs/agent-rules.md`, and `docs/research-scope.md` from that commit to `HEAD`:
+[`check-radar-rerun.sh`](scripts/check-radar-rerun.sh) — the more interesting one. When today's report already exists, it finds the commit that last touched it and diffs `interests.md`, `watchlist.yml`, `docs/agent-rules.md`, and `docs/research-scope.md` from that commit to `HEAD`:
 
 - nothing changed → skip, spend nothing
 - priorities or the operating prompt changed → run a **supplement**, scoped to the families the change affected
@@ -97,7 +97,8 @@ problem in interests.md → observed mechanism → source evidence → proposed 
         ├── prepare dated branch      [deterministic]
         │
         ├── research agent            [model — no GH token, unsandboxed]
-        │      reads  docs/agent-rules.md + docs/research-scope.md
+        │      reads  interests.md + watchlist.yml
+        │             docs/agent-rules.md + docs/research-scope.md
         │      writes reports/ repositories/ patterns/ radar.json
         │
         ├── validate artifacts        [deterministic — fails the run on inflated evidence]
@@ -112,6 +113,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | Path | Role |
 |---|---|
 | `interests.md` | authoritative research priorities and open problems — findings must tie to these, not to inferred needs |
+| `watchlist.yml` | explicit high-signal repositories or model/dataset/runtime artifacts that discovery must account for even when broad queries miss them |
 | `docs/agent-rules.md` | the machine: discovery method, candidate accounting, selection thresholds, evidence discipline, quality bar — domain-independent |
 | `docs/research-scope.md` | the domain: topic families, research areas, extraction granularity — replace this to repoint the radar |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
@@ -130,7 +132,7 @@ Patterns require independent convergence. One repository doing something interes
 
 Worth stating precisely, since the distinction is the whole point.
 
-**Enforced in CI** — evidence label consistency, required workspace files, `radar.json` schema, report presence and non-emptiness, the commit path allowlist, and the absence of a GitHub token during the agent step.
+**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and non-emptiness, the commit path allowlist, and the absence of a GitHub token during the agent step.
 
 **Instructed in the prompt only** — pinning SHAs, honest candidate accounting, cost discipline, selecting zero, not reading CI credentials. Nothing mechanically stops the agent from ignoring these; pull request review is the backstop.
 
@@ -150,11 +152,11 @@ Repository setup:
 
 The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override recurring runs with the `ARCHITECTURE_RADAR_CODEX_MODEL` repository variable, or override a single run from the Actions tab — useful when one follow-up justifies a larger model.
 
-Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md` or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
+Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
 
 ## Adapting it
 
-The research domain is the least interesting part, and it is deliberately isolated in two files. To point this at something else, replace `interests.md` with your own unresolved problems and `docs/research-scope.md` with your own topic areas. Leave `docs/agent-rules.md` and `scripts/` untouched — that is the machine.
+The research domain is the least interesting part, and it is deliberately isolated in three files. To point this at something else, replace `interests.md` with your own unresolved problems, `watchlist.yml` with things broad discovery must not miss, and `docs/research-scope.md` with your own topic areas. Leave `docs/agent-rules.md` and `scripts/` untouched — that is the machine.
 
 The parts worth keeping intact: the evidence taxonomy and its validator, the token and path boundary in the publish script, the input-diff rerun guard, and the rule that an empty result is a legitimate one.
 

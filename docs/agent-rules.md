@@ -15,6 +15,7 @@ Perform all work inside the configured Architecture Radar GitHub repository.
 Before beginning research, verify that the repository contains:
 
 - `interests.md`
+- `watchlist.yml`
 - `radar.json`
 - `reports/`
 - `repositories/`
@@ -34,6 +35,7 @@ If the repository or `interests.md` is unavailable or empty:
 Before discovery, read:
 
 - `interests.md`
+- `watchlist.yml`
 - `docs/research-scope.md`
 - the complete `radar.json`
 - relevant existing files under `repositories/` and `patterns/`
@@ -45,6 +47,7 @@ Use this state to avoid duplicate reviews, duplicate pattern names, and repeated
 
 Discover repositories through a mix of:
 
+- required watchlist entries from `watchlist.yml`
 - GitHub code and repository search
 - topic pages
 - recently updated repositories
@@ -87,6 +90,8 @@ Use the topic families defined in `docs/research-scope.md`.
 
 Inspect at least 20 candidates per normal run, and prefer broad coverage across all topic families when candidate supply allows it.
 
+Process `watchlist.yml` before broad discovery. Every active watchlist entry must appear in the candidate ledger unless it is already in cooldown, already reviewed at the same or newer commit, or inaccessible. If an entry is skipped, record the exact skip reason in the daily report.
+
 Use the following stages precisely:
 
 - `discovered`: the repository appeared in a discovery source.
@@ -111,6 +116,14 @@ Record every triaged candidate in the daily candidate ledger with:
 - decision
 - rejection or deferral reason
 
+For watchlist candidates, also record:
+
+- `watchlist_priority`
+- `artifact_type`
+- `review_mode`
+- linked external artifacts when relevant
+- whether the entry was satisfied by `selected`, `watch-model`, `deferred-model-release`, `deferred-cooldown`, or `inaccessible`
+
 Do not state candidate totals that are not represented in this ledger.
 
 ### Model And Research Release Watch
@@ -125,6 +138,8 @@ Handle these explicitly instead of letting them disappear between discovery and 
 - Do not deep-review a model release merely because it is popular. Deep review requires an inspectable engineering mechanism such as batching, resumability, runtime integration, eval harnesses, provenance capture, safety checks, or deployment recovery.
 - When a model release exposes important failure modes through issues or pull requests, record those as `E3 maintainer stated` unless verified in source or tests.
 - Prefer inspecting companion runtime, container, eval, or adapter repositories when the primary model repository has too little implementation code.
+
+Watchlist entries with `review_mode: watch-model`, `watch-dataset`, `watch-benchmark`, or `watch-runtime` do not have to become deep reviews. They do have to become explicit ledger rows with a concrete decision and evidence-backed reason.
 
 ## Selection
 
@@ -339,6 +354,8 @@ Create `reports/YYYY-MM-DD.md` containing:
 
 - run prerequisites and repository state
 - candidate counts by stage
+- candidate counts by topic family and artifact type
+- watchlist coverage and unsatisfied watchlist entries
 - candidate ledger
 - selected repositories
 - concise executive summary
@@ -369,6 +386,10 @@ Update `radar.json` using stable structured fields:
 
 - repository
 - URL
+- artifact_type
+- external_artifacts
+- runtime_paths
+- operational_blockers
 - first_seen
 - last_reviewed
 - commit_reviewed
