@@ -454,6 +454,89 @@
       "decision_reason": "The canonical-ID resolver plus provenance-preserving fusion store provide a reusable evidence-backed reasoning layer for OSINT and related metadata systems.",
       "revisit_reason": "Revisit if the resolver thresholds, fusion scoring, or backend optionality materially changes.",
       "next_revisit_condition": "Revisit after a material change to entity resolution, fusion confidence scoring, or persistence backends."
+    },
+    {
+      "repository": "intuit/infigraph",
+      "URL": "https://github.com/intuit/infigraph",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "cf0c1fcda3137e17472f9e624a3677a856cc06a8",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "codebase intelligence",
+        "context engineering",
+        "incremental indexing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "content-hash incremental graph rebuild",
+        "lock-aware graph reopen",
+        "confidence-decayed session dedup"
+      ],
+      "decision": "track",
+      "decision_reason": "The source shows a reusable code-graph indexing flow with hash-skipping rebuilds, cross-file resolution, stale-file pruning, lock-aware reopen, and session-level deduplication. That directly informs codebase intelligence and context-construction problems in interests.md.",
+      "revisit_reason": "Revisit if the graph backend, lock handling, or session compression semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to incremental indexing, backend recovery, or session dedup/compression behavior."
+    },
+    {
+      "repository": "DarshanKumar89/chainfoundry",
+      "URL": "https://github.com/DarshanKumar89/chainfoundry",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "090279cb7acb35b52803c711e353d91c85fa6bd4",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "checkpointing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "sliding reorg window",
+        "checkpoint interval save",
+        "explicit reorg state machine"
+      ],
+      "decision": "track",
+      "decision_reason": "ChainFoundry adds a reusable sliding-window tracker, explicit reorg classification, checkpoint persistence, and segmented backfill execution. It is a clean third implementation of the same rollback-window mechanism already in the radar.",
+      "revisit_reason": "Revisit if the checkpoint store, backfill scheduling, or reorg classification model materially changes.",
+      "next_revisit_condition": "Revisit after a material change to reorg detection, checkpoint cadence, or storage backend semantics."
+    },
+    {
+      "repository": "DefGuard/gateway",
+      "URL": "https://github.com/DefGuard/gateway",
+      "first_seen": "2026-08-08",
+      "last_reviewed": "2026-08-08",
+      "commit_reviewed": "ebac60b5a36ae38b537e3b7af45aa85ad3c785fb",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN",
+        "access control",
+        "gateway recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "disconnect-safe interface rehydration",
+        "config-diff firewall mutation",
+        "serial-pinned mTLS gateway"
+      ],
+      "decision": "track",
+      "decision_reason": "The gateway's configuration-diff loop, interface recreation, disconnect grace period, firewall mutation, and mTLS tests provide a reusable control-plane recovery mechanism for private networking. It is more informative than a client-side VPN wrapper and directly maps to the privacy-networking priority.",
+      "revisit_reason": "Revisit if the gateway reconfiguration, firewall diffing, or mTLS handshake model materially changes.",
+      "next_revisit_condition": "Revisit after a material change to reconnect handling, interface recovery, or certificate validation."
     }
   ]
 }
