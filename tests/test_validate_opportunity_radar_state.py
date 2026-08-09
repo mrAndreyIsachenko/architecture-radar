@@ -21,9 +21,17 @@ spec.loader.exec_module(validator)
 def complete_report(selected: bool = True) -> str:
     selected_text = "- Agent trace debugging for small teams, backed by `M2 repeated pain`."
     reviews = "The opportunity has repeated public issue evidence. `M2 repeated pain`."
+    build_readiness = "\n".join(
+        [
+            "| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |",
+            "|---|---|---|---|---|---|---|---|---|",
+            "| Agent trace debugging | Teams pay to reduce engineering time spent reconstructing failed agent runs. | CLI installed from GitHub or PyPI and run locally against exported traces. | `public-only` | `medium` | `cli` | `team` | Three teams agree to run the audit on real traces or one team asks for a paid follow-up. | `selected-for-test` |",
+        ]
+    )
     if not selected:
         selected_text = "None."
         reviews = "No selected opportunities."
+        build_readiness = "None."
 
     sections = {
         "Prerequisites And State": "- workspace verified",
@@ -38,6 +46,7 @@ def complete_report(selected: bool = True) -> str:
             ]
         ),
         "Opportunity Reviews": reviews,
+        "Build Readiness": build_readiness,
         "Recommended Next Test": "Interview three teams and offer a trace-debugging report.",
         "Rejected Or Deferred Signals": "- None.",
         "Evidence Gaps": "- No paid demand yet.",
@@ -133,6 +142,40 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 self.assertRaises(SystemExit),
             ):
                 validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_build_readiness(self) -> None:
+        bad_report = complete_report().replace(
+            "## Build Readiness\n\n"
+            "| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |\n"
+            "|---|---|---|---|---|---|---|---|---|\n"
+            "| Agent trace debugging | Teams pay to reduce engineering time spent reconstructing failed agent runs. | CLI installed from GitHub or PyPI and run locally against exported traces. | `public-only` | `medium` | `cli` | `team` | Three teams agree to run the audit on real traces or one team asks for a paid follow-up. | `selected-for-test` |\n\n",
+            "",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_build_readiness_rejects_selected_with_private_data_barrier(self) -> None:
+        readiness = "\n".join(
+            [
+                "| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |",
+                "|---|---|---|---|---|---|---|---|---|",
+                "| Agent trace debugging | Teams pay to reduce engineering time spent reconstructing failed agent runs. | CLI installed from GitHub or PyPI and run locally against exported traces. | `private-data-required` | `medium` | `cli` | `team` | Three teams agree to run the audit on real traces or one team asks for a paid follow-up. | `selected-for-test` |",
+            ]
+        )
+
+        with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+            validator.validate_build_readiness_table(ROOT / "opportunity-reports" / "test.md", readiness)
 
     def test_label_text_rejects_architecture_evidence_labels(self) -> None:
         with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):

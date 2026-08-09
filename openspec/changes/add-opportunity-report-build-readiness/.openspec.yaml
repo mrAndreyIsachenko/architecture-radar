@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Require Opportunity Radar reports to expose build-readiness fields in a
+  reviewable table.
