@@ -165,6 +165,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | `docs/release-checklist.md` | release readiness checks for public releases |
 | `docs/releases/` | release-note drafts |
 | `examples/` | reusable domain templates, including opportunity and demand research |
+| `openspec/` | specs and proposed changes for non-trivial behavior changes |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
 | `patterns/` | mechanisms extracted where two or more independent projects converged |
@@ -223,6 +224,16 @@ Or summarize an open radar PR directly from GitHub metadata and changed report f
 
 ```bash
 python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
+```
+
+## Planning Changes
+
+Non-trivial behavior changes use OpenSpec before implementation. This applies to workflow behavior, validators, evidence taxonomies, artifact schemas, publishing boundaries, new radar modes, and recurring automation semantics.
+
+Generated radar artifacts do not need OpenSpec changes.
+
+```bash
+openspec validate --all --strict --no-interactive
 ```
 
 ## Adapting it

@@ -1,0 +1,31 @@
+schema: spec-driven
+
+context: |
+  Architecture Radar is a file-backed research repository and GitHub Actions
+  workflow for scheduled AI research. The current production mode is
+  repository-focused architecture research:
+
+  - `interests.md`, `watchlist.yml`, `docs/agent-rules.md`, and
+    `docs/research-scope.md` are research inputs.
+  - `reports/`, `repositories/`, `patterns/`, and `radar.json` are generated
+    architecture research artifacts.
+  - `scripts/validate-radar-state.py` enforces radar artifact structure and
+    evidence label/path consistency.
+  - Generated radar artifacts do not require OpenSpec changes.
+  - Non-trivial behavior changes to workflows, schemas, validators, evidence
+    taxonomies, publication rules, or new radar modes should start as OpenSpec
+    changes before implementation.
+  - The planned Opportunity/Demand Radar mode must remain separate from the
+    existing Architecture Radar artifacts unless a future OpenSpec change
+    explicitly modifies that boundary.
+
+rules:
+  proposal:
+    - Keep proposals focused on behavioral intent and affected capabilities.
+    - State non-goals when a change could otherwise grow into a platform rewrite.
+  design:
+    - Separate reusable workflow mechanics from research-domain specifics.
+    - Call out credential, publishing, validation, and cost implications.
+  tasks:
+    - Keep generated research artifacts out of implementation tasks unless the change explicitly concerns a radar run.
+    - Include validation and test updates for new workflows, schemas, or artifact formats.

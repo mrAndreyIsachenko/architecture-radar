@@ -19,6 +19,7 @@
 
 ## Validation
 
+- [ ] `openspec validate --all --strict --no-interactive`
 - [ ] `python3 -m unittest discover -s tests`
 - [ ] `python3 -m py_compile scripts/*.py tests/*.py`
 - [ ] `bash -n scripts/*.sh`
