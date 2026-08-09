@@ -53,7 +53,9 @@ Use stages:
 - `discovered`: signal appeared in a source.
 - `triaged`: source, date, topic family, signal type, likely user, and relevance were checked.
 - `corroborated`: at least one independent supporting signal was found.
-- `selected`: enough evidence exists for a small demand test.
+- `selected`: enough evidence exists for a small demand test and the paid wedge is concrete enough to justify keeping it outside watchlist.
+- `selected-for-build`: enough evidence exists to build the smallest product-shaped artifact.
+- `watchlisted`: interesting signal, but the paid wedge, reachability, private-data boundary, or commoditization risk is not yet good enough for selection.
 
 A signal counts only after `triaged`.
 
@@ -69,6 +71,28 @@ Use these labels:
 - `H hypothesis`
 
 Every selected opportunity must include at least one of `M1`, `M2`, `M3`, or `M4`. If evidence is only plausible, label it `H hypothesis` and defer or reject the opportunity.
+
+## Build-Readiness Fields
+
+Every opportunity record and every comparable `opportunities.json` entry must include:
+
+- `paid_wedge`: what someone concretely pays for, such as saved engineering time, avoided downtime, compliance evidence, safer operations, or managed infrastructure.
+- `distribution_channel`: how the artifact is installed, bought, or adopted.
+- `private_data_barrier`: one of `none`, `public-only`, `private-code-required`, `private-data-required`, or `unclear`.
+- `oss_commoditization_risk`: one of `low`, `medium`, `high`, or `unclear`.
+- `product_shape`: one of `cli`, `github-action`, `browser-extension`, `hosted-api`, `report`, `other`, or `unclear`.
+- `pricing_hypothesis`: one of `free`, `team`, `pro`, or `unclear`.
+- `do_not_build_until`: the exact signal required before the next implementation step.
+
+If `paid_wedge` is unclear, or if `private_data_barrier` is `private-code-required`, `private-data-required`, or `unclear`, the opportunity must stay in `watchlisted`. Do not put it in `selected` and do not mark it `selected-for-build`.
+
+`selected-for-build` is only allowed when:
+
+- `paid_wedge` names a concrete budget or painful cost;
+- `private_data_barrier` is `none` or `public-only`;
+- `distribution_channel` is credible;
+- `product_shape` is one smallest testable artifact, not a product bundle;
+- `do_not_build_until` has already been satisfied by evidence in the report.
 
 ## Outputs
 
@@ -103,13 +127,20 @@ Update `opportunities.json` with stable structured metadata using this schema:
       "family": "topic-family",
       "title": "Human readable title",
       "file": "opportunities/stable-slug.md",
-      "stage": "selected",
+      "stage": "selected|selected-for-test|selected-for-build|deferred|watchlist|watchlisted",
       "score": 0,
       "confidence": "low|medium-low|medium|medium-high|high",
       "money_signal": "none-found|weak|medium|strong",
       "reachability": "low|medium|high",
       "evidence_count": 0,
       "next_test": "One focused validation step.",
+      "paid_wedge": "What someone concretely pays for.",
+      "distribution_channel": "How it is installed, bought, or adopted.",
+      "private_data_barrier": "none|public-only|private-code-required|private-data-required|unclear",
+      "oss_commoditization_risk": "low|medium|high|unclear",
+      "product_shape": "cli|github-action|browser-extension|hosted-api|report|other|unclear",
+      "pricing_hypothesis": "free|team|pro|unclear",
+      "do_not_build_until": "Evidence required before the next build step.",
       "labels": []
     }
   ],
@@ -129,6 +160,13 @@ Each selected opportunity file must include:
 - repeated pain or demand signal;
 - likely user or buyer;
 - current workaround or money signal;
+- paid wedge;
+- distribution channel;
+- private data barrier;
+- OSS commoditization risk;
+- product shape;
+- pricing hypothesis;
+- do not build until;
 - proposed offer;
 - success threshold;
 - falsification threshold;

@@ -54,6 +54,13 @@ SELECTED_OPPORTUNITY_SECTIONS = {
     "Repeated Pain Or Demand Signal",
     "Likely User Or Buyer",
     "Current Workaround Or Money Signal",
+    "Paid Wedge",
+    "Distribution Channel",
+    "Private Data Barrier",
+    "OSS Commoditization Risk",
+    "Product Shape",
+    "Pricing Hypothesis",
+    "Do Not Build Until",
     "Proposed Offer",
     "Success Threshold",
     "Falsification Threshold",
@@ -75,6 +82,24 @@ STATE_DISCOVERY_MODES = {"broad-discovery", "watchlist-directed", "mixed", "diag
 STATE_CONFIDENCE_VALUES = {"low", "medium-low", "medium", "medium-high", "high"}
 STATE_MONEY_SIGNAL_VALUES = {"none-found", "weak", "medium", "strong"}
 STATE_REACHABILITY_VALUES = {"low", "medium", "high"}
+STATE_PRIVATE_DATA_BARRIER_VALUES = {
+    "none",
+    "public-only",
+    "private-code-required",
+    "private-data-required",
+    "unclear",
+}
+STATE_OSS_COMMODITIZATION_RISK_VALUES = {"low", "medium", "high", "unclear"}
+STATE_PRODUCT_SHAPE_VALUES = {
+    "cli",
+    "github-action",
+    "browser-extension",
+    "hosted-api",
+    "report",
+    "other",
+    "unclear",
+}
+STATE_PRICING_HYPOTHESIS_VALUES = {"free", "team", "pro", "unclear"}
 STATE_REQUIRED_COMPARISON_FIELDS = {
     "score",
     "confidence",
@@ -82,7 +107,28 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "reachability",
     "evidence_count",
     "next_test",
+    "paid_wedge",
+    "distribution_channel",
+    "private_data_barrier",
+    "oss_commoditization_risk",
+    "product_shape",
+    "pricing_hypothesis",
+    "do_not_build_until",
 }
+STATE_STAGE_VALUES = {"selected", "selected-for-test", "selected-for-build", "deferred", "watchlist", "watchlisted"}
+UNCLEAR_TEXT_MARKERS = {
+    "unclear",
+    "unknown",
+    "not clear",
+    "not proven",
+    "none found",
+    "no paid",
+    "no direct spend",
+    "no budget",
+    "tbd",
+    "n/a",
+}
+PRIVATE_DATA_BLOCKING_VALUES = {"private-code-required", "private-data-required", "unclear"}
 WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
 WATCHLIST_ALLOWED_STATUSES = {"pending", "watch", "triaged", "reviewed", "deferred", "closed"}
 WATCHLIST_ALLOWED_SIGNAL_TYPES = {
@@ -255,6 +301,46 @@ def validate_signal_ledger(path: Path, section_text: str) -> None:
             fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported evidence label: {label}")
 
 
+def is_unclear_text(value: object) -> bool:
+    text = str(value).strip().lower()
+    if not text:
+        return True
+    return any(marker in text for marker in UNCLEAR_TEXT_MARKERS)
+
+
+def normalize_stage(value: object) -> str:
+    return str(value).strip().lower().replace("_", "-")
+
+
+def validate_opportunity_build_readiness(path_label: str, sections: dict[str, str]) -> None:
+    for section in SELECTED_OPPORTUNITY_SECTIONS:
+        if section in sections and not sections[section].strip():
+            fail(f"{path_label} section is empty: {section}")
+
+    product_shape = sections.get("Product Shape", "").strip().lower()
+    if product_shape and product_shape not in STATE_PRODUCT_SHAPE_VALUES:
+        fail(f"{path_label} Product Shape must be one of: {', '.join(sorted(STATE_PRODUCT_SHAPE_VALUES))}")
+
+    pricing_hypothesis = sections.get("Pricing Hypothesis", "").strip().lower()
+    if pricing_hypothesis and pricing_hypothesis not in STATE_PRICING_HYPOTHESIS_VALUES:
+        fail(f"{path_label} Pricing Hypothesis must be one of: {', '.join(sorted(STATE_PRICING_HYPOTHESIS_VALUES))}")
+
+    private_data_barrier = sections.get("Private Data Barrier", "").strip().lower()
+    if private_data_barrier and private_data_barrier not in STATE_PRIVATE_DATA_BARRIER_VALUES:
+        fail(f"{path_label} Private Data Barrier must be one of: {', '.join(sorted(STATE_PRIVATE_DATA_BARRIER_VALUES))}")
+
+    oss_risk = sections.get("OSS Commoditization Risk", "").strip().lower()
+    if oss_risk and oss_risk not in STATE_OSS_COMMODITIZATION_RISK_VALUES:
+        fail(f"{path_label} OSS Commoditization Risk must be one of: {', '.join(sorted(STATE_OSS_COMMODITIZATION_RISK_VALUES))}")
+
+    decision = sections.get("Decision", "")
+    if "selected for build" in decision.lower() or "selected-for-build" in decision.lower():
+        if is_unclear_text(sections.get("Paid Wedge", "")):
+            fail(f"{path_label} cannot be selected for build with an unclear Paid Wedge")
+        if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
+            fail(f"{path_label} cannot be selected for build with Private Data Barrier `{private_data_barrier}`")
+
+
 def validate_report_structure() -> None:
     for path in report_files_to_validate():
         if not path.is_file():
@@ -294,6 +380,7 @@ def validate_selected_opportunity_files() -> None:
         missing = SELECTED_OPPORTUNITY_SECTIONS - set(sections)
         if missing:
             fail(f"{path.relative_to(ROOT)} missing required sections: {', '.join(sorted(missing))}")
+        validate_opportunity_build_readiness(str(path.relative_to(ROOT)), sections)
         if not any(label in text for label in MARKET_EVIDENCE_LABELS):
             fail(f"{path.relative_to(ROOT)} must include at least one market evidence label")
 
@@ -456,6 +543,51 @@ def validate_state() -> None:
             next_test = str(entry["next_test"]).strip()
             if len(next_test) < 30:
                 fail(f"opportunities.json {field}[{index}] next_test is too short")
+            paid_wedge = str(entry["paid_wedge"]).strip()
+            if len(paid_wedge) < 30:
+                fail(f"opportunities.json {field}[{index}] paid_wedge is too short")
+            distribution_channel = str(entry["distribution_channel"]).strip()
+            if len(distribution_channel) < 20:
+                fail(f"opportunities.json {field}[{index}] distribution_channel is too short")
+            do_not_build_until = str(entry["do_not_build_until"]).strip()
+            if len(do_not_build_until) < 30:
+                fail(f"opportunities.json {field}[{index}] do_not_build_until is too short")
+
+            private_data_barrier = entry["private_data_barrier"]
+            if private_data_barrier not in STATE_PRIVATE_DATA_BARRIER_VALUES:
+                fail(
+                    f"opportunities.json {field}[{index}] private_data_barrier must be one of: "
+                    + ", ".join(sorted(STATE_PRIVATE_DATA_BARRIER_VALUES))
+                )
+            oss_risk = entry["oss_commoditization_risk"]
+            if oss_risk not in STATE_OSS_COMMODITIZATION_RISK_VALUES:
+                fail(
+                    f"opportunities.json {field}[{index}] oss_commoditization_risk must be one of: "
+                    + ", ".join(sorted(STATE_OSS_COMMODITIZATION_RISK_VALUES))
+                )
+            product_shape = entry["product_shape"]
+            if product_shape not in STATE_PRODUCT_SHAPE_VALUES:
+                fail(f"opportunities.json {field}[{index}] product_shape must be one of: {', '.join(sorted(STATE_PRODUCT_SHAPE_VALUES))}")
+            pricing_hypothesis = entry["pricing_hypothesis"]
+            if pricing_hypothesis not in STATE_PRICING_HYPOTHESIS_VALUES:
+                fail(
+                    f"opportunities.json {field}[{index}] pricing_hypothesis must be one of: "
+                    + ", ".join(sorted(STATE_PRICING_HYPOTHESIS_VALUES))
+                )
+
+            stage = entry.get("stage")
+            if stage is not None and normalize_stage(stage) not in STATE_STAGE_VALUES:
+                fail(f"opportunities.json {field}[{index}] has unsupported stage: {stage}")
+            if field == "selected":
+                if is_unclear_text(paid_wedge):
+                    fail(f"opportunities.json selected[{index}] has unclear paid_wedge; keep it in watchlisted")
+                if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
+                    fail(f"opportunities.json selected[{index}] requires private data/code or has unclear barrier; keep it in watchlisted")
+            if normalize_stage(stage) == "selected-for-build":
+                if is_unclear_text(paid_wedge):
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_wedge")
+                if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with private_data_barrier `{private_data_barrier}`")
 
             family = entry.get("family")
             if family is not None and family not in families:

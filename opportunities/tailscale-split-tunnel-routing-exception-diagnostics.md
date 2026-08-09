@@ -21,6 +21,27 @@ IT admins, security-conscious teams, and power users managing laptops, phones, a
 ## Current Workaround Or Money Signal
 People disable MagicDNS, use App Connectors, exclude the browser, or switch to other VPN products when Tailscale routing does not fit the workflow.
 
+## Paid Wedge
+Unclear; public issues show repeated routing pain, but not a specific budget owner or paid diagnostic workflow.
+
+## Distribution Channel
+Likely CLI or report for admins, but the buying and installation path is still unproven.
+
+## Private Data Barrier
+unclear
+
+## OSS Commoditization Risk
+high
+
+## Product Shape
+report
+
+## Pricing Hypothesis
+unclear
+
+## Do Not Build Until
+At least 3 admins confirm they would use an external diagnostic before rollout, or 1 team asks for a paid routing review.
+
 ## Proposed Offer
 A free routing-policy linter that checks a Tailscale configuration and explains whether it will need app split tunneling, domain exceptions, DNS overrides, or an App Connector.
 
@@ -35,4 +56,4 @@ Users say the current app-level workarounds are good enough, or they do not reco
 - Need better proof that admins would pay for diagnostics rather than rely on community knowledge.
 
 ## Decision
-Selected.
+Watchlisted. Do not build until the paid wedge and distribution channel are validated outside issue threads.

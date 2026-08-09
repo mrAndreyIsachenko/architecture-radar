@@ -20,6 +20,27 @@ Agent platform teams, internal automation teams, and consultants shipping produc
 ## Current Workaround Or Money Signal
 Users try alternate checkpoint backends, custom savers, LangSmith debugging, and third-party packages that patch around persistence or governance gaps.
 
+## Paid Wedge
+Teams pay to reduce engineering time spent debugging checkpoint bloat, replay drift, duplicate execution, and persistence failures in production LangGraph workflows.
+
+## Distribution Channel
+CLI distributed from GitHub or PyPI and run locally against user-owned LangGraph saver setups, with an optional later GitHub Action.
+
+## Private Data Barrier
+public-only
+
+## OSS Commoditization Risk
+medium
+
+## Product Shape
+cli
+
+## Pricing Hypothesis
+team
+
+## Do Not Build Until
+At least 3 independent teams run the CLI on real workflows, or 1 team shares a production issue that the audit exposes faster than their current debugging path.
+
 ## Proposed Offer
 A free checkpoint audit toolkit that measures storage growth, query count, replay correctness, and duplicate-run risk for LangGraph deployments.
 
@@ -35,4 +56,4 @@ No one runs the audit, or the results show no meaningful difference between comm
 - Need more evidence from production deployments outside GitHub issues.
 
 ## Decision
-Selected.
+Selected for test. Do not expand beyond the CLI audit until the `Do Not Build Until` condition is satisfied.

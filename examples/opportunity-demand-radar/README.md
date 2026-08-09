@@ -40,4 +40,6 @@ The radar should reject an opportunity unless it can connect:
 observed demand signal -> evidence source -> repeated pain -> plausible buyer/user -> testable next step
 ```
 
+Every selected opportunity should also name the paid wedge, distribution channel, private-data barrier, OSS commoditization risk, product shape, pricing hypothesis, and the signal required before more build work.
+
 Useful output is a small number of evidence-backed opportunities, not a large list of plausible markets.

@@ -138,9 +138,18 @@ Every selected opportunity must include:
 - evidence sources and dates;
 - the repeated pain or demand signal;
 - the likely user or buyer;
+- the paid wedge;
+- the distribution channel;
+- the private data barrier;
+- the OSS commoditization risk;
+- the product shape;
+- the pricing hypothesis;
+- the do-not-build-until signal;
 - why existing solutions are insufficient;
 - what could be tested in one week;
 - what would falsify the opportunity;
 - confidence level and evidence gaps.
+
+If the paid wedge is unclear, or if the useful next test requires private code or private data, keep the opportunity on watchlist.
 
 Do not recommend building a product unless the report connects evidence to a testable next action.
