@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Prove agent governance enforcement by running deterministic negative
+  fixtures in CI.

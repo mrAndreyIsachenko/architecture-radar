@@ -54,12 +54,16 @@ jobs:
           python3 -m py_compile scripts/summarize-radar-pr.py
           python3 -m py_compile scripts/summarize-radar-report.py
           python3 -m py_compile scripts/validate-agent-governance.py
+          python3 -m py_compile scripts/test-agent-governance-negative.py
           python3 -m py_compile scripts/validate-opportunity-radar-state.py
           python3 -m py_compile scripts/validate-radar-state.py
           python3 -m py_compile scripts/validate-weekly-synthesis-state.py
 
       - name: Run unit tests
         run: python3 -m unittest discover -s tests
+
+      - name: Run agent governance negative self-test
+        run: scripts/test-agent-governance-negative.py
 
       - name: Validate agent governance
         if: github.event_name == 'pull_request'
