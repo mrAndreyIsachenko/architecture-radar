@@ -169,6 +169,7 @@ WATCHLIST_ALLOWED_SIGNAL_TYPES = {
 }
 WATCHLIST_SCALAR_FIELDS = {"source", "url", "family", "signal_type", "priority", "status", "reason"}
 WATCHLIST_LIST_FIELDS = {"search_terms"}
+URL_RE = re.compile(r"https?://[^\s\]\)>]+")
 
 
 def fail(message: str) -> None:
@@ -292,6 +293,23 @@ def report_files_to_validate() -> list[Path]:
     return sorted(paths)
 
 
+def signal_note_files_to_validate() -> list[Path]:
+    paths: set[Path] = set()
+    for path in changed_opportunity_files():
+        if path.parent == ROOT / "signals" and path.suffix == ".md":
+            paths.add(path)
+    return sorted(paths)
+
+
+def extract_urls(text: str) -> set[str]:
+    return {match.group(0).rstrip(".,;:") for match in URL_RE.finditer(text)}
+
+
+def field_value(text: str, field: str) -> str:
+    match = re.search(rf"(?im)^\s*(?:[-*]\s*)?{re.escape(field)}\s*:\s*(.+?)\s*$", text)
+    return match.group(1).strip().strip("`") if match else ""
+
+
 def validate_label_text(path: Path, text: str) -> None:
     for line_number, line in enumerate(text.splitlines(), start=1):
         if "E1 source verified" in line or "E2 test verified" in line or "E3 maintainer stated" in line:
@@ -303,7 +321,7 @@ def validate_label_text(path: Path, text: str) -> None:
                 fail(f"{path.relative_to(ROOT)}:{line_number} has unsupported evidence label: {label}")
 
 
-def validate_signal_ledger(path: Path, section_text: str) -> None:
+def validate_signal_ledger(path: Path, section_text: str) -> list[dict[str, str]]:
     lines = [line for line in section_text.splitlines() if line.startswith("|")]
     if len(lines) < 3:
         fail(f"{path.relative_to(ROOT)} Signal Ledger must contain a markdown table with at least one row")
@@ -318,6 +336,7 @@ def validate_signal_ledger(path: Path, section_text: str) -> None:
         fail(f"{path.relative_to(ROOT)} Signal Ledger has an invalid markdown separator row")
 
     label_index = header.index("Evidence label")
+    rows: list[dict[str, str]] = []
     for row_index, row in enumerate(lines[2:], start=1):
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) != len(header):
@@ -325,6 +344,80 @@ def validate_signal_ledger(path: Path, section_text: str) -> None:
         label = cells[label_index].strip("`")
         if label not in ALLOWED_LABELS:
             fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported evidence label: {label}")
+        rows.append({column: cells[index] for index, column in enumerate(header)})
+
+    return rows
+
+
+def signal_note_paths_for_report(path: Path) -> list[Path]:
+    return sorted((ROOT / "signals").glob(f"{path.stem}-*.md"))
+
+
+def validate_signal_note_file(path: Path) -> set[str]:
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        fail(f"signal note is empty: {path.relative_to(ROOT)}")
+
+    validate_label_text(path, text)
+    urls = extract_urls(text)
+    if not urls:
+        fail(f"{path.relative_to(ROOT)} signal note must include at least one source URL")
+
+    lowered = text.lower()
+    if "date range" not in lowered and not re.search(r"(?im)^\s*(?:[-*]\s*)?date\s*:", text):
+        fail(f"{path.relative_to(ROOT)} signal note must include source date or date range")
+
+    family = field_value(text, "Family")
+    if not family:
+        fail(f"{path.relative_to(ROOT)} signal note must include Family")
+    if family not in topic_families():
+        fail(f"{path.relative_to(ROOT)} signal note has unknown Family: {family}")
+
+    signal_type = field_value(text, "Signal type")
+    if not signal_type:
+        fail(f"{path.relative_to(ROOT)} signal note must include Signal type")
+    if signal_type not in WATCHLIST_ALLOWED_SIGNAL_TYPES:
+        fail(f"{path.relative_to(ROOT)} signal note has unsupported Signal type: {signal_type}")
+
+    labels = field_value(text, "Labels")
+    if not labels:
+        fail(f"{path.relative_to(ROOT)} signal note must include Labels")
+    if not any(label in labels for label in ALLOWED_LABELS):
+        fail(f"{path.relative_to(ROOT)} signal note Labels must include at least one market evidence label")
+
+    notes = field_value(text, "Notes")
+    if len(notes) < 30:
+        fail(f"{path.relative_to(ROOT)} signal note Notes is too short")
+
+    return urls
+
+
+def validate_signal_notes() -> None:
+    for path in signal_note_files_to_validate():
+        validate_signal_note_file(path)
+
+
+def validate_signal_note_coverage(path: Path, ledger_rows: list[dict[str, str]]) -> None:
+    ledger_urls: set[str] = set()
+    for row in ledger_rows:
+        ledger_urls.update(extract_urls(row.get("URL", "")))
+    if not ledger_urls:
+        fail(f"{path.relative_to(ROOT)} Signal Ledger must include at least one URL")
+
+    signal_note_paths = signal_note_paths_for_report(path)
+    if not signal_note_paths:
+        fail(f"{path.relative_to(ROOT)} Signal Ledger URLs must be covered by signals/{path.stem}-*.md notes")
+
+    signal_urls: set[str] = set()
+    for signal_path in signal_note_paths:
+        signal_urls.update(validate_signal_note_file(signal_path))
+
+    missing = sorted(ledger_urls - signal_urls)
+    if missing:
+        fail(
+            f"{path.relative_to(ROOT)} Signal Ledger URLs missing from signals/{path.stem}-*.md notes: "
+            + ", ".join(missing)
+        )
 
 
 def clean_table_cell(value: str) -> str:
@@ -555,7 +648,8 @@ def validate_report_structure() -> None:
             if not sections[section].strip():
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
-        validate_signal_ledger(path, sections["Signal Ledger"])
+        signal_ledger_rows = validate_signal_ledger(path, sections["Signal Ledger"])
+        validate_signal_note_coverage(path, signal_ledger_rows)
         build_readiness_rows = validate_build_readiness_table(path, sections["Build Readiness"])
         validate_build_readiness_state_consistency(path, build_readiness_rows, state_entries)
 
@@ -822,6 +916,7 @@ def main() -> None:
     validate_state()
     validate_watchlist()
     validate_report_structure()
+    validate_signal_notes()
     validate_selected_opportunity_files()
     print("opportunity radar artifacts validated")
 

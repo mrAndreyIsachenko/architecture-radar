@@ -120,9 +120,11 @@ Use the same build-readiness values as `opportunities.json`. Every `Build Readin
 
 For each selected opportunity, create or update one file under `opportunities/`.
 
-Store raw or normalized signal notes under `signals/` only when they add evidence that should be revisited. Do not copy large copyrighted content; store short summaries, URLs, dates, and evidence labels.
+Store raw or normalized signal notes under `signals/` for every URL used in the Signal Ledger. Do not copy large copyrighted content; store short summaries, URLs, dates, and evidence labels.
 
 Prefer one signal note per source. When grouping multiple related sources into one signal note, include every source URL and the source dates or date range in that file.
+
+Each signal note must include source URLs, source date or date range, topic family, signal type, market evidence labels, and concise notes. For a report `opportunity-reports/YYYY-MM-DD.md`, every Signal Ledger URL must appear in `signals/YYYY-MM-DD-*.md`.
 
 Update `opportunities.json` with stable structured metadata using this schema:
 
