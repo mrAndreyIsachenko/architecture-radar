@@ -38,8 +38,15 @@ openspec validate --all --strict --no-interactive
 python3 -m unittest discover -s tests
 python3 -m py_compile scripts/*.py tests/*.py
 bash -n scripts/*.sh
+python3 scripts/check-radar-setup.py --skip-github
 scripts/validate-radar-state.py
 git diff --check
+```
+
+Run the GitHub-side setup doctor before tagging:
+
+```bash
+python3 scripts/check-radar-setup.py
 ```
 
 Confirm the default branch check is green:

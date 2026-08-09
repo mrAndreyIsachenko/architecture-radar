@@ -22,6 +22,14 @@ The repository must contain these files and directories:
 - `repositories/`
 - `patterns/`
 
+Run the local setup doctor before configuring credentials:
+
+```bash
+python3 scripts/check-radar-setup.py --skip-github
+```
+
+Warnings are acceptable for optional local tools. Failures mean the checkout is missing required files or has invalid local configuration.
+
 ## 2. Configure GitHub Actions
 
 In repository settings, enable workflow write access:
@@ -49,6 +57,14 @@ GitHub path:
 `Settings -> Secrets and variables -> Actions -> New repository secret`
 
 The Codex research step receives this OpenAI key. It does not receive `GITHUB_TOKEN`. Publishing happens later in a separate workflow step with an explicit file allowlist.
+
+After configuring Actions permissions and the secret, authenticate `gh` locally and run the full setup doctor:
+
+```bash
+python3 scripts/check-radar-setup.py
+```
+
+This checks branch protection, the required `validate` check, repository secret metadata, release metadata, community profile state, and workflow visibility.
 
 ## 4. Choose A Model
 

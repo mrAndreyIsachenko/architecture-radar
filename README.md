@@ -19,11 +19,13 @@ See [`QUICKSTART.md`](QUICKSTART.md) for the shortest path from fork to first sc
 At a high level:
 
 1. Fork or clone this repository.
-2. Add an `OPENAI_API_KEY` repository secret.
-3. Allow GitHub Actions to write contents and create pull requests.
-4. Replace `interests.md`, `docs/research-scope.md`, and `watchlist.yml` with your own research scope.
-5. Run the `Architecture Radar` workflow manually.
-6. Review the generated PR before merging.
+2. Run `python3 scripts/check-radar-setup.py --skip-github` to verify the local checkout.
+3. Add an `OPENAI_API_KEY` repository secret.
+4. Allow GitHub Actions to write contents and create pull requests.
+5. Run `python3 scripts/check-radar-setup.py` with `gh` authenticated to verify the remote setup.
+6. Replace `interests.md`, `docs/research-scope.md`, and `watchlist.yml` with your own research scope.
+7. Run the `Architecture Radar` workflow manually.
+8. Review the generated PR before merging.
 
 ## What You Can Copy
 
@@ -200,6 +202,18 @@ Repository setup:
 
 - add an `OPENAI_API_KEY` repository secret
 - allow GitHub Actions to write contents and create pull requests
+
+Before spending tokens on a workflow run, check the setup locally:
+
+```bash
+python3 scripts/check-radar-setup.py --skip-github
+```
+
+Then authenticate `gh` and check the GitHub-side configuration:
+
+```bash
+python3 scripts/check-radar-setup.py
+```
 
 The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override recurring runs with the `ARCHITECTURE_RADAR_CODEX_MODEL` repository variable, or override a single run from the Actions tab — useful when one follow-up justifies a larger model.
 

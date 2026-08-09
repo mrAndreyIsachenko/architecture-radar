@@ -43,6 +43,7 @@ jobs:
           bash -n scripts/run-codex-radar.sh
           python3 -m py_compile scripts/radar-pr-review.py
           python3 -m py_compile scripts/radar-pr-review-status.py
+          python3 -m py_compile scripts/check-radar-setup.py
           python3 -m py_compile scripts/summarize-radar-pr.py
           python3 -m py_compile scripts/summarize-radar-report.py
           python3 -m py_compile scripts/validate-radar-state.py
@@ -52,6 +53,9 @@ jobs:
 
       - name: Validate OpenSpec
         run: openspec validate --all --strict --no-interactive
+
+      - name: Check local setup
+        run: python3 scripts/check-radar-setup.py --skip-github
 
       - name: Check changed-file whitespace
         if: github.event_name == 'pull_request'
