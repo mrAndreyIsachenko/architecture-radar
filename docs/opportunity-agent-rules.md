@@ -116,7 +116,7 @@ The `Build Readiness` section must contain this table:
 |---|---|---|---|---|---|---|---|---|
 ```
 
-Use the same build-readiness values as `opportunities.json`. A report row with unclear paid wedge or private data/code requirements must have a watchlist build decision, not `selected` or `selected-for-build`.
+Use the same build-readiness values as `opportunities.json`. Every `Build Readiness` row must match an `opportunities.json` entry by title or id, and the build decision plus build-readiness fields must agree with the state entry. A report row with unclear paid wedge or private data/code requirements must have a watchlist build decision, not `selected` or `selected-for-build`.
 
 For each selected opportunity, create or update one file under `opportunities/`.
 
@@ -160,6 +160,12 @@ Update `opportunities.json` with stable structured metadata using this schema:
 ```
 
 Keep `selected`, `deferred`, and `watchlisted` as arrays of comparable objects. Do not replace them with maps or omit them when empty.
+
+Keep each entry's `stage` consistent with the containing array:
+
+- `selected`: `selected`, `selected-for-test`, or `selected-for-build`;
+- `deferred`: `deferred`;
+- `watchlisted`: `watchlist` or `watchlisted`.
 
 ## Selected Opportunity Contract
 
