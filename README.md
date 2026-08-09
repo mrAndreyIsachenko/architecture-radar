@@ -42,14 +42,15 @@ At a high level:
 
 ## Example Output
 
-A real generated radar run is [PR #9, Architecture Radar 2026-08-08](https://github.com/mrAndreyIsachenko/architecture-radar/pull/9).
+Real generated pull requests from this repository:
 
-It produced:
+| Mode | Pull request | Generated artifacts |
+|---|---|---|
+| Architecture Radar | [PR #9, Architecture Radar 2026-08-08](https://github.com/mrAndreyIsachenko/architecture-radar/pull/9) | [`reports/2026-08-08.md`](reports/2026-08-08.md), [`reports/2026-08-08-supplement-1.md`](reports/2026-08-08-supplement-1.md), [Reorg-Safe Materialization Windows](patterns/reorg-safe-materialization-windows.md), and [Deferred Image Materialization](patterns/deferred-image-materialization.md) |
+| Opportunity Radar | [PR #27, Opportunity Radar 2026-08-09](https://github.com/mrAndreyIsachenko/architecture-radar/pull/27) | [`opportunity-reports/2026-08-09.md`](opportunity-reports/2026-08-09.md), three selected opportunity records under [`opportunities/`](opportunities/), and normalized signal notes under [`signals/`](signals/) |
+| Weekly Synthesis | [PR #32, Weekly Synthesis 2026-W32](https://github.com/mrAndreyIsachenko/architecture-radar/pull/32) | [`weekly-reports/2026-W32.md`](weekly-reports/2026-W32.md), combining committed Architecture Radar and Opportunity Radar evidence without fresh discovery |
 
-- [`reports/2026-08-08.md`](reports/2026-08-08.md): 20 triaged candidates, 3 deep reviews, and an update to [Reorg-Safe Materialization Windows](patterns/reorg-safe-materialization-windows.md).
-- [`reports/2026-08-08-supplement-1.md`](reports/2026-08-08-supplement-1.md): explicit `baidu/Unlimited-OCR` watchlist accounting and the [Deferred Image Materialization](patterns/deferred-image-materialization.md) pattern.
-
-The useful part is the review shape, not the specific repositories: selected candidates, rejected candidates, evidence gaps, pattern updates, and one concrete next action all arrive in a PR that CI can reject.
+The useful part is the review shape, not the specific topics: selected candidates or opportunities, rejected candidates, evidence gaps, pattern updates, and one concrete next action all arrive in a PR that CI can reject.
 
 ## The problem this is built against
 
