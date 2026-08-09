@@ -57,6 +57,12 @@ The helper checks open radar pull requests before returning a no-work result. On
 
 For failed runs, add `--include-failed-log` to include a short actionable excerpt from `gh run view --log-failed`.
 
+After checking out the PR branch, summarize the report for review:
+
+```bash
+python3 scripts/summarize-radar-report.py reports/YYYY-MM-DD.md --format markdown
+```
+
 ## Expected Failure Modes
 
 - Missing `OPENAI_API_KEY`: the workflow fails before research starts.
