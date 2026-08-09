@@ -22,12 +22,33 @@ Contributions are welcome when they make the radar more reliable, easier to adap
 Useful checks:
 
 ```bash
+openspec validate --all --strict --no-interactive
 python3 -m unittest discover -s tests
 python3 -m py_compile scripts/*.py tests/*.py
 bash -n scripts/*.sh
 scripts/validate-radar-state.py
 git diff --check
 ```
+
+## OpenSpec
+
+Use OpenSpec for non-trivial behavior changes before implementation.
+
+Start with an OpenSpec change when modifying:
+
+- workflow behavior;
+- validation rules;
+- evidence taxonomies;
+- artifact schemas;
+- publishing boundaries;
+- new radar modes;
+- recurring automation semantics.
+
+Generated radar reports, repository reviews, pattern updates, and routine research artifacts do not need OpenSpec changes.
+
+The current OpenSpec root lives under `openspec/`.
+
+The checked-in Codex integration lives under `.codex/skills/`. Restart Codex after pulling changes that update these skills.
 
 ## Pull Request Expectations
 

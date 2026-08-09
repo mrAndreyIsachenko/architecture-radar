@@ -156,6 +156,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 
 | Path | Role |
 |---|---|
+| `.codex/skills/` | OpenSpec-generated Codex skills for explore/propose/apply/archive workflows |
 | `QUICKSTART.md` | fork-to-first-PR setup guide |
 | `interests.md` | authoritative research priorities and open problems — findings must tie to these, not to inferred needs |
 | `watchlist.yml` | explicit high-signal repositories or model/dataset/runtime artifacts that discovery must account for even when broad queries miss them |
@@ -165,6 +166,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | `docs/release-checklist.md` | release readiness checks for public releases |
 | `docs/releases/` | release-note drafts |
 | `examples/` | reusable domain templates, including opportunity and demand research |
+| `openspec/` | specs and proposed changes for non-trivial behavior changes |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
 | `patterns/` | mechanisms extracted where two or more independent projects converged |
@@ -223,6 +225,18 @@ Or summarize an open radar PR directly from GitHub metadata and changed report f
 
 ```bash
 python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
+```
+
+## Planning Changes
+
+Non-trivial behavior changes use OpenSpec before implementation. This applies to workflow behavior, validators, evidence taxonomies, artifact schemas, publishing boundaries, new radar modes, and recurring automation semantics.
+
+Generated radar artifacts do not need OpenSpec changes.
+
+OpenSpec's Codex integration lives under `.codex/skills/`. Restart Codex after pulling changes that add or update those skills.
+
+```bash
+openspec validate --all --strict --no-interactive
 ```
 
 ## Adapting it

@@ -34,6 +34,7 @@ Make Architecture Radar reusable as a reference implementation for scheduled, ev
 Run locally before tagging:
 
 ```bash
+openspec validate --all --strict --no-interactive
 python3 -m unittest discover -s tests
 python3 -m py_compile scripts/*.py tests/*.py
 bash -n scripts/*.sh
