@@ -40,4 +40,3 @@ Agent-authored pull requests must record:
 
 The `validate` check enforces these fields and rejects governed behavior changes
 without OpenSpec evidence in the same pull request.
-
