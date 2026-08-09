@@ -1,0 +1,58 @@
+# Contributing
+
+Contributions are welcome when they make the radar more reliable, easier to adapt, or easier to review.
+
+## Good Contributions
+
+- Deterministic validation for model-generated research artifacts.
+- Better first-run setup and documentation.
+- Safer GitHub Actions boundaries.
+- Tests for scripts and validators.
+- Examples that show how to repoint the radar to a different research domain.
+- Narrow fixes to evidence labeling, candidate accounting, PR review helpers, or cost controls.
+
+## Before Opening A Pull Request
+
+1. Start from a current `main`.
+2. Keep changes focused.
+3. Do not commit generated research artifacts unless your change is specifically about a radar run.
+4. Do not include secrets, private repository names, API keys, or private project context.
+5. Run the relevant checks locally.
+
+Useful checks:
+
+```bash
+python3 -m unittest discover -s tests
+python3 -m py_compile scripts/*.py tests/*.py
+bash -n scripts/*.sh
+scripts/validate-radar-state.py
+git diff --check
+```
+
+## Pull Request Expectations
+
+Explain:
+
+- what changed;
+- why it changed;
+- whether it affects scheduled research runs;
+- whether it changes generated artifacts, validation, or publication behavior;
+- which checks were run.
+
+For generated radar output, include the report date and link the relevant report, repository review, pattern, or `radar.json` entry.
+
+## Research Artifact Quality
+
+Generated reports and reviews should preserve the project's evidence discipline:
+
+- `E1 source verified` only for implementation code;
+- `E2 test verified` for tests or reproducible evaluation code;
+- `E3 maintainer stated` for docs, README, changelog, issues, releases, and comments;
+- `I interpretation` for architectural synthesis;
+- `H hypothesis` for plausible but unverified claims.
+
+Selecting zero repositories is acceptable when evidence is thin.
+
+## Security And Credentials
+
+Do not open public issues or PRs that expose secrets or security-sensitive details. Follow `SECURITY.md` for vulnerability reports.
