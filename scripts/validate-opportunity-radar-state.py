@@ -71,6 +71,18 @@ MARKET_EVIDENCE_LABELS = {
 ALLOWED_LABELS = MARKET_EVIDENCE_LABELS | {"I interpretation", "H hypothesis"}
 STATE_ALLOWED_LABELS = ALLOWED_LABELS | {"M1", "M2", "M3", "M4", "I", "H"}
 STATE_ARRAY_FIELDS = ("selected", "deferred", "watchlisted")
+STATE_DISCOVERY_MODES = {"broad-discovery", "watchlist-directed", "mixed", "diagnostic"}
+STATE_CONFIDENCE_VALUES = {"low", "medium-low", "medium", "medium-high", "high"}
+STATE_MONEY_SIGNAL_VALUES = {"none-found", "weak", "medium", "strong"}
+STATE_REACHABILITY_VALUES = {"low", "medium", "high"}
+STATE_REQUIRED_COMPARISON_FIELDS = {
+    "score",
+    "confidence",
+    "money_signal",
+    "reachability",
+    "evidence_count",
+    "next_test",
+}
 WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
 WATCHLIST_ALLOWED_STATUSES = {"pending", "watch", "triaged", "reviewed", "deferred", "closed"}
 WATCHLIST_ALLOWED_SIGNAL_TYPES = {
@@ -406,6 +418,11 @@ def validate_state() -> None:
     if data.get("schema_version") != 1:
         fail("opportunities.json schema_version must be 1")
 
+    has_entries = any(data.get(field) for field in STATE_ARRAY_FIELDS)
+    discovery_mode = data.get("discovery_mode")
+    if has_entries and discovery_mode not in STATE_DISCOVERY_MODES:
+        fail("opportunities.json discovery_mode must be one of: " + ", ".join(sorted(STATE_DISCOVERY_MODES)))
+
     families = topic_families()
     for field in STATE_ARRAY_FIELDS:
         entries = data.get(field)
@@ -417,6 +434,29 @@ def validate_state() -> None:
             entry_id = str(entry.get("id", "")).strip()
             if not entry_id:
                 fail(f"opportunities.json {field}[{index}] is missing id")
+            missing = STATE_REQUIRED_COMPARISON_FIELDS - set(entry)
+            if missing:
+                fail(f"opportunities.json {field}[{index}] missing comparison fields: {', '.join(sorted(missing))}")
+
+            score = entry["score"]
+            if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 10:
+                fail(f"opportunities.json {field}[{index}] score must be an integer from 0 to 10")
+            confidence = entry["confidence"]
+            if confidence not in STATE_CONFIDENCE_VALUES:
+                fail(f"opportunities.json {field}[{index}] confidence must be one of: {', '.join(sorted(STATE_CONFIDENCE_VALUES))}")
+            money_signal = entry["money_signal"]
+            if money_signal not in STATE_MONEY_SIGNAL_VALUES:
+                fail(f"opportunities.json {field}[{index}] money_signal must be one of: {', '.join(sorted(STATE_MONEY_SIGNAL_VALUES))}")
+            reachability = entry["reachability"]
+            if reachability not in STATE_REACHABILITY_VALUES:
+                fail(f"opportunities.json {field}[{index}] reachability must be one of: {', '.join(sorted(STATE_REACHABILITY_VALUES))}")
+            evidence_count = entry["evidence_count"]
+            if not isinstance(evidence_count, int) or isinstance(evidence_count, bool) or evidence_count < 0:
+                fail(f"opportunities.json {field}[{index}] evidence_count must be a non-negative integer")
+            next_test = str(entry["next_test"]).strip()
+            if len(next_test) < 30:
+                fail(f"opportunities.json {field}[{index}] next_test is too short")
+
             family = entry.get("family")
             if family is not None and family not in families:
                 fail(f"opportunities.json {field}[{index}] has unknown family: {family}")
