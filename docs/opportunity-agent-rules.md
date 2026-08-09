@@ -104,9 +104,19 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - executive summary;
 - signal ledger;
 - opportunity reviews;
+- build readiness table;
 - recommended next test;
 - rejected or deferred signals;
 - evidence gaps.
+
+The `Build Readiness` section must contain this table:
+
+```markdown
+| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |
+|---|---|---|---|---|---|---|---|---|
+```
+
+Use the same build-readiness values as `opportunities.json`. A report row with unclear paid wedge or private data/code requirements must have a watchlist build decision, not `selected` or `selected-for-build`.
 
 For each selected opportunity, create or update one file under `opportunities/`.
 

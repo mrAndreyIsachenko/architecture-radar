@@ -23,7 +23,8 @@ last_message="${RUNNER_TEMP:-/tmp}/opportunity-radar-last-message-${run_date}.md
   printf -- '- Put scratch files under `/tmp/opportunity-radar-candidates`.\n'
   printf -- '- If a required prerequisite is missing, create `opportunity-reports/%s.md` as a diagnostic report and stop without synthetic opportunities.\n' "$run_date"
   printf -- '- Keep `opportunities.json` as schema_version 1 with array fields `selected`, `deferred`, and `watchlisted`; do not write a single `opportunities` object or map.\n'
-  printf -- '- Include `discovery_mode`, `score`, `confidence`, `money_signal`, `reachability`, `evidence_count`, and `next_test` in `opportunities.json` entries so selected, deferred, and watchlisted opportunities can be compared.\n'
+  printf -- '- Include `discovery_mode`, `score`, `confidence`, `money_signal`, `reachability`, `evidence_count`, `next_test`, `paid_wedge`, `distribution_channel`, `private_data_barrier`, `oss_commoditization_risk`, `product_shape`, `pricing_hypothesis`, and `do_not_build_until` in `opportunities.json` entries so selected, deferred, and watchlisted opportunities can be compared.\n'
+  printf -- '- Include a `## Build Readiness` report section with a markdown table covering Opportunity, Paid wedge, Distribution channel, Private data barrier, OSS commoditization risk, Product shape, Pricing hypothesis, Do not build until, and Build decision.\n'
   printf -- '- If the run is anchored by `opportunity-watchlist.yml`, mark it `watchlist-directed` or `mixed` and do not describe selected opportunities as market-wide winners.\n'
   printf -- '- Prefer one focused recommended next test over multiple unrelated build artifacts.\n'
   printf -- '- Prefix important evidence bullets in every selected opportunity file with full market labels such as `M2 repeated pain:` or `M4 workaround evidence:`.\n'

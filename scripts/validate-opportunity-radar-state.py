@@ -33,6 +33,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Executive Summary",
     "Signal Ledger",
     "Opportunity Reviews",
+    "Build Readiness",
     "Recommended Next Test",
     "Rejected Or Deferred Signals",
     "Evidence Gaps",
@@ -46,6 +47,17 @@ LEDGER_REQUIRED_COLUMNS = {
     "Evidence label",
     "Decision",
     "Reason",
+}
+BUILD_READINESS_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Paid wedge",
+    "Distribution channel",
+    "Private data barrier",
+    "OSS commoditization risk",
+    "Product shape",
+    "Pricing hypothesis",
+    "Do not build until",
+    "Build decision",
 }
 
 SELECTED_OPPORTUNITY_SECTIONS = {
@@ -301,6 +313,77 @@ def validate_signal_ledger(path: Path, section_text: str) -> None:
             fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported evidence label: {label}")
 
 
+def clean_table_cell(value: str) -> str:
+    return value.strip().strip("`").strip()
+
+
+def validate_build_readiness_table(path: Path, section_text: str) -> None:
+    if "None" in section_text or "No selected" in section_text:
+        return
+
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Build Readiness must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = BUILD_READINESS_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Build Readiness missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Build Readiness has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in BUILD_READINESS_REQUIRED_COLUMNS}
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+        paid_wedge = clean_table_cell(cells[indexes["Paid wedge"]])
+        distribution_channel = clean_table_cell(cells[indexes["Distribution channel"]])
+        private_data_barrier = clean_table_cell(cells[indexes["Private data barrier"]])
+        oss_risk = clean_table_cell(cells[indexes["OSS commoditization risk"]])
+        product_shape = clean_table_cell(cells[indexes["Product shape"]])
+        pricing_hypothesis = clean_table_cell(cells[indexes["Pricing hypothesis"]])
+        do_not_build_until = clean_table_cell(cells[indexes["Do not build until"]])
+        build_decision = normalize_stage(clean_table_cell(cells[indexes["Build decision"]]))
+
+        if len(paid_wedge) < 30:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} paid wedge is too short")
+        if len(distribution_channel) < 20:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} distribution channel is too short")
+        if len(do_not_build_until) < 30:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} do not build until is too short")
+        if private_data_barrier not in STATE_PRIVATE_DATA_BARRIER_VALUES:
+            fail(
+                f"{path.relative_to(ROOT)} Build Readiness row {row_index} private data barrier must be one of: "
+                + ", ".join(sorted(STATE_PRIVATE_DATA_BARRIER_VALUES))
+            )
+        if oss_risk not in STATE_OSS_COMMODITIZATION_RISK_VALUES:
+            fail(
+                f"{path.relative_to(ROOT)} Build Readiness row {row_index} OSS commoditization risk must be one of: "
+                + ", ".join(sorted(STATE_OSS_COMMODITIZATION_RISK_VALUES))
+            )
+        if product_shape not in STATE_PRODUCT_SHAPE_VALUES:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} product shape must be one of: {', '.join(sorted(STATE_PRODUCT_SHAPE_VALUES))}")
+        if pricing_hypothesis not in STATE_PRICING_HYPOTHESIS_VALUES:
+            fail(
+                f"{path.relative_to(ROOT)} Build Readiness row {row_index} pricing hypothesis must be one of: "
+                + ", ".join(sorted(STATE_PRICING_HYPOTHESIS_VALUES))
+            )
+        if build_decision not in STATE_STAGE_VALUES:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} has unsupported build decision: {build_decision}")
+        if build_decision in {"selected", "selected-for-test", "selected-for-build"}:
+            if is_unclear_text(paid_wedge):
+                fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} cannot be selected with an unclear paid wedge")
+            if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
+                fail(
+                    f"{path.relative_to(ROOT)} Build Readiness row {row_index} cannot be selected with private data barrier "
+                    f"`{private_data_barrier}`"
+                )
+
+
 def is_unclear_text(value: object) -> bool:
     text = str(value).strip().lower()
     if not text:
@@ -360,6 +443,7 @@ def validate_report_structure() -> None:
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
         validate_signal_ledger(path, sections["Signal Ledger"])
+        validate_build_readiness_table(path, sections["Build Readiness"])
 
         selected_text = sections["Selected Opportunities"] + "\n" + sections["Opportunity Reviews"]
         if "None" not in sections["Selected Opportunities"] and "No selected" not in sections["Selected Opportunities"]:
