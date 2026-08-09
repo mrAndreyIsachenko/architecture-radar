@@ -79,14 +79,26 @@ For each selected opportunity, create or update one file under `opportunities/`.
 
 Store raw or normalized signal notes under `signals/` only when they add evidence that should be revisited. Do not copy large copyrighted content; store short summaries, URLs, dates, and evidence labels.
 
-Update `opportunities.json` with stable structured metadata for selected, rejected, deferred, and watchlisted opportunities.
+Update `opportunities.json` with stable structured metadata using this schema:
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "YYYY-MM-DD",
+  "selected": [],
+  "deferred": [],
+  "watchlisted": []
+}
+```
+
+Keep `selected`, `deferred`, and `watchlisted` as arrays of objects. Do not replace them with maps or omit them when empty.
 
 ## Selected Opportunity Contract
 
 Each selected opportunity file must include:
 
 - opportunity summary;
-- evidence;
+- evidence, with each important evidence bullet prefixed by a market label such as `M2 repeated pain:`;
 - repeated pain or demand signal;
 - likely user or buyer;
 - current workaround or money signal;

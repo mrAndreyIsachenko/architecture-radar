@@ -69,6 +69,8 @@ MARKET_EVIDENCE_LABELS = {
 }
 
 ALLOWED_LABELS = MARKET_EVIDENCE_LABELS | {"I interpretation", "H hypothesis"}
+STATE_ALLOWED_LABELS = ALLOWED_LABELS | {"M1", "M2", "M3", "M4", "I", "H"}
+STATE_ARRAY_FIELDS = ("selected", "deferred", "watchlisted")
 WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
 WATCHLIST_ALLOWED_STATUSES = {"pending", "watch", "triaged", "reviewed", "deferred", "closed"}
 WATCHLIST_ALLOWED_SIGNAL_TYPES = {
@@ -403,8 +405,28 @@ def validate_state() -> None:
         fail("opportunities.json must be an object")
     if data.get("schema_version") != 1:
         fail("opportunities.json schema_version must be 1")
-    if not isinstance(data.get("opportunities"), list):
-        fail("opportunities.json opportunities must be a list")
+
+    families = topic_families()
+    for field in STATE_ARRAY_FIELDS:
+        entries = data.get(field)
+        if not isinstance(entries, list):
+            fail(f"opportunities.json {field} must be a list")
+        for index, entry in enumerate(entries, start=1):
+            if not isinstance(entry, dict):
+                fail(f"opportunities.json {field}[{index}] must be an object")
+            entry_id = str(entry.get("id", "")).strip()
+            if not entry_id:
+                fail(f"opportunities.json {field}[{index}] is missing id")
+            family = entry.get("family")
+            if family is not None and family not in families:
+                fail(f"opportunities.json {field}[{index}] has unknown family: {family}")
+            labels = entry.get("labels", [])
+            if labels is not None:
+                if not isinstance(labels, list):
+                    fail(f"opportunities.json {field}[{index}] labels must be a list")
+                for label in labels:
+                    if label not in STATE_ALLOWED_LABELS:
+                        fail(f"opportunities.json {field}[{index}] has unsupported label: {label}")
 
 
 def validate_workspace() -> None:

@@ -42,6 +42,7 @@ class SetupDoctorTest(unittest.TestCase):
 
         content_by_path = {
             "radar.json": json.dumps({"schema_version": 1, "repositories": []}),
+            "opportunities.json": json.dumps({"schema_version": 1, "selected": [], "deferred": [], "watchlisted": []}),
             ".github/workflows/architecture-radar.yml": "\n".join(
                 [
                     "name: Architecture Radar",

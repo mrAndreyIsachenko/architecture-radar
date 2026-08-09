@@ -144,10 +144,50 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             ):
                 validator.validate_selected_opportunity_files()
 
-    def test_state_schema_accepts_empty_opportunities_list(self) -> None:
+    def test_state_schema_accepts_empty_state_arrays(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            (root / "opportunities.json").write_text(json.dumps({"schema_version": 1, "opportunities": []}), encoding="utf-8")
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                json.dumps({"schema_version": 1, "selected": [], "deferred": [], "watchlisted": []}),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_accepts_selected_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "selected": [
+                            {
+                                "id": "agent-trace-debugging",
+                                "family": "ai-llm-demand",
+                                "status": "selected",
+                                "labels": ["M2", "M4"],
+                            }
+                        ],
+                        "deferred": [],
+                        "watchlisted": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
 
             with patch.object(validator, "ROOT", root):
                 validator.validate_state()
