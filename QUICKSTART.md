@@ -82,6 +82,8 @@ Edit these files before the first real run:
 
 Keep `docs/agent-rules.md` stable unless you are changing how the agent operates. That file is the domain-independent research protocol.
 
+For a ready-made non-architecture example, see [`examples/opportunity-demand-radar/`](examples/opportunity-demand-radar/).
+
 ## 6. Run It Manually Once
 
 Open:
@@ -154,3 +156,5 @@ The default schedule wakes daily but runs expensive research every three days. S
 The model sees the repository contents needed for research, including `interests.md`, `docs/research-scope.md`, and generated artifacts. Do not put secrets or sensitive internal architecture details in those files unless your OpenAI project and GitHub repository settings are configured for that data.
 
 The generated PRs may include external repository links, commit SHAs, file paths, and evidence summaries. Review them before merging into a public repository.
+
+Before actively promoting a public fork, run through [`docs/publication-checklist.md`](docs/publication-checklist.md).
