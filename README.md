@@ -29,6 +29,7 @@ At a high level:
 - A privilege boundary where the model gets API credentials but no GitHub token, while publishing happens in a separate allowlisted step.
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
+- Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
 
 ## The problem this is built against
 
@@ -140,10 +141,13 @@ The model occupies exactly one step. Everything before it decides whether it sho
 
 | Path | Role |
 |---|---|
+| `QUICKSTART.md` | fork-to-first-PR setup guide |
 | `interests.md` | authoritative research priorities and open problems — findings must tie to these, not to inferred needs |
 | `watchlist.yml` | explicit high-signal repositories or model/dataset/runtime artifacts that discovery must account for even when broad queries miss them |
 | `docs/agent-rules.md` | the machine: discovery method, candidate accounting, selection thresholds, evidence discipline, quality bar — domain-independent |
 | `docs/research-scope.md` | the domain: topic families, research areas, extraction granularity — replace this to repoint the radar |
+| `docs/publication-checklist.md` | public-release hygiene: license, metadata, topics, branch protection, demo quality |
+| `examples/` | reusable domain templates, including opportunity and demand research |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
 | `patterns/` | mechanisms extracted where two or more independent projects converged |
@@ -209,6 +213,8 @@ python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
 The research domain is the least interesting part, and it is deliberately isolated in three files. To point this at something else, replace `interests.md` with your own unresolved problems, `watchlist.yml` with things broad discovery must not miss, and `docs/research-scope.md` with your own topic areas. Leave `docs/agent-rules.md` and `scripts/` untouched — that is the machine.
 
 The parts worth keeping intact: the evidence taxonomy and its validator, the token and path boundary in the publish script, the input-diff rerun guard, and the rule that an empty result is a legitimate one.
+
+For a concrete non-architecture adaptation, see [`examples/opportunity-demand-radar/`](examples/opportunity-demand-radar/). For public-release hygiene, see [`docs/publication-checklist.md`](docs/publication-checklist.md).
 
 ## Current themes
 
