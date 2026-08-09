@@ -2,6 +2,8 @@
 
 Architecture Radar can run as a scheduled GitHub Actions workflow.
 
+For a fork-to-first-PR setup path, start with [`../QUICKSTART.md`](../QUICKSTART.md). This page documents the workflow mechanics in more detail.
+
 ## Required Secret
 
 Create a repository secret:
