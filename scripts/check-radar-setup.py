@@ -43,6 +43,7 @@ REQUIRED_FILES = [
     ".github/ISSUE_TEMPLATE/config.yml",
     "openspec/config.yaml",
     "openspec/specs/architecture-radar/spec.md",
+    "openspec/specs/generated-pr-validation/spec.md",
     "openspec/specs/opportunity-radar/spec.md",
     "openspec/specs/setup-doctor/spec.md",
     ".codex/skills/openspec-explore/SKILL.md",
