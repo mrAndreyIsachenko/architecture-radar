@@ -42,6 +42,28 @@ WATCHLIST_ALLOWED_REVIEW_MODES = {
     "watch-benchmark",
     "watch-runtime",
 }
+REQUIRED_REPORT_SECTIONS = {
+    "Prerequisites And State",
+    "Candidate Counts",
+    "Selected Repositories",
+    "Executive Summary",
+    "Detailed Reviews",
+    "Extracted Or Updated Patterns",
+    "Relevance To Explicit Problems In `interests.md`",
+    "Candidate Ledger",
+    "Recommended Next Action",
+    "Notable Rejected Or Deferred Candidates",
+    "Unresolved Evidence Gaps",
+}
+LEDGER_REQUIRED_COLUMNS = {
+    "Repository",
+    "URL",
+    "Commit",
+    "Discovery source",
+    "Family",
+    "Stage",
+    "Decision",
+}
 
 
 def fail(message: str) -> None:
@@ -183,6 +205,79 @@ def validate_evidence_labels() -> None:
                     )
 
 
+def report_files_to_validate() -> list[Path]:
+    paths: set[Path] = set()
+
+    for path in changed_artifact_files():
+        if path.parent == ROOT / "reports":
+            paths.add(path)
+
+    if RUN_DATE:
+        paths.add(ROOT / "reports" / f"{RUN_DATE}.md")
+
+    if SUPPLEMENT_REQUIRED in {"1", "true", "yes", "on"} and SUPPLEMENT_REPORT:
+        paths.add(ROOT / SUPPLEMENT_REPORT)
+
+    return sorted(path for path in paths if path.name.endswith(".md"))
+
+
+def markdown_sections(text: str) -> dict[str, str]:
+    sections: dict[str, list[str]] = {}
+    current: str | None = None
+
+    for line in text.splitlines():
+        match = re.match(r"^##\s+(.+?)\s*$", line)
+        if match:
+            current = match.group(1)
+            sections[current] = []
+            continue
+        if current is not None:
+            sections[current].append(line)
+
+    return {name: "\n".join(lines).strip() for name, lines in sections.items()}
+
+
+def validate_candidate_ledger(path: Path, section_text: str) -> None:
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Candidate Ledger must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = LEDGER_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Candidate Ledger missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Candidate Ledger has an invalid markdown separator row")
+
+    data_rows = lines[2:]
+    for row_index, row in enumerate(data_rows, start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Candidate Ledger row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+
+def validate_report_structure() -> None:
+    for path in report_files_to_validate():
+        if not path.is_file():
+            fail(f"missing report: {path.relative_to(ROOT)}")
+        text = path.read_text(encoding="utf-8")
+        if not text.strip():
+            fail(f"report is empty: {path.relative_to(ROOT)}")
+
+        sections = markdown_sections(text)
+        missing = REQUIRED_REPORT_SECTIONS - set(sections)
+        if missing:
+            fail(f"{path.relative_to(ROOT)} missing required report sections: {', '.join(sorted(missing))}")
+
+        for section in REQUIRED_REPORT_SECTIONS:
+            if not sections[section].strip():
+                fail(f"{path.relative_to(ROOT)} section is empty: {section}")
+
+        validate_candidate_ledger(path, sections["Candidate Ledger"])
+
+
 def clean_yaml_scalar(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
@@ -317,48 +412,57 @@ def validate_watchlist() -> None:
             fail(f"watchlist.yml entry {index} reason is too short")
 
 
-require_path("interests.md")
-require_path("watchlist.yml")
-require_path("radar.json")
-require_path("reports", directory=True)
-require_path("repositories", directory=True)
-require_path("patterns", directory=True)
-require_path("docs/agent-rules.md")
-require_path("docs/research-scope.md")
+def validate_workspace() -> None:
+    require_path("interests.md")
+    require_path("watchlist.yml")
+    require_path("radar.json")
+    require_path("reports", directory=True)
+    require_path("repositories", directory=True)
+    require_path("patterns", directory=True)
+    require_path("docs/agent-rules.md")
+    require_path("docs/research-scope.md")
 
-if not require_path("interests.md").read_text(encoding="utf-8").strip():
-    fail("interests.md is empty")
+    if not require_path("interests.md").read_text(encoding="utf-8").strip():
+        fail("interests.md is empty")
 
-try:
-    radar = json.loads(require_path("radar.json").read_text(encoding="utf-8"))
-except json.JSONDecodeError as exc:
-    fail(f"radar.json is not valid JSON: {exc}")
+    try:
+        radar = json.loads(require_path("radar.json").read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"radar.json is not valid JSON: {exc}")
 
-if radar.get("schema_version") != 1:
-    fail("radar.json schema_version must be 1")
+    if radar.get("schema_version") != 1:
+        fail("radar.json schema_version must be 1")
 
-if not isinstance(radar.get("repositories"), list):
-    fail("radar.json repositories must be a list")
+    if not isinstance(radar.get("repositories"), list):
+        fail("radar.json repositories must be a list")
 
-if RUN_DATE:
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", RUN_DATE):
-        fail(f"invalid ARCHITECTURE_RADAR_RUN_DATE: {RUN_DATE}")
-    report_path = ROOT / "reports" / f"{RUN_DATE}.md"
-    if not report_path.is_file():
-        fail(f"missing daily report: {report_path}")
-    if not report_path.read_text(encoding="utf-8").strip():
-        fail(f"daily report is empty: {report_path}")
+    if RUN_DATE:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", RUN_DATE):
+            fail(f"invalid ARCHITECTURE_RADAR_RUN_DATE: {RUN_DATE}")
+        report_path = ROOT / "reports" / f"{RUN_DATE}.md"
+        if not report_path.is_file():
+            fail(f"missing daily report: {report_path}")
+        if not report_path.read_text(encoding="utf-8").strip():
+            fail(f"daily report is empty: {report_path}")
 
-if SUPPLEMENT_REQUIRED in {"1", "true", "yes", "on"}:
-    if not SUPPLEMENT_REPORT:
-        fail("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT is required when supplement is required")
-    supplement_path = ROOT / SUPPLEMENT_REPORT
-    if not supplement_path.is_file():
-        fail(f"missing supplement report: {supplement_path}")
-    if not supplement_path.read_text(encoding="utf-8").strip():
-        fail(f"supplement report is empty: {supplement_path}")
+    if SUPPLEMENT_REQUIRED in {"1", "true", "yes", "on"}:
+        if not SUPPLEMENT_REPORT:
+            fail("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT is required when supplement is required")
+        supplement_path = ROOT / SUPPLEMENT_REPORT
+        if not supplement_path.is_file():
+            fail(f"missing supplement report: {supplement_path}")
+        if not supplement_path.read_text(encoding="utf-8").strip():
+            fail(f"supplement report is empty: {supplement_path}")
 
-validate_evidence_labels()
-validate_watchlist()
 
-print("radar artifacts validated")
+def main() -> None:
+    validate_workspace()
+    validate_evidence_labels()
+    validate_report_structure()
+    validate_watchlist()
+
+    print("radar artifacts validated")
+
+
+if __name__ == "__main__":
+    main()

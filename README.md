@@ -134,7 +134,7 @@ Patterns require independent convergence. One repository doing something interes
 
 Worth stating precisely, since the distinction is the whole point.
 
-**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and non-emptiness, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, and the absence of a GitHub token during the agent step.
+**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and required sections, candidate-ledger table shape, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, and the absence of a GitHub token during the agent step.
 
 **Instructed in the prompt only** — pinning SHAs, honest candidate accounting, cost discipline, selecting zero, not reading CI credentials. Nothing mechanically stops the agent from ignoring these; pull request review is the backstop.
 
