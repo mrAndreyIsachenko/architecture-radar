@@ -12,6 +12,7 @@ The goal is to make the repository understandable, reusable, and safe to run by 
 - Keep `README.md` understandable in the first screen: what it is, why it exists, what can be copied, and where to start.
 - Keep `QUICKSTART.md` current with the actual workflow inputs, required secrets, default model, and branch protection recommendations.
 - Keep community health files present: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, issue templates, and pull request template.
+- Keep [`release-checklist.md`](release-checklist.md) current before cutting a public release.
 - Run the `validate` check on the default branch.
 - Confirm `main` branch protection requires the `validate` status check.
 - Confirm generated radar PRs are not auto-merged.

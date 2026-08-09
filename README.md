@@ -1,5 +1,9 @@
 # Architecture Radar
 
+[![Architecture Radar](https://github.com/mrAndreyIsachenko/architecture-radar/actions/workflows/architecture-radar.yml/badge.svg)](https://github.com/mrAndreyIsachenko/architecture-radar/actions/workflows/architecture-radar.yml)
+[![Radar Validation](https://github.com/mrAndreyIsachenko/architecture-radar/actions/workflows/radar-validation.yml/badge.svg)](https://github.com/mrAndreyIsachenko/architecture-radar/actions/workflows/radar-validation.yml)
+[![License](https://img.shields.io/github/license/mrAndreyIsachenko/architecture-radar)](LICENSE)
+
 A reference implementation for running a scheduled AI research agent that produces **evidence-backed pull requests** instead of disposable digests.
 
 Use it to build a radar for open-source architecture, market signals, security research, model releases, protocol ecosystems, or any recurring investigation where plausible-but-unsupported output is worse than no output.
@@ -30,6 +34,17 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
+
+## Example Output
+
+A real generated radar run is [PR #9, Architecture Radar 2026-08-08](https://github.com/mrAndreyIsachenko/architecture-radar/pull/9).
+
+It produced:
+
+- [`reports/2026-08-08.md`](reports/2026-08-08.md): 20 triaged candidates, 3 deep reviews, and an update to [Reorg-Safe Materialization Windows](patterns/reorg-safe-materialization-windows.md).
+- [`reports/2026-08-08-supplement-1.md`](reports/2026-08-08-supplement-1.md): explicit `baidu/Unlimited-OCR` watchlist accounting and the [Deferred Image Materialization](patterns/deferred-image-materialization.md) pattern.
+
+The useful part is the review shape, not the specific repositories: selected candidates, rejected candidates, evidence gaps, pattern updates, and one concrete next action all arrive in a PR that CI can reject.
 
 ## The problem this is built against
 
@@ -147,6 +162,8 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | `docs/agent-rules.md` | the machine: discovery method, candidate accounting, selection thresholds, evidence discipline, quality bar — domain-independent |
 | `docs/research-scope.md` | the domain: topic families, research areas, extraction granularity — replace this to repoint the radar |
 | `docs/publication-checklist.md` | public-release hygiene: license, metadata, topics, branch protection, demo quality |
+| `docs/release-checklist.md` | release readiness checks for public releases |
+| `docs/releases/` | release-note drafts |
 | `examples/` | reusable domain templates, including opportunity and demand research |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
