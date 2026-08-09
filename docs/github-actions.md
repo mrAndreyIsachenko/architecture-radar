@@ -50,12 +50,12 @@ The agent is instructed not to commit, push, edit remotes, or open pull requests
 Use the local helper to decide whether a review notification is warranted:
 
 ```bash
-python3 scripts/radar-pr-review-status.py --format markdown
+python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-The helper checks open radar pull requests before returning a no-work result. On a cadence day, if the scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR.
+The helper checks open radar pull requests before returning a no-work result. On a cadence day, if the scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, and changed report files.
 
-For failed runs, add `--include-failed-log` to include a short actionable excerpt from `gh run view --log-failed`.
+For failed runs, `--include-failed-log` includes a short actionable excerpt from `gh run view --log-failed`.
 
 After checking out the PR branch, summarize the report for review:
 
