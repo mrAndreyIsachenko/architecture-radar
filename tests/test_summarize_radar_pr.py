@@ -102,6 +102,7 @@ class SummarizeRadarPrTest(unittest.TestCase):
         self.assertEqual(summary["changed_files"]["reports"], ["reports/2026-08-11.md"])
         self.assertEqual(summary["reports"][0]["candidate_count"], 20)
         self.assertEqual(summary["reports"][0]["selected_repositories"], ["`owner/repo` at `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`"])
+        self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
 
     def test_newest_open_radar_pr_selects_first_matching_pr(self) -> None:
         prs = [
@@ -111,6 +112,41 @@ class SummarizeRadarPrTest(unittest.TestCase):
 
         with patch.object(summarizer, "load_json_from_gh", return_value=prs):
             self.assertEqual(summarizer.newest_open_radar_pr("owner/repo"), "2")
+
+    def test_review_recommendation_requires_passing_validation(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+        checks[0]["conclusion"] = "FAILURE"
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": summarizer.changed_files_by_kind(summary["files"]),
+                "reports": [{"path": "reports/2026-08-11.md"}],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "needs_manual_review")
+        self.assertIn("validation failed", recommendation["reason"])
+
+    def test_review_recommendation_flags_missing_report(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": {"reports": []},
+                "reports": [],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "needs_manual_review")
+        self.assertIn("no changed report", recommendation["reason"])
 
 
 if __name__ == "__main__":

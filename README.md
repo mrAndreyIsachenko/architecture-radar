@@ -164,7 +164,7 @@ The local PR-review heartbeat should use the repository helper before deciding w
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, includes failed-run excerpts, and summarizes fresh radar PRs from GitHub metadata plus changed report files.
+It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, includes failed-run excerpts, summarizes fresh radar PRs from GitHub metadata plus changed report files, and emits a `looks_mergeable` or `needs_manual_review` recommendation.
 
 Lower-level helpers are still available when needed. After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
 

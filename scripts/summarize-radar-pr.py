@@ -141,6 +141,73 @@ def changed_files_by_kind(files: list[dict[str, object]]) -> dict[str, list[str]
     return kinds
 
 
+def required_check_state(checks: list[dict[str, str]]) -> str:
+    for check in checks:
+        if check.get("name") == "validate" or check.get("workflow") == "Radar Validation":
+            status = check.get("status", "").lower()
+            conclusion = check.get("conclusion", "").lower()
+            if status == "completed" and conclusion == "success":
+                return "passed"
+            if status == "completed" and conclusion:
+                return "failed"
+            return "pending"
+    return "missing"
+
+
+def review_recommendation(summary: dict[str, object]) -> dict[str, str]:
+    checks = summary.get("checks") or []
+    if not isinstance(checks, list):
+        checks = []
+
+    check_state = required_check_state([check for check in checks if isinstance(check, dict)])
+    changed = summary.get("changed_files") or {}
+    reports = summary.get("reports") or []
+    is_draft = bool(summary.get("is_draft"))
+    mergeable = str(summary.get("mergeable") or "")
+
+    if check_state == "failed":
+        return {
+            "decision": "needs_manual_review",
+            "reason": "required validation failed",
+            "next_action": "inspect the failing Radar Validation check before reviewing content",
+        }
+    if check_state in {"pending", "missing"}:
+        return {
+            "decision": "needs_manual_review",
+            "reason": f"required validation is {check_state}",
+            "next_action": "wait for validation or inspect why the required check is missing",
+        }
+    if isinstance(changed, dict) and not changed.get("reports"):
+        return {
+            "decision": "needs_manual_review",
+            "reason": "no changed report file was found in the PR",
+            "next_action": "confirm whether this is an infrastructure PR rather than a radar report PR",
+        }
+    if not isinstance(reports, list) or not reports:
+        return {
+            "decision": "needs_manual_review",
+            "reason": "changed reports could not be summarized",
+            "next_action": "inspect the report files directly",
+        }
+    if is_draft:
+        return {
+            "decision": "needs_manual_review",
+            "reason": "PR is still marked draft",
+            "next_action": "mark ready for review after confirming the generated artifacts",
+        }
+    if mergeable not in {"MERGEABLE", "UNKNOWN"}:
+        return {
+            "decision": "needs_manual_review",
+            "reason": f"GitHub mergeability is {mergeable or 'unknown'}",
+            "next_action": "resolve mergeability before content review",
+        }
+    return {
+        "decision": "looks_mergeable",
+        "reason": "required validation passed and changed reports were summarized",
+        "next_action": "manually read the report evidence and merge if the findings clear the quality bar",
+    }
+
+
 def fetch_file_text(repo: str, ref: str, path: str) -> str:
     encoded_path = quote(path, safe="/")
     encoded_ref = quote(ref, safe="")
@@ -171,7 +238,7 @@ def summarize_pr(repo: str, pr: str | None) -> dict[str, object]:
         text = fetch_file_text(repo, head, path)
         report_summaries.append(report_summary.summarize_report_text(text, path))
 
-    return {
+    summary = {
         "repo": repo,
         "number": view.get("number"),
         "title": view.get("title"),
@@ -184,6 +251,8 @@ def summarize_pr(repo: str, pr: str | None) -> dict[str, object]:
         "changed_files": changed,
         "reports": report_summaries,
     }
+    summary["review_recommendation"] = review_recommendation(summary)
+    return summary
 
 
 def emit_markdown(summary: dict[str, object]) -> None:
@@ -192,6 +261,10 @@ def emit_markdown(summary: dict[str, object]) -> None:
     print(f"Branch: {summary['head']} -> {summary['base']}")
     print(f"Draft: {summary['is_draft']}")
     print(f"Mergeable: {summary['mergeable']}")
+    recommendation = summary.get("review_recommendation") or {}
+    if isinstance(recommendation, dict) and recommendation:
+        print(f"Review decision: {recommendation.get('decision')} - {recommendation.get('reason')}")
+        print(f"Next action: {recommendation.get('next_action')}")
 
     checks = summary.get("checks") or []
     if isinstance(checks, list) and checks:
