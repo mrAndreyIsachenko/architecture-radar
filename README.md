@@ -161,12 +161,12 @@ Manual runs bypass the cadence gate but still respect the rerun guard, so a same
 The local PR-review heartbeat should use the repository helper before deciding whether to notify:
 
 ```bash
-python3 scripts/radar-pr-review-status.py --format markdown
+python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, and can include failed-run excerpts with `--include-failed-log`.
+It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, includes failed-run excerpts, and summarizes fresh radar PRs from GitHub metadata plus changed report files.
 
-After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
+Lower-level helpers are still available when needed. After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
 
 ```bash
 python3 scripts/summarize-radar-report.py reports/YYYY-MM-DD.md --format markdown
