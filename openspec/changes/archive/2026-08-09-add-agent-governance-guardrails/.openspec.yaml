@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Add enforceable agent governance guardrails for OpenSpec-first changes,
+  explicit user authorization, and non-autonomous follow-ups.

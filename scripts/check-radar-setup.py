@@ -12,6 +12,7 @@ from typing import Any, Callable
 
 
 REQUIRED_FILES = [
+    "AGENTS.md",
     "README.md",
     "QUICKSTART.md",
     "CONTRIBUTING.md",
@@ -42,6 +43,7 @@ REQUIRED_FILES = [
     ".github/ISSUE_TEMPLATE/research_quality.md",
     ".github/ISSUE_TEMPLATE/config.yml",
     "openspec/config.yaml",
+    "openspec/specs/agent-governance/spec.md",
     "openspec/specs/architecture-radar/spec.md",
     "openspec/specs/generated-pr-validation/spec.md",
     "openspec/specs/opportunity-radar/spec.md",
@@ -70,6 +72,7 @@ REQUIRED_FILES = [
     "scripts/radar-pr-review-status.py",
     "scripts/summarize-radar-pr.py",
     "scripts/summarize-radar-report.py",
+    "scripts/validate-agent-governance.py",
     "scripts/validate-opportunity-radar-state.py",
     "scripts/validate-weekly-synthesis-state.py",
     "tests/test_check_radar_setup.py",
@@ -79,6 +82,7 @@ REQUIRED_FILES = [
     "tests/test_radar_pr_review_status.py",
     "tests/test_summarize_radar_pr.py",
     "tests/test_summarize_radar_report.py",
+    "tests/test_validate_agent_governance.py",
     "tests/test_validate_opportunity_radar_state.py",
     "tests/test_validate_radar_state.py",
     "tests/test_validate_weekly_synthesis_state.py",
@@ -112,6 +116,7 @@ VALIDATION_WORKFLOW_NEEDLES = [
     "name: Radar Validation",
     "pull_request:",
     "contents: read",
+    "scripts/validate-agent-governance.py",
     "openspec validate --all --strict --no-interactive",
 ]
 

@@ -2,6 +2,13 @@
 
 - Describe the change in one or two bullets.
 
+## Agent Governance
+
+User request:
+Scope confirmed: no
+Autonomous follow-up: no
+OpenSpec change:
+
 ## Type
 
 - [ ] Workflow or publishing safety
