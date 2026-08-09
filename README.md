@@ -156,6 +156,16 @@ The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override re
 
 Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
 
+## Reviewing PRs
+
+The local PR-review heartbeat should use the repository helper before deciding whether to notify:
+
+```bash
+python3 scripts/radar-pr-review-status.py --format markdown
+```
+
+It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, and can include failed-run excerpts with `--include-failed-log`.
+
 ## Adapting it
 
 The research domain is the least interesting part, and it is deliberately isolated in three files. To point this at something else, replace `interests.md` with your own unresolved problems, `watchlist.yml` with things broad discovery must not miss, and `docs/research-scope.md` with your own topic areas. Leave `docs/agent-rules.md` and `scripts/` untouched — that is the machine.
