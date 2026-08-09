@@ -1,0 +1,38 @@
+# Public sources the Opportunity Radar should account for during manual runs.
+
+entries:
+  - source: GitHub LangGraph issues and discussions
+    url: https://github.com/langchain-ai/langgraph
+    family: ai-llm-demand
+    signal_type: operational-risk
+    priority: medium
+    status: watch
+    reason: Watch repeated production pain around agent orchestration, durability, observability, memory, and enterprise deployment.
+    search_terms:
+      - LangGraph production issues
+      - agent durability
+      - agent observability
+
+  - source: GitHub Tailscale issues and docs
+    url: https://github.com/tailscale/tailscale
+    family: privacy-networking-demand
+    signal_type: incumbent-friction
+    priority: medium
+    status: watch
+    reason: Watch operational pain around private networking, policy, device enrollment, routing, diagnostics, and fleet administration.
+    search_terms:
+      - split tunnel
+      - DNS leak
+      - device posture
+
+  - source: ArduPilot issues and forums
+    url: https://github.com/ArduPilot/ardupilot
+    family: drones-robotics-demand
+    signal_type: operational-risk
+    priority: medium
+    status: watch
+    reason: Watch recurring autonomy, mission planning, telemetry, simulation mismatch, incident replay, and failsafe pain.
+    search_terms:
+      - mission replay
+      - failsafe
+      - telemetry loss

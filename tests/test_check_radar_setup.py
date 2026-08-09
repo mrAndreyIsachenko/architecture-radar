@@ -68,6 +68,22 @@ class SetupDoctorTest(unittest.TestCase):
                     "      - run: openspec validate --all --strict --no-interactive",
                 ]
             ),
+            ".github/workflows/opportunity-radar.yml": "\n".join(
+                [
+                    "name: Opportunity Radar",
+                    "on:",
+                    "  workflow_dispatch:",
+                    "permissions:",
+                    "  contents: write",
+                    "  pull-requests: write",
+                    "env:",
+                    "  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}",
+                    "steps:",
+                    "  - run: scripts/run-codex-opportunity-radar.sh",
+                    "  - run: scripts/validate-opportunity-radar-state.py",
+                    "  - run: scripts/publish-opportunity-radar-run.sh",
+                ]
+            ),
         }
         for rel_path in doctor.REQUIRED_FILES:
             path = self.root / rel_path
@@ -117,6 +133,7 @@ class SetupDoctorTest(unittest.TestCase):
                 return completed({"tagName": "v0.1.0", "isDraft": False, "targetCommitish": "main"})
             if args in (
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
+                ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
             ):
                 return completed("")
@@ -140,6 +157,7 @@ class SetupDoctorTest(unittest.TestCase):
                 return completed({"tagName": "v0.1.0", "isDraft": False, "targetCommitish": "main"})
             if args in (
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
+                ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
             ):
                 return completed("")

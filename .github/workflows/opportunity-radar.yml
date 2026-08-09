@@ -1,0 +1,69 @@
+name: Opportunity Radar
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Override report date in YYYY-MM-DD format"
+        required: false
+        type: string
+      model:
+        description: "Override Codex model for this manual run"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: opportunity-radar
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      TZ: Europe/Moscow
+      CODEX_HOME: /home/runner/.codex
+      CODEX_MODEL: ${{ github.event.inputs.model || vars.OPPORTUNITY_RADAR_CODEX_MODEL || 'gpt-5.4-mini' }}
+      OPPORTUNITY_RADAR_DATE: ${{ github.event.inputs.run_date || '' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex@0.146.0
+
+      - name: Authenticate Codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          mkdir -p "$CODEX_HOME"
+          printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key
+
+      - name: Prepare dated branch
+        run: scripts/prepare-opportunity-radar-run.sh
+
+      - name: Run opportunity research agent
+        run: scripts/run-codex-opportunity-radar.sh
+
+      - name: Validate opportunity artifacts
+        run: scripts/validate-opportunity-radar-state.py
+
+      - name: Publish pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/publish-opportunity-radar-run.sh
