@@ -1,6 +1,6 @@
 # GitHub Actions Setup
 
-Architecture Radar can run as a scheduled GitHub Actions workflow.
+Architecture Radar can run as scheduled GitHub Actions workflows.
 
 For a fork-to-first-PR setup path, start with [`../QUICKSTART.md`](../QUICKSTART.md). This page documents the workflow mechanics in more detail.
 
@@ -29,7 +29,9 @@ permissions:
 
 ## Schedule
 
-The workflow runs at 05:00 UTC, which is 08:00 Europe/Moscow.
+Architecture Radar runs at 05:00 UTC, which is 08:00 Europe/Moscow. A cadence gate lets the expensive research step run every three days.
+
+Weekly Synthesis runs at 04:30 UTC every Monday, which is 07:30 Europe/Moscow. It reads committed artifacts and writes `weekly-reports/YYYY-Www.md`; it does not perform new discovery.
 
 Manual runs are available through `workflow_dispatch`. The optional `run_date` input overrides the report date and must use `YYYY-MM-DD`.
 
@@ -75,5 +77,6 @@ python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
 
 - Missing `OPENAI_API_KEY`: the workflow fails before research starts.
 - Missing report file for the run date: validation fails.
+- Missing weekly synthesis report for the week id: weekly validation fails.
 - No file changes: the publish step exits without opening a PR.
 - GitHub token lacks write permissions: publish fails after research artifacts are produced in the runner.

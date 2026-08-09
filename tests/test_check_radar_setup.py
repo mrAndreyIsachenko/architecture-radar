@@ -85,6 +85,23 @@ class SetupDoctorTest(unittest.TestCase):
                     "  - run: scripts/publish-opportunity-radar-run.sh",
                 ]
             ),
+            ".github/workflows/weekly-synthesis.yml": "\n".join(
+                [
+                    "name: Weekly Synthesis",
+                    "on:",
+                    "  workflow_dispatch:",
+                    "  schedule:",
+                    "permissions:",
+                    "  contents: write",
+                    "  pull-requests: write",
+                    "env:",
+                    "  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}",
+                    "steps:",
+                    "  - run: scripts/run-codex-weekly-synthesis.sh",
+                    "  - run: scripts/validate-weekly-synthesis-state.py",
+                    "  - run: scripts/publish-weekly-synthesis-run.sh",
+                ]
+            ),
         }
         for rel_path in doctor.REQUIRED_FILES:
             path = self.root / rel_path
@@ -136,6 +153,7 @@ class SetupDoctorTest(unittest.TestCase):
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
+                ["workflow", "view", "weekly-synthesis.yml", "--repo", "example/radar"],
             ):
                 return completed("")
             return completed(stderr=f"unexpected args: {args}", returncode=1)
@@ -160,6 +178,7 @@ class SetupDoctorTest(unittest.TestCase):
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
+                ["workflow", "view", "weekly-synthesis.yml", "--repo", "example/radar"],
             ):
                 return completed("")
             return completed(stderr=f"unexpected args: {args}", returncode=1)

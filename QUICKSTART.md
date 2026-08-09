@@ -137,7 +137,19 @@ Then open:
 
 `Actions -> Opportunity Radar -> Run workflow`
 
-## 8. Review The Generated PR
+## 8. Optional: Run Weekly Synthesis
+
+Weekly Synthesis reads committed radar artifacts and writes a single report under:
+
+- `weekly-reports/`
+
+It does not discover new repositories or demand signals. Use it after at least a few Architecture Radar or Opportunity Radar reports exist.
+
+Open:
+
+`Actions -> Weekly Synthesis -> Run workflow`
+
+## 9. Review The Generated PR
 
 After a successful run, the workflow opens a PR titled like:
 
@@ -165,7 +177,7 @@ python3 scripts/summarize-radar-report.py reports/YYYY-MM-DD.md --format markdow
 
 Do not auto-merge generated research PRs. The workflow is designed to make the output reviewable, not to make it self-authorizing.
 
-## 9. Protect `main`
+## 10. Protect `main`
 
 For public or shared use, add a branch protection rule for `main`:
 
@@ -176,7 +188,7 @@ For public or shared use, add a branch protection rule for `main`:
 
 This keeps generated research artifacts behind deterministic validation and human review.
 
-## 10. Understand The Cost Model
+## 11. Understand The Cost Model
 
 Recurring cost is mostly driven by:
 
@@ -188,7 +200,9 @@ Recurring cost is mostly driven by:
 
 The default schedule wakes daily but runs expensive research every three days. Same-day reruns become supplements only when the scope changed or `force_research` is set.
 
-## 11. Privacy Notes
+Weekly Synthesis is cheaper than discovery because it reads existing artifacts and does not clone external repositories or search for new candidates.
+
+## 12. Privacy Notes
 
 The model sees the repository contents needed for research, including `interests.md`, `docs/research-scope.md`, and generated artifacts. Do not put secrets or sensitive internal architecture details in those files unless your OpenAI project and GitHub repository settings are configured for that data.
 

@@ -182,6 +182,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
 | `patterns/` | mechanisms extracted where two or more independent projects converged |
 | `signals/` | normalized public signal notes worth revisiting |
+| `weekly-reports/` | weekly synthesis across accumulated Architecture Radar and Opportunity Radar artifacts |
 | `opportunities.json` | structured Opportunity Radar state |
 | `radar.json` | structured metadata, schema-validated in CI |
 | `scripts/` | the deterministic wrapper — guards, validation, publishing |
@@ -232,6 +233,8 @@ Manual runs bypass the cadence gate but still respect the rerun guard, so a same
 
 Opportunity Radar is intentionally manual-only. Run it from `Actions -> Opportunity Radar -> Run workflow` after reviewing `opportunity-interests.md`, `docs/opportunity-research-scope.md`, and `opportunity-watchlist.yml`.
 
+Weekly Synthesis runs separately from discovery. It reads committed radar artifacts and writes `weekly-reports/YYYY-Www.md` with pattern movement, topic coverage, repeated candidates or signals, evidence gaps, and one next-week focus. Run it from `Actions -> Weekly Synthesis -> Run workflow`, or let the weekly schedule open a synthesis PR.
+
 ## Reviewing PRs
 
 The local PR-review heartbeat should use the repository helper before deciding whether to notify:
@@ -253,6 +256,8 @@ Or summarize an open radar PR directly from GitHub metadata and changed report f
 ```bash
 python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
 ```
+
+Weekly synthesis PRs are intentionally small: review the single report under `weekly-reports/` and check whether the next-week focus follows from existing evidence rather than fresh discovery.
 
 ## Planning Changes
 
