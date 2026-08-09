@@ -6,7 +6,7 @@ The goal is to make the repository understandable, reusable, and safe to run by 
 
 ## Required Before Promotion
 
-- Choose and add a license. Without a license, outsiders cannot safely reuse the code, workflow, or templates.
+- Confirm the repository has a license matching the intended reuse model. This repository uses the MIT License.
 - Set a concise repository description in GitHub settings.
 - Add GitHub topics that match the reusable mechanics, not only the current research domain.
 - Keep `README.md` understandable in the first screen: what it is, why it exists, what can be copied, and where to start.
