@@ -232,3 +232,7 @@ Mechanisms extracted so far, each backed by two or more independent implementati
 - Select zero repositories when no candidate clears the quality bar.
 - Extract narrow reusable mechanisms, not product recommendations.
 - Update this README only when the cumulative radar materially changes.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
