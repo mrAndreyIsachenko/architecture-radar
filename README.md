@@ -1,8 +1,34 @@
 # Architecture Radar
 
-A scheduled research agent that reviews open-source projects and extracts reusable architectural mechanisms — and, more usefully, a worked example of **how to make a recurring agent produce output you can actually trust**.
+A reference implementation for running a scheduled AI research agent that produces **evidence-backed pull requests** instead of disposable digests.
 
-The research output lives in `reports/`, `repositories/`, and `patterns/`. The part worth copying is everything around it: the evidence taxonomy, the mechanical checks that enforce it, and the privilege boundary between the model and the repository.
+Use it to build a radar for open-source architecture, market signals, security research, model releases, protocol ecosystems, or any recurring investigation where plausible-but-unsupported output is worse than no output.
+
+The core idea: let the model research and write, but let deterministic GitHub Actions decide whether the result is structurally valid, evidence-labeled, reviewable, and safe to publish.
+
+The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
+
+## Quick Start
+
+See [`QUICKSTART.md`](QUICKSTART.md) for the shortest path from fork to first scheduled PR.
+
+At a high level:
+
+1. Fork or clone this repository.
+2. Add an `OPENAI_API_KEY` repository secret.
+3. Allow GitHub Actions to write contents and create pull requests.
+4. Replace `interests.md`, `docs/research-scope.md`, and `watchlist.yml` with your own research scope.
+5. Run the `Architecture Radar` workflow manually.
+6. Review the generated PR before merging.
+
+## What You Can Copy
+
+- A GitHub Actions wrapper for scheduled AI research that opens pull requests instead of writing to `main`.
+- An evidence taxonomy that separates source-verified facts, test-verified behavior, maintainer claims, interpretation, and hypotheses.
+- Deterministic validation that catches common evidence-label inflation before a PR is published.
+- A privilege boundary where the model gets API credentials but no GitHub token, while publishing happens in a separate allowlisted step.
+- Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
+- Local PR-review helpers for turning a generated radar PR into a short review notification.
 
 ## The problem this is built against
 
