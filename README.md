@@ -157,6 +157,8 @@ problem in interests.md → observed mechanism → source evidence → proposed 
 
 The model occupies exactly one step. Everything before it decides whether it should run; everything after it decides whether its output is allowed out.
 
+Generated PRs have one extra validation detail: GitHub does not automatically run `pull_request` workflows for pull requests created by a workflow with `GITHUB_TOKEN`. After a generated workflow succeeds, `Generated PR Validation` marks the generated PR head with the required `validate` check that corresponds to the deterministic validation already run before publishing.
+
 ## Layout
 
 | Path | Role |
@@ -197,7 +199,7 @@ Patterns require independent convergence. One repository doing something interes
 
 Worth stating precisely, since the distinction is the whole point.
 
-**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and required sections, candidate-ledger table shape, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, and the absence of a GitHub token during the agent step.
+**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and required sections, candidate-ledger table shape, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, generated PR validation markers, and the absence of a GitHub token during the agent step.
 
 **Instructed in the prompt only** — pinning SHAs, honest candidate accounting, cost discipline, selecting zero, not reading CI credentials. Nothing mechanically stops the agent from ignoring these; pull request review is the backstop.
 

@@ -1,0 +1,41 @@
+name: Generated PR Validation
+
+on:
+  workflow_run:
+    workflows:
+      - Architecture Radar
+      - Opportunity Radar
+      - Weekly Synthesis
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+concurrency:
+  group: generated-pr-validation-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  mark:
+    name: mark generated PR validate
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Mark generated PR validated
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/mark-generated-pr-validation.py \
+            --repo "${{ github.repository }}" \
+            --workflow-name "${{ github.event.workflow_run.name }}" \
+            --run-number "${{ github.event.workflow_run.run_number }}" \
+            --run-url "${{ github.event.workflow_run.html_url }}"

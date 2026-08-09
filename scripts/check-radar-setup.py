@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "docs/release-checklist.md",
     "docs/releases/v0.1.0.md",
     ".github/workflows/architecture-radar.yml",
+    ".github/workflows/generated-pr-validation.yml",
     ".github/workflows/opportunity-radar.yml",
     ".github/workflows/radar-validation.yml",
     ".github/workflows/weekly-synthesis.yml",
@@ -51,6 +52,7 @@ REQUIRED_FILES = [
     ".codex/skills/openspec-sync-specs/SKILL.md",
     ".codex/skills/openspec-archive-change/SKILL.md",
     "scripts/validate-radar-state.py",
+    "scripts/mark-generated-pr-validation.py",
     "scripts/run-codex-radar.sh",
     "scripts/prepare-radar-run.sh",
     "scripts/prepare-opportunity-radar-run.sh",
@@ -69,6 +71,7 @@ REQUIRED_FILES = [
     "scripts/validate-opportunity-radar-state.py",
     "scripts/validate-weekly-synthesis-state.py",
     "tests/test_check_radar_setup.py",
+    "tests/test_mark_generated_pr_validation.py",
     "tests/test_publish_scripts.py",
     "tests/test_radar_pr_review.py",
     "tests/test_radar_pr_review_status.py",
@@ -108,6 +111,17 @@ VALIDATION_WORKFLOW_NEEDLES = [
     "pull_request:",
     "contents: read",
     "openspec validate --all --strict --no-interactive",
+]
+
+GENERATED_PR_VALIDATION_WORKFLOW_NEEDLES = [
+    "name: Generated PR Validation",
+    "workflow_run:",
+    "Architecture Radar",
+    "Opportunity Radar",
+    "Weekly Synthesis",
+    "checks: write",
+    "pull-requests: read",
+    "scripts/mark-generated-pr-validation.py",
 ]
 
 OPPORTUNITY_WORKFLOW_NEEDLES = [
@@ -290,6 +304,11 @@ def check_workflow_text(root: Path) -> list[Check]:
             "architecture-workflow",
             ".github/workflows/architecture-radar.yml",
             ARCHITECTURE_WORKFLOW_NEEDLES,
+        ),
+        (
+            "generated-pr-validation-workflow",
+            ".github/workflows/generated-pr-validation.yml",
+            GENERATED_PR_VALIDATION_WORKFLOW_NEEDLES,
         ),
         (
             "validation-workflow",
@@ -523,7 +542,13 @@ def github_checks(
         else:
             checks.append(make_check("github:release:v0.1.0", "warn", "v0.1.0 release exists but is not published as expected", release=release_data))
 
-    for workflow in ("architecture-radar.yml", "opportunity-radar.yml", "radar-validation.yml", "weekly-synthesis.yml"):
+    for workflow in (
+        "architecture-radar.yml",
+        "generated-pr-validation.yml",
+        "opportunity-radar.yml",
+        "radar-validation.yml",
+        "weekly-synthesis.yml",
+    ):
         result = run_gh(["workflow", "view", workflow, "--repo", resolved_repo])
         if result.returncode == 0:
             checks.append(make_check(f"github:workflow:{workflow}", "pass", f"{workflow} is visible on GitHub"))
