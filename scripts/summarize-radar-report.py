@@ -102,11 +102,7 @@ def report_title(text: str) -> str:
     return ""
 
 
-def summarize_report(path: Path) -> dict[str, object]:
-    if not path.is_file():
-        raise SystemExit(f"report not found: {path}")
-
-    text = path.read_text(encoding="utf-8")
+def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
     sections = markdown_sections(text)
     candidate_counts = parse_candidate_counts(sections.get("Candidate Counts", ""))
     ledger_rows = parse_table(sections.get("Candidate Ledger", ""))
@@ -128,6 +124,13 @@ def summarize_report(path: Path) -> dict[str, object]:
         "evidence_gaps": evidence_gaps,
         "recommended_next_action": next_action,
     }
+
+
+def summarize_report(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        raise SystemExit(f"report not found: {path}")
+
+    return summarize_report_text(path.read_text(encoding="utf-8"), path)
 
 
 def emit_markdown(summaries: list[dict[str, object]]) -> None:
