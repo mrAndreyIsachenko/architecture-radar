@@ -6,4 +6,3 @@
 - Signal type: incumbent-friction
 - Labels: M2 repeated pain, M4 workaround evidence, M3 competitor proof
 - Notes: repeated requests for split tunneling, domain exclusions, DNS ordering, and app connector workarounds across Android and macOS.
-

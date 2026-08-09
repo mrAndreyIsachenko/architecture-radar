@@ -6,4 +6,3 @@
 - Signal type: operational-risk
 - Labels: M2 repeated pain, M4 workaround evidence
 - Notes: checkpoint serialization bloats storage and tokens; related issues show ignored persistent checkpointers, streaming state loss, and silent re-dispatch from checkpoint.
-

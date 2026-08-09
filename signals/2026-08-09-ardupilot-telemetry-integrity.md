@@ -6,4 +6,3 @@
 - Signal type: operational-risk
 - Labels: M2 repeated pain, M4 workaround evidence
 - Notes: packet loss, lost ESC telemetry, and DShot start failures recur; users manually compare GCS output and logs to diagnose reliability.
-
