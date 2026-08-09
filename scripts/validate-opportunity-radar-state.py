@@ -128,6 +128,20 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "do_not_build_until",
 }
 STATE_STAGE_VALUES = {"selected", "selected-for-test", "selected-for-build", "deferred", "watchlist", "watchlisted"}
+STATE_STAGE_VALUES_BY_ARRAY = {
+    "selected": {"selected", "selected-for-test", "selected-for-build"},
+    "deferred": {"deferred"},
+    "watchlisted": {"watchlist", "watchlisted"},
+}
+BUILD_READINESS_STATE_FIELDS = {
+    "Paid wedge": "paid_wedge",
+    "Distribution channel": "distribution_channel",
+    "Private data barrier": "private_data_barrier",
+    "OSS commoditization risk": "oss_commoditization_risk",
+    "Product shape": "product_shape",
+    "Pricing hypothesis": "pricing_hypothesis",
+    "Do not build until": "do_not_build_until",
+}
 UNCLEAR_TEXT_MARKERS = {
     "unclear",
     "unknown",
@@ -317,9 +331,19 @@ def clean_table_cell(value: str) -> str:
     return value.strip().strip("`").strip()
 
 
-def validate_build_readiness_table(path: Path, section_text: str) -> None:
+def normalize_report_text(value: object) -> str:
+    text = clean_table_cell(str(value))
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def normalize_opportunity_key(value: object) -> str:
+    return re.sub(r"[^a-z0-9]+", "", normalize_report_text(value))
+
+
+def parse_build_readiness_table(path: Path, section_text: str) -> list[dict[str, str]]:
     if "None" in section_text or "No selected" in section_text:
-        return
+        return []
 
     lines = [line for line in section_text.splitlines() if line.startswith("|")]
     if len(lines) < 3:
@@ -335,19 +359,23 @@ def validate_build_readiness_table(path: Path, section_text: str) -> None:
         fail(f"{path.relative_to(ROOT)} Build Readiness has an invalid markdown separator row")
 
     indexes = {name: header.index(name) for name in BUILD_READINESS_REQUIRED_COLUMNS}
+    rows: list[dict[str, str]] = []
     for row_index, row in enumerate(lines[2:], start=1):
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) != len(header):
             fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} has {len(cells)} cells, expected {len(header)}")
 
-        paid_wedge = clean_table_cell(cells[indexes["Paid wedge"]])
-        distribution_channel = clean_table_cell(cells[indexes["Distribution channel"]])
-        private_data_barrier = clean_table_cell(cells[indexes["Private data barrier"]])
-        oss_risk = clean_table_cell(cells[indexes["OSS commoditization risk"]])
-        product_shape = clean_table_cell(cells[indexes["Product shape"]])
-        pricing_hypothesis = clean_table_cell(cells[indexes["Pricing hypothesis"]])
-        do_not_build_until = clean_table_cell(cells[indexes["Do not build until"]])
-        build_decision = normalize_stage(clean_table_cell(cells[indexes["Build decision"]]))
+        parsed = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+
+        paid_wedge = parsed["Paid wedge"]
+        distribution_channel = parsed["Distribution channel"]
+        private_data_barrier = parsed["Private data barrier"]
+        oss_risk = parsed["OSS commoditization risk"]
+        product_shape = parsed["Product shape"]
+        pricing_hypothesis = parsed["Pricing hypothesis"]
+        do_not_build_until = parsed["Do not build until"]
+        build_decision = normalize_stage(parsed["Build decision"])
 
         if len(paid_wedge) < 30:
             fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} paid wedge is too short")
@@ -383,6 +411,14 @@ def validate_build_readiness_table(path: Path, section_text: str) -> None:
                     f"`{private_data_barrier}`"
                 )
 
+        rows.append(parsed)
+
+    return rows
+
+
+def validate_build_readiness_table(path: Path, section_text: str) -> list[dict[str, str]]:
+    return parse_build_readiness_table(path, section_text)
+
 
 def is_unclear_text(value: object) -> bool:
     text = str(value).strip().lower()
@@ -393,6 +429,82 @@ def is_unclear_text(value: object) -> bool:
 
 def normalize_stage(value: object) -> str:
     return str(value).strip().lower().replace("_", "-")
+
+
+def read_opportunities_state() -> dict[str, object]:
+    data_path = require_path("opportunities.json")
+    try:
+        data = json.loads(data_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"opportunities.json is not valid JSON: {exc}")
+
+    if not isinstance(data, dict):
+        fail("opportunities.json must be an object")
+    return data
+
+
+def state_stage_for_entry(array_name: str, entry: dict[str, object]) -> str:
+    stage = entry.get("stage")
+    if stage is not None:
+        return normalize_stage(stage)
+    if array_name == "watchlisted":
+        return "watchlist"
+    return array_name
+
+
+def build_state_entry_lookup(data: dict[str, object]) -> dict[str, tuple[str, int, dict[str, object]]]:
+    lookup: dict[str, tuple[str, int, dict[str, object]]] = {}
+    for array_name in STATE_ARRAY_FIELDS:
+        entries = data.get(array_name, [])
+        if not isinstance(entries, list):
+            continue
+        for index, entry in enumerate(entries, start=1):
+            if not isinstance(entry, dict):
+                continue
+            keys = {
+                normalize_opportunity_key(entry.get("id", "")),
+                normalize_opportunity_key(entry.get("title", "")),
+            }
+            for key in keys:
+                if not key:
+                    continue
+                previous = lookup.get(key)
+                if previous is not None and previous[2] is not entry:
+                    fail(f"opportunities.json has duplicate opportunity lookup key: {key}")
+                lookup[key] = (array_name, index, entry)
+    return lookup
+
+
+def validate_build_readiness_state_consistency(
+    path: Path,
+    rows: list[dict[str, str]],
+    state_entries: dict[str, tuple[str, int, dict[str, object]]],
+) -> None:
+    for row in rows:
+        row_index = row["_row_index"]
+        opportunity = row["Opportunity"]
+        key = normalize_opportunity_key(opportunity)
+        match = state_entries.get(key)
+        if match is None:
+            fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} opportunity is missing from opportunities.json: {opportunity}")
+
+        array_name, state_index, entry = match
+        actual_decision = normalize_stage(row["Build decision"])
+        expected_decision = state_stage_for_entry(array_name, entry)
+        if actual_decision != expected_decision:
+            fail(
+                f"{path.relative_to(ROOT)} Build Readiness row {row_index} decision `{actual_decision}` "
+                f"does not match opportunities.json {array_name}[{state_index}] stage `{expected_decision}`"
+            )
+
+        for column, state_field in BUILD_READINESS_STATE_FIELDS.items():
+            actual_value = normalize_report_text(row[column])
+            expected_value = normalize_report_text(entry.get(state_field, ""))
+            if actual_value != expected_value:
+                fail(
+                    f"{path.relative_to(ROOT)} Build Readiness row {row_index} column `{column}` "
+                    f"does not match opportunities.json {array_name}[{state_index}].{state_field}"
+                )
 
 
 def validate_opportunity_build_readiness(path_label: str, sections: dict[str, str]) -> None:
@@ -425,6 +537,7 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
 
 
 def validate_report_structure() -> None:
+    state_entries = build_state_entry_lookup(read_opportunities_state())
     for path in report_files_to_validate():
         if not path.is_file():
             fail(f"missing opportunity report: {path.relative_to(ROOT)}")
@@ -443,7 +556,8 @@ def validate_report_structure() -> None:
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
         validate_signal_ledger(path, sections["Signal Ledger"])
-        validate_build_readiness_table(path, sections["Build Readiness"])
+        build_readiness_rows = validate_build_readiness_table(path, sections["Build Readiness"])
+        validate_build_readiness_state_consistency(path, build_readiness_rows, state_entries)
 
         selected_text = sections["Selected Opportunities"] + "\n" + sections["Opportunity Reviews"]
         if "None" not in sections["Selected Opportunities"] and "No selected" not in sections["Selected Opportunities"]:
@@ -578,14 +692,8 @@ def validate_watchlist() -> None:
 
 
 def validate_state() -> None:
-    data_path = require_path("opportunities.json")
-    try:
-        data = json.loads(data_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        fail(f"opportunities.json is not valid JSON: {exc}")
+    data = read_opportunities_state()
 
-    if not isinstance(data, dict):
-        fail("opportunities.json must be an object")
     if data.get("schema_version") != 1:
         fail("opportunities.json schema_version must be 1")
 
@@ -662,6 +770,11 @@ def validate_state() -> None:
             stage = entry.get("stage")
             if stage is not None and normalize_stage(stage) not in STATE_STAGE_VALUES:
                 fail(f"opportunities.json {field}[{index}] has unsupported stage: {stage}")
+            if stage is not None and normalize_stage(stage) not in STATE_STAGE_VALUES_BY_ARRAY[field]:
+                fail(
+                    f"opportunities.json {field}[{index}] stage `{normalize_stage(stage)}` "
+                    f"does not match containing array `{field}`"
+                )
             if field == "selected":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json selected[{index}] has unclear paid_wedge; keep it in watchlisted")

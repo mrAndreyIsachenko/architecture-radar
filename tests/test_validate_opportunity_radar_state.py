@@ -18,6 +18,11 @@ assert spec.loader is not None
 spec.loader.exec_module(validator)
 
 
+PAID_WEDGE = "Teams pay to reduce engineering time spent reconstructing failed agent runs."
+DISTRIBUTION_CHANNEL = "CLI installed from GitHub or PyPI and run locally against exported traces."
+DO_NOT_BUILD_UNTIL = "Three teams agree to run the audit on real traces or one team asks for a paid follow-up."
+
+
 def complete_report(selected: bool = True) -> str:
     selected_text = "- Agent trace debugging for small teams, backed by `M2 repeated pain`."
     reviews = "The opportunity has repeated public issue evidence. `M2 repeated pain`."
@@ -25,7 +30,7 @@ def complete_report(selected: bool = True) -> str:
         [
             "| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |",
             "|---|---|---|---|---|---|---|---|---|",
-            "| Agent trace debugging | Teams pay to reduce engineering time spent reconstructing failed agent runs. | CLI installed from GitHub or PyPI and run locally against exported traces. | `public-only` | `medium` | `cli` | `team` | Three teams agree to run the audit on real traces or one team asks for a paid follow-up. | `selected-for-test` |",
+            f"| Agent trace debugging | {PAID_WEDGE} | {DISTRIBUTION_CHANNEL} | `public-only` | `medium` | `cli` | `team` | {DO_NOT_BUILD_UNTIL} | `selected-for-test` |",
         ]
     )
     if not selected:
@@ -58,6 +63,48 @@ def complete_report(selected: bool = True) -> str:
     return "\n".join(body)
 
 
+def complete_state(*, array_name: str = "selected", stage: str = "selected-for-test", paid_wedge: str = PAID_WEDGE) -> str:
+    data: dict[str, object] = {
+        "schema_version": 1,
+        "discovery_mode": "watchlist-directed",
+        "selected": [],
+        "deferred": [],
+        "watchlisted": [],
+    }
+    entry = {
+        "id": "agent-trace-debugging",
+        "family": "ai-llm-demand",
+        "title": "Agent trace debugging",
+        "file": "opportunities/agent-trace-debugging.md",
+        "stage": stage,
+        "score": 7,
+        "confidence": "medium",
+        "money_signal": "weak",
+        "reachability": "high",
+        "evidence_count": 3,
+        "next_test": "Offer a manual trace debugging report to three agent teams.",
+        "paid_wedge": paid_wedge,
+        "distribution_channel": DISTRIBUTION_CHANNEL,
+        "private_data_barrier": "public-only",
+        "oss_commoditization_risk": "medium",
+        "product_shape": "cli",
+        "pricing_hypothesis": "team",
+        "do_not_build_until": DO_NOT_BUILD_UNTIL,
+        "labels": ["M2", "M4"],
+    }
+    items = data[array_name]
+    assert isinstance(items, list)
+    items.append(entry)
+    return json.dumps(data)
+
+
+def write_complete_state(root: Path, *, array_name: str = "selected", stage: str = "selected-for-test", paid_wedge: str = PAID_WEDGE) -> None:
+    (root / "opportunities.json").write_text(
+        complete_state(array_name=array_name, stage=stage, paid_wedge=paid_wedge),
+        encoding="utf-8",
+    )
+
+
 def complete_opportunity() -> str:
     sections = {
         "Opportunity Summary": "Trace-backed debugging reports for small agent teams.",
@@ -65,13 +112,13 @@ def complete_opportunity() -> str:
         "Repeated Pain Or Demand Signal": "Teams repeatedly ask how to inspect failed agent runs.",
         "Likely User Or Buyer": "Engineering teams deploying multi-step LLM agents.",
         "Current Workaround Or Money Signal": "Teams use ad hoc logs and manual trace reading.",
-        "Paid Wedge": "Teams pay to reduce engineering time spent reconstructing failed agent runs.",
-        "Distribution Channel": "A CLI installed from GitHub or PyPI and run locally against exported traces.",
+        "Paid Wedge": PAID_WEDGE,
+        "Distribution Channel": DISTRIBUTION_CHANNEL,
         "Private Data Barrier": "public-only",
         "OSS Commoditization Risk": "medium",
         "Product Shape": "cli",
         "Pricing Hypothesis": "team",
-        "Do Not Build Until": "Three teams agree to run the audit on real traces or one team asks for a paid follow-up.",
+        "Do Not Build Until": DO_NOT_BUILD_UNTIL,
         "Proposed Offer": "A manual trace audit report for one failed workflow.",
         "Success Threshold": "Three teams agree to share traces or pay for an audit.",
         "Falsification Threshold": "Teams decline because existing tools already solve it.",
@@ -120,6 +167,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report = root / "opportunity-reports" / "2026-08-11.md"
             report.parent.mkdir()
             report.write_text(complete_report(), encoding="utf-8")
+            write_complete_state(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -134,6 +182,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report = root / "opportunity-reports" / "2026-08-11.md"
             report.parent.mkdir()
             report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -156,6 +205,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report = root / "opportunity-reports" / "2026-08-11.md"
             report.parent.mkdir()
             report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -176,6 +226,55 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
 
         with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
             validator.validate_build_readiness_table(ROOT / "opportunity-reports" / "test.md", readiness)
+
+    def test_report_structure_rejects_build_readiness_missing_from_state(self) -> None:
+        bad_report = complete_report().replace("Agent trace debugging |", "Unknown opportunity |")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_build_readiness_decision_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(), encoding="utf-8")
+            write_complete_state(root, stage="selected-for-build")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_build_readiness_field_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(), encoding="utf-8")
+            write_complete_state(root, paid_wedge="Teams pay for a different validated debugging workflow.")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
 
     def test_label_text_rejects_architecture_evidence_labels(self) -> None:
         with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
@@ -363,6 +462,23 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             )
 
             with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_stage_mismatched_array(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(array_name="watchlisted", stage="selected-for-test"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_state()
 
     def test_state_schema_rejects_missing_comparison_metadata(self) -> None:

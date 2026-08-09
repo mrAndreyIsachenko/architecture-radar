@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Keep Opportunity Radar report build-readiness rows consistent with
+  opportunities.json state entries.
