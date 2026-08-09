@@ -53,12 +53,19 @@ jobs:
           python3 -m py_compile scripts/mark-generated-pr-validation.py
           python3 -m py_compile scripts/summarize-radar-pr.py
           python3 -m py_compile scripts/summarize-radar-report.py
+          python3 -m py_compile scripts/validate-agent-governance.py
           python3 -m py_compile scripts/validate-opportunity-radar-state.py
           python3 -m py_compile scripts/validate-radar-state.py
           python3 -m py_compile scripts/validate-weekly-synthesis-state.py
 
       - name: Run unit tests
         run: python3 -m unittest discover -s tests
+
+      - name: Validate agent governance
+        if: github.event_name == 'pull_request'
+        env:
+          GOVERNANCE_BASE_REF: ${{ github.base_ref }}
+        run: scripts/validate-agent-governance.py
 
       - name: Validate OpenSpec
         run: openspec validate --all --strict --no-interactive
