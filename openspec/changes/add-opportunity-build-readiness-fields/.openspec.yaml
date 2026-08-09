@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Require Opportunity Radar records to capture build-readiness fields and
+  block build selection when the paid wedge or private-data boundary is unclear.

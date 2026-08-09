@@ -8,31 +8,48 @@
       "family": "ai-llm-demand",
       "title": "LangGraph checkpoint persistence and cost diagnostics",
       "file": "opportunities/langgraph-checkpoint-persistence-and-cost-diagnostics.md",
-      "stage": "selected",
+      "stage": "selected-for-test",
       "score": 8,
       "confidence": "medium-high",
       "money_signal": "weak",
       "reachability": "high",
       "evidence_count": 5,
       "next_test": "Publish a checkpoint audit CLI that measures checkpoint size, query count, replay fidelity, and duplicate-run risk on real LangGraph saver setups.",
+      "paid_wedge": "Teams pay to reduce engineering time spent debugging checkpoint bloat, replay drift, duplicate execution, and persistence failures in production LangGraph workflows.",
+      "distribution_channel": "CLI distributed from GitHub or PyPI and run locally against user-owned LangGraph saver setups, with an optional later GitHub Action.",
+      "private_data_barrier": "public-only",
+      "oss_commoditization_risk": "medium",
+      "product_shape": "cli",
+      "pricing_hypothesis": "team",
+      "do_not_build_until": "At least 3 independent teams run the CLI on real workflows, or 1 team shares a production issue that the audit exposes faster than their current debugging path.",
       "labels": [
         "M2 repeated pain",
         "M3 competitor proof",
         "M4 workaround evidence"
       ]
-    },
+    }
+  ],
+  "deferred": [],
+  "watchlisted": [
     {
       "id": "tailscale-split-tunnel-routing-exception-diagnostics",
       "family": "privacy-networking-demand",
       "title": "Tailscale split-tunnel routing exception diagnostics",
       "file": "opportunities/tailscale-split-tunnel-routing-exception-diagnostics.md",
-      "stage": "selected",
+      "stage": "watchlist",
       "score": 6,
       "confidence": "medium",
       "money_signal": "weak",
       "reachability": "medium",
       "evidence_count": 5,
-      "next_test": "Defer build; first gather non-issue-tracker confirmation from admins that routing diagnostics are worth a standalone tool.",
+      "next_test": "Gather non-issue-tracker confirmation from admins that routing diagnostics are worth a standalone tool.",
+      "paid_wedge": "Unclear; public issues show repeated routing pain, but not a specific budget owner or paid diagnostic workflow.",
+      "distribution_channel": "Likely CLI or report for admins, but the buying and installation path is still unproven.",
+      "private_data_barrier": "unclear",
+      "oss_commoditization_risk": "high",
+      "product_shape": "report",
+      "pricing_hypothesis": "unclear",
+      "do_not_build_until": "At least 3 admins confirm they would use an external diagnostic before rollout, or 1 team asks for a paid routing review.",
       "labels": [
         "M2 repeated pain",
         "M3 competitor proof",
@@ -44,19 +61,24 @@
       "family": "drones-robotics-demand",
       "title": "ArduPilot telemetry integrity and failsafe diagnostics",
       "file": "opportunities/ardupilot-telemetry-integrity-and-failsafe-diagnostics.md",
-      "stage": "selected",
+      "stage": "watchlist",
       "score": 5,
       "confidence": "medium-low",
       "money_signal": "none-found",
       "reachability": "medium",
       "evidence_count": 5,
-      "next_test": "Defer build; first collect fresh operator logs and confirm that teams want an external telemetry integrity report.",
+      "next_test": "Collect fresh operator logs and confirm that teams want an external telemetry integrity report.",
+      "paid_wedge": "Unclear; telemetry integrity pain is visible, but there is no direct public proof that teams pay for external log diagnostics.",
+      "distribution_channel": "Likely report or CLI for UAV operators and integrators, but acquisition requires direct operator validation.",
+      "private_data_barrier": "private-data-required",
+      "oss_commoditization_risk": "medium",
+      "product_shape": "report",
+      "pricing_hypothesis": "unclear",
+      "do_not_build_until": "At least 3 operators share representative logs for analysis, or 1 integrator asks for a paid telemetry integrity review.",
       "labels": [
         "M2 repeated pain",
         "M4 workaround evidence"
       ]
     }
-  ],
-  "deferred": [],
-  "watchlisted": []
+  ]
 }

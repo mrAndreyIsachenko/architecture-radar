@@ -20,6 +20,27 @@ UAV operators, robotics labs, integrators, and flight-test engineers using ArduP
 ## Current Workaround Or Money Signal
 Manual log review, Mission Planner stats windows, firmware updates, and repeated bench tests are used to isolate telemetry faults.
 
+## Paid Wedge
+Unclear; telemetry integrity pain is visible, but there is no direct public proof that teams pay for external log diagnostics.
+
+## Distribution Channel
+Likely report or CLI for UAV operators and integrators, but acquisition requires direct operator validation.
+
+## Private Data Barrier
+private-data-required
+
+## OSS Commoditization Risk
+medium
+
+## Product Shape
+report
+
+## Pricing Hypothesis
+unclear
+
+## Do Not Build Until
+At least 3 operators share representative logs for analysis, or 1 integrator asks for a paid telemetry integrity review.
+
 ## Proposed Offer
 A log analyzer that scores telemetry integrity, detects missing ESC or MAVLink frames, and produces a simple flight-readiness report.
 
@@ -34,4 +55,4 @@ The reports mostly reduce to one-off wiring mistakes, with no recurring software
 - Need more confirmation that a diagnostics layer would be used in routine operations, not only after failures.
 
 ## Decision
-Selected.
+Watchlisted. Do not build until representative private-log access and a paid review signal are confirmed.

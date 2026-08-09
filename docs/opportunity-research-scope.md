@@ -47,11 +47,18 @@ For each selected opportunity, explain:
 3. Whether the signal repeats across independent sources.
 4. Who likely experiences the pain.
 5. What workflow or budget it attaches to.
-6. What current alternatives exist.
-7. Why those alternatives appear insufficient.
-8. What small experiment could test demand within one week.
-9. What would falsify the opportunity.
-10. What should explicitly not be built.
+6. What exactly someone would pay for.
+7. How the artifact would be installed, bought, or adopted.
+8. Whether the next useful validation requires private code or private data.
+9. Whether an upstream OSS PR could commoditize the opportunity.
+10. Which smallest product shape fits the next test: CLI, GitHub Action, browser extension, hosted API, or report.
+11. Whether the pricing hypothesis is free, team, pro, or unclear.
+12. What signal is required before more build work.
+13. What current alternatives exist.
+14. Why those alternatives appear insufficient.
+15. What small experiment could test demand within one week.
+16. What would falsify the opportunity.
+17. What should explicitly not be built.
 
 ## Evidence Labels
 
@@ -75,3 +82,5 @@ Select no more than three opportunities per manual run.
 Selecting zero is valid when evidence is thin, noisy, or not connected to a testable next step.
 
 Do not select an opportunity because it is exciting. Select it because there is enough evidence to justify a small experiment.
+
+If the paid wedge is unclear, or if the useful next test requires private code or private data, keep the opportunity in watchlist. Do not select it and do not mark it selected for build.
