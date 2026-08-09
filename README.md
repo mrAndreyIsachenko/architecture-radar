@@ -166,6 +166,12 @@ python3 scripts/radar-pr-review-status.py --format markdown
 
 It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, and can include failed-run excerpts with `--include-failed-log`.
 
+After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
+
+```bash
+python3 scripts/summarize-radar-report.py reports/YYYY-MM-DD.md --format markdown
+```
+
 ## Adapting it
 
 The research domain is the least interesting part, and it is deliberately isolated in three files. To point this at something else, replace `interests.md` with your own unresolved problems, `watchlist.yml` with things broad discovery must not miss, and `docs/research-scope.md` with your own topic areas. Leave `docs/agent-rules.md` and `scripts/` untouched — that is the machine.
