@@ -23,6 +23,9 @@ last_message="${RUNNER_TEMP:-/tmp}/opportunity-radar-last-message-${run_date}.md
   printf -- '- Put scratch files under `/tmp/opportunity-radar-candidates`.\n'
   printf -- '- If a required prerequisite is missing, create `opportunity-reports/%s.md` as a diagnostic report and stop without synthetic opportunities.\n' "$run_date"
   printf -- '- Keep `opportunities.json` as schema_version 1 with array fields `selected`, `deferred`, and `watchlisted`; do not write a single `opportunities` object or map.\n'
+  printf -- '- Include `discovery_mode`, `score`, `confidence`, `money_signal`, `reachability`, `evidence_count`, and `next_test` in `opportunities.json` entries so selected, deferred, and watchlisted opportunities can be compared.\n'
+  printf -- '- If the run is anchored by `opportunity-watchlist.yml`, mark it `watchlist-directed` or `mixed` and do not describe selected opportunities as market-wide winners.\n'
+  printf -- '- Prefer one focused recommended next test over multiple unrelated build artifacts.\n'
   printf -- '- Prefix important evidence bullets in every selected opportunity file with full market labels such as `M2 repeated pain:` or `M4 workaround evidence:`.\n'
   printf -- '- Before your final answer, run `scripts/validate-opportunity-radar-state.py` and fix artifacts until it passes, or report the blocker explicitly.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
