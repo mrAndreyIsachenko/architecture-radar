@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "missing-user-request",
+      "body": "Scope confirmed: yes\nAutonomous follow-up: no",
+      "changed_files": [
+        "scripts/run-codex-radar.sh",
+        "openspec/changes/example/proposal.md"
+      ],
+      "expected_errors": [
+        "User request"
+      ]
+    },
+    {
+      "id": "autonomous-follow-up-enabled",
+      "body": "User request: Implement a requested governance change.\nScope confirmed: yes\nAutonomous follow-up: yes",
+      "changed_files": [
+        "scripts/run-codex-radar.sh",
+        "openspec/changes/example/proposal.md"
+      ],
+      "expected_errors": [
+        "Autonomous follow-up: no"
+      ]
+    },
+    {
+      "id": "governed-change-without-openspec-evidence",
+      "body": "User request: Change the validation workflow.\nScope confirmed: yes\nAutonomous follow-up: no",
+      "changed_files": [
+        ".github/workflows/radar-validation.yml"
+      ],
+      "expected_errors": [
+        "OpenSpec evidence"
+      ]
+    }
+  ]
+}

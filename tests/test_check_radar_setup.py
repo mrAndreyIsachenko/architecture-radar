@@ -66,6 +66,7 @@ class SetupDoctorTest(unittest.TestCase):
                     "jobs:",
                     "  validate:",
                     "    steps:",
+                    "      - run: scripts/test-agent-governance-negative.py",
                     "      - run: scripts/validate-agent-governance.py",
                     "      - run: openspec validate --all --strict --no-interactive",
                 ]
