@@ -237,6 +237,30 @@ def check_radar_json(root: Path) -> list[Check]:
     return checks
 
 
+def check_opportunities_json(root: Path) -> list[Check]:
+    path = root / "opportunities.json"
+    data, error = load_json_file(path)
+    if error:
+        return [make_check("opportunities-json:parse", "fail", f"opportunities.json {error}; fix opportunities.json before running Opportunity Radar")]
+
+    checks = [make_check("opportunities-json:parse", "pass", "opportunities.json parses")]
+    if not isinstance(data, dict):
+        checks.append(make_check("opportunities-json:shape", "fail", "opportunities.json must be an object; restore the expected schema"))
+        return checks
+
+    if data.get("schema_version") == 1:
+        checks.append(make_check("opportunities-json:schema-version", "pass", "opportunities.json has schema_version 1"))
+    else:
+        checks.append(make_check("opportunities-json:schema-version", "fail", "opportunities.json schema_version must be 1"))
+
+    for field in ("selected", "deferred", "watchlisted"):
+        if isinstance(data.get(field), list):
+            checks.append(make_check(f"opportunities-json:{field}", "pass", f"opportunities.json has {field} list"))
+        else:
+            checks.append(make_check(f"opportunities-json:{field}", "fail", f"opportunities.json {field} must be a list"))
+    return checks
+
+
 def check_workflow_text(root: Path) -> list[Check]:
     checks: list[Check] = []
     workflow_specs = [
@@ -325,6 +349,7 @@ def local_checks(
     checks: list[Check] = []
     checks.extend(check_required_paths(root))
     checks.extend(check_radar_json(root))
+    checks.extend(check_opportunities_json(root))
     checks.extend(check_workflow_text(root))
     checks.extend(check_open_spec_cli(root, run_command, which))
     return checks

@@ -66,6 +66,8 @@ Use market-specific labels:
 
 Use `H hypothesis` when evidence is thin. Do not relabel source code or docs as market evidence unless they show demand, pain, competitor proof, or workaround behavior.
 
+In generated reports and opportunity files, write the full label text, for example `M2 repeated pain`, not only `M2`.
+
 ## Selection Rule
 
 Select no more than three opportunities per manual run.

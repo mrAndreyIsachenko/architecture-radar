@@ -22,6 +22,9 @@ last_message="${RUNNER_TEMP:-/tmp}/opportunity-radar-last-message-${run_date}.md
   printf -- '- Use live web/GitHub discovery for current public signal state.\n'
   printf -- '- Put scratch files under `/tmp/opportunity-radar-candidates`.\n'
   printf -- '- If a required prerequisite is missing, create `opportunity-reports/%s.md` as a diagnostic report and stop without synthetic opportunities.\n' "$run_date"
+  printf -- '- Keep `opportunities.json` as schema_version 1 with array fields `selected`, `deferred`, and `watchlisted`; do not write a single `opportunities` object or map.\n'
+  printf -- '- Prefix important evidence bullets in every selected opportunity file with full market labels such as `M2 repeated pain:` or `M4 workaround evidence:`.\n'
+  printf -- '- Before your final answer, run `scripts/validate-opportunity-radar-state.py` and fix artifacts until it passes, or report the blocker explicitly.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
   cat opportunity-interests.md
   printf '\n\n---\n\n'
