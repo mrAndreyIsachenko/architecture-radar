@@ -174,6 +174,45 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 json.dumps(
                     {
                         "schema_version": 1,
+                        "discovery_mode": "watchlist-directed",
+                        "selected": [
+                            {
+                                "id": "agent-trace-debugging",
+                                "family": "ai-llm-demand",
+                                "status": "selected",
+                                "score": 7,
+                                "confidence": "medium",
+                                "money_signal": "weak",
+                                "reachability": "high",
+                                "evidence_count": 3,
+                                "next_test": "Offer a manual trace debugging report to three agent teams.",
+                                "labels": ["M2", "M4"],
+                            }
+                        ],
+                        "deferred": [],
+                        "watchlisted": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_missing_comparison_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "discovery_mode": "watchlist-directed",
                         "selected": [
                             {
                                 "id": "agent-trace-debugging",
@@ -189,7 +228,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with patch.object(validator, "ROOT", root):
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_state()
 
     def test_watchlist_accepts_expected_shape(self) -> None:
