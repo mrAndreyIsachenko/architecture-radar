@@ -63,6 +63,12 @@ After checking out the PR branch, summarize the report for review:
 python3 scripts/summarize-radar-report.py reports/YYYY-MM-DD.md --format markdown
 ```
 
+To summarize an open PR without a local checkout of its branch:
+
+```bash
+python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
+```
+
 ## Expected Failure Modes
 
 - Missing `OPENAI_API_KEY`: the workflow fails before research starts.
