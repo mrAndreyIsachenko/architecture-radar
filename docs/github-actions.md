@@ -53,7 +53,7 @@ Use the local helper to decide whether a review notification is warranted:
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-The helper checks open radar pull requests before returning a no-work result. On a cadence day, if the scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, and changed report files.
+The helper checks open radar pull requests before returning a no-work result. On a cadence day, if the scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and a `looks_mergeable` or `needs_manual_review` recommendation.
 
 For failed runs, `--include-failed-log` includes a short actionable excerpt from `gh run view --log-failed`.
 
