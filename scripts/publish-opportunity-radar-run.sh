@@ -9,11 +9,6 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
   exit 2
 fi
 
-if git diff --quiet && git diff --cached --quiet; then
-  echo "No Opportunity Radar changes to publish."
-  exit 0
-fi
-
 git status --short
 git add opportunity-interests.md opportunity-watchlist.yml opportunities.json opportunity-reports opportunities signals
 
