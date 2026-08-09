@@ -32,6 +32,8 @@
 
 ## 5. First Run Review
 
-- [ ] 5.1 Run one manual Opportunity Radar pass.
-- [ ] 5.2 Review whether selected opportunities include evidence, repeated pain, money/workaround signal, and a testable offer.
-- [ ] 5.3 Decide whether to keep manual-only mode, add cadence guards, or close the mode as insufficiently useful.
+- [x] 5.1 Run one manual Opportunity Radar pass.
+- [x] 5.2 Review whether selected opportunities include evidence, repeated pain, money/workaround signal, and a testable offer.
+- [x] 5.3 Decide whether to keep manual-only mode, add cadence guards, or close the mode as insufficiently useful.
+
+Outcome: keep Opportunity Radar manual-only for now. The first run produced useful separated artifacts and testable hypotheses, but PR review found weak competitor-proof labeling, thin grouped signal notes, weak comparison metadata, and an over-broad recommendation. Follow-up validation now requires comparable opportunity metadata and one focused next test.
