@@ -12,7 +12,7 @@ The goal is not to generate startup ideas from vibes. The goal is to collect evi
 - open-source projects that may indicate emerging demand;
 - infrastructure shifts that create new surface area.
 
-Use this when you want a recurring agent to open reviewable PRs about market demand rather than send a noisy newsletter.
+Use this when you want an agent to open reviewable PRs about market demand rather than send a noisy newsletter.
 
 ## Files
 
@@ -22,15 +22,15 @@ Use this when you want a recurring agent to open reviewable PRs about market dem
 
 ## How To Use
 
-Copy these files into the root repository:
+The root repository now includes a separate Opportunity Radar mode. Use this example as a template when replacing those root files:
 
 ```bash
-cp examples/opportunity-demand-radar/interests.md interests.md
-cp examples/opportunity-demand-radar/research-scope.md docs/research-scope.md
-cp examples/opportunity-demand-radar/watchlist.yml watchlist.yml
+cp examples/opportunity-demand-radar/interests.md opportunity-interests.md
+cp examples/opportunity-demand-radar/research-scope.md docs/opportunity-research-scope.md
+cp examples/opportunity-demand-radar/watchlist.yml opportunity-watchlist.yml
 ```
 
-Then run `Architecture Radar` manually from GitHub Actions.
+Then run `Opportunity Radar` manually from GitHub Actions.
 
 ## Quality Bar
 

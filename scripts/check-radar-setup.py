@@ -20,13 +20,19 @@ REQUIRED_FILES = [
     "LICENSE",
     "interests.md",
     "watchlist.yml",
+    "opportunity-interests.md",
+    "opportunity-watchlist.yml",
     "radar.json",
+    "opportunities.json",
     "docs/agent-rules.md",
     "docs/research-scope.md",
+    "docs/opportunity-agent-rules.md",
+    "docs/opportunity-research-scope.md",
     "docs/publication-checklist.md",
     "docs/release-checklist.md",
     "docs/releases/v0.1.0.md",
     ".github/workflows/architecture-radar.yml",
+    ".github/workflows/opportunity-radar.yml",
     ".github/workflows/radar-validation.yml",
     ".github/pull_request_template.md",
     ".github/ISSUE_TEMPLATE/bug_report.md",
@@ -44,25 +50,33 @@ REQUIRED_FILES = [
     "scripts/validate-radar-state.py",
     "scripts/run-codex-radar.sh",
     "scripts/prepare-radar-run.sh",
+    "scripts/prepare-opportunity-radar-run.sh",
+    "scripts/publish-opportunity-radar-run.sh",
     "scripts/publish-radar-run.sh",
+    "scripts/run-codex-opportunity-radar.sh",
     "scripts/check-radar-cadence.sh",
     "scripts/check-radar-rerun.sh",
     "scripts/radar-pr-review.py",
     "scripts/radar-pr-review-status.py",
     "scripts/summarize-radar-pr.py",
     "scripts/summarize-radar-report.py",
+    "scripts/validate-opportunity-radar-state.py",
     "tests/test_check_radar_setup.py",
     "tests/test_radar_pr_review.py",
     "tests/test_radar_pr_review_status.py",
     "tests/test_summarize_radar_pr.py",
     "tests/test_summarize_radar_report.py",
+    "tests/test_validate_opportunity_radar_state.py",
     "tests/test_validate_radar_state.py",
 ]
 
 REQUIRED_DIRS = [
     "reports",
+    "opportunity-reports",
     "repositories",
+    "opportunities",
     "patterns",
+    "signals",
     "examples",
     "openspec",
     "tests",
@@ -85,6 +99,19 @@ VALIDATION_WORKFLOW_NEEDLES = [
     "contents: read",
     "openspec validate --all --strict --no-interactive",
 ]
+
+OPPORTUNITY_WORKFLOW_NEEDLES = [
+    "name: Opportunity Radar",
+    "workflow_dispatch:",
+    "contents: write",
+    "pull-requests: write",
+    "OPENAI_API_KEY",
+    "scripts/run-codex-opportunity-radar.sh",
+    "scripts/validate-opportunity-radar-state.py",
+    "scripts/publish-opportunity-radar-run.sh",
+]
+
+OPPORTUNITY_WORKFLOW_FORBIDDEN = ["schedule:"]
 
 REQUIRED_RELEASE = "v0.1.0"
 REQUIRED_SECRET = "OPENAI_API_KEY"
@@ -223,6 +250,11 @@ def check_workflow_text(root: Path) -> list[Check]:
             ".github/workflows/radar-validation.yml",
             VALIDATION_WORKFLOW_NEEDLES,
         ),
+        (
+            "opportunity-workflow",
+            ".github/workflows/opportunity-radar.yml",
+            OPPORTUNITY_WORKFLOW_NEEDLES,
+        ),
     ]
 
     for check_prefix, rel_path, needles in workflow_specs:
@@ -238,6 +270,13 @@ def check_workflow_text(root: Path) -> list[Check]:
                 checks.append(make_check(f"{check_prefix}:{needle}", "pass", f"{rel_path} contains {needle!r}"))
             else:
                 checks.append(make_check(f"{check_prefix}:{needle}", "fail", f"{rel_path} is missing {needle!r}; update the workflow configuration"))
+
+        if check_prefix == "opportunity-workflow":
+            for forbidden in OPPORTUNITY_WORKFLOW_FORBIDDEN:
+                if forbidden in text:
+                    checks.append(make_check(f"{check_prefix}:no-{forbidden}", "fail", f"{rel_path} must remain manual-only and not contain {forbidden!r}"))
+                else:
+                    checks.append(make_check(f"{check_prefix}:no-{forbidden}", "pass", f"{rel_path} is manual-only with no {forbidden!r} trigger"))
     return checks
 
 
@@ -432,7 +471,7 @@ def github_checks(
         else:
             checks.append(make_check("github:release:v0.1.0", "warn", "v0.1.0 release exists but is not published as expected", release=release_data))
 
-    for workflow in ("architecture-radar.yml", "radar-validation.yml"):
+    for workflow in ("architecture-radar.yml", "opportunity-radar.yml", "radar-validation.yml"):
         result = run_gh(["workflow", "view", workflow, "--repo", resolved_repo])
         if result.returncode == 0:
             checks.append(make_check(f"github:workflow:{workflow}", "pass", f"{workflow} is visible on GitHub"))

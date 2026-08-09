@@ -8,27 +8,27 @@
 
 ## 2. Opportunity Radar Scaffold
 
-- [ ] 2.1 Add `opportunity-interests.md` with opportunity research priorities.
-- [ ] 2.2 Add `docs/opportunity-agent-rules.md`.
-- [ ] 2.3 Add `docs/opportunity-research-scope.md`.
-- [ ] 2.4 Add `opportunity-watchlist.yml`.
-- [ ] 2.5 Add empty structured state in `opportunities.json`.
-- [ ] 2.6 Add artifact directories `opportunity-reports/`, `opportunities/`, and `signals/`.
+- [x] 2.1 Add `opportunity-interests.md` with opportunity research priorities.
+- [x] 2.2 Add `docs/opportunity-agent-rules.md`.
+- [x] 2.3 Add `docs/opportunity-research-scope.md`.
+- [x] 2.4 Add `opportunity-watchlist.yml`.
+- [x] 2.5 Add empty structured state in `opportunities.json`.
+- [x] 2.6 Add artifact directories `opportunity-reports/`, `opportunities/`, and `signals/`.
 
 ## 3. Validation
 
-- [ ] 3.1 Add `scripts/validate-opportunity-radar-state.py`.
-- [ ] 3.2 Validate required opportunity files and directories.
-- [ ] 3.3 Validate opportunity evidence labels and required report sections.
-- [ ] 3.4 Validate `opportunities.json` schema.
-- [ ] 3.5 Add unit tests for the opportunity validator.
+- [x] 3.1 Add `scripts/validate-opportunity-radar-state.py`.
+- [x] 3.2 Validate required opportunity files and directories.
+- [x] 3.3 Validate opportunity evidence labels and required report sections.
+- [x] 3.4 Validate `opportunities.json` schema.
+- [x] 3.5 Add unit tests for the opportunity validator.
 
 ## 4. Workflow
 
-- [ ] 4.1 Add `.github/workflows/opportunity-radar.yml` as manual-only.
-- [ ] 4.2 Add `scripts/run-codex-opportunity-radar.sh`.
-- [ ] 4.3 Add a deterministic publish allowlist for opportunity artifacts.
-- [ ] 4.4 Keep OpenAI credentials out of the publishing step and GitHub credentials out of the model step.
+- [x] 4.1 Add `.github/workflows/opportunity-radar.yml` as manual-only.
+- [x] 4.2 Add `scripts/run-codex-opportunity-radar.sh`.
+- [x] 4.3 Add a deterministic publish allowlist for opportunity artifacts.
+- [x] 4.4 Keep OpenAI credentials out of the publishing step and GitHub credentials out of the model step.
 
 ## 5. First Run Review
 

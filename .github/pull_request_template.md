@@ -24,6 +24,7 @@
 - [ ] `python3 -m py_compile scripts/*.py tests/*.py`
 - [ ] `bash -n scripts/*.sh`
 - [ ] `python3 scripts/check-radar-setup.py --skip-github`
+- [ ] `scripts/validate-opportunity-radar-state.py`
 - [ ] `scripts/validate-radar-state.py`
 - [ ] `git diff --check`
 - [ ] Not applicable; explain why:

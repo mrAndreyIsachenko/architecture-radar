@@ -12,6 +12,8 @@ The core idea: let the model research and write, but let deterministic GitHub Ac
 
 The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
 
+The repository also includes a separate **Opportunity Radar** mode for manual, evidence-backed demand research. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
+
 ## Quick Start
 
 See [`QUICKSTART.md`](QUICKSTART.md) for the shortest path from fork to first scheduled PR.
@@ -36,6 +38,7 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
+- A manual-only Opportunity Radar workflow for testing market-signal research without mixing it into Architecture Radar state.
 
 ## Example Output
 
@@ -161,17 +164,25 @@ The model occupies exactly one step. Everything before it decides whether it sho
 | `.codex/skills/` | OpenSpec-generated Codex skills for explore/propose/apply/archive workflows |
 | `QUICKSTART.md` | fork-to-first-PR setup guide |
 | `interests.md` | authoritative research priorities and open problems — findings must tie to these, not to inferred needs |
+| `opportunity-interests.md` | authoritative priorities for Opportunity Radar demand research |
 | `watchlist.yml` | explicit high-signal repositories or model/dataset/runtime artifacts that discovery must account for even when broad queries miss them |
+| `opportunity-watchlist.yml` | public demand-signal sources Opportunity Radar should account for |
 | `docs/agent-rules.md` | the machine: discovery method, candidate accounting, selection thresholds, evidence discipline, quality bar — domain-independent |
 | `docs/research-scope.md` | the domain: topic families, research areas, extraction granularity — replace this to repoint the radar |
+| `docs/opportunity-agent-rules.md` | operating rules for market-signal and demand research |
+| `docs/opportunity-research-scope.md` | topic families, signal types, and evidence labels for Opportunity Radar |
 | `docs/publication-checklist.md` | public-release hygiene: license, metadata, topics, branch protection, demo quality |
 | `docs/release-checklist.md` | release readiness checks for public releases |
 | `docs/releases/` | release-note drafts |
 | `examples/` | reusable domain templates, including opportunity and demand research |
 | `openspec/` | specs and proposed changes for non-trivial behavior changes |
+| `opportunity-reports/` | dated Opportunity Radar runs with signal ledgers |
+| `opportunities/` | selected opportunity records ending in testable offers |
 | `reports/` | dated runs with full candidate ledgers, including what was rejected and why |
 | `repositories/` | source-level reviews, each pinned to a full commit SHA |
 | `patterns/` | mechanisms extracted where two or more independent projects converged |
+| `signals/` | normalized public signal notes worth revisiting |
+| `opportunities.json` | structured Opportunity Radar state |
 | `radar.json` | structured metadata, schema-validated in CI |
 | `scripts/` | the deterministic wrapper — guards, validation, publishing |
 
@@ -218,6 +229,8 @@ python3 scripts/check-radar-setup.py
 The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override recurring runs with the `ARCHITECTURE_RADAR_CODEX_MODEL` repository variable, or override a single run from the Actions tab — useful when one follow-up justifies a larger model.
 
 Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
+
+Opportunity Radar is intentionally manual-only. Run it from `Actions -> Opportunity Radar -> Run workflow` after reviewing `opportunity-interests.md`, `docs/opportunity-research-scope.md`, and `opportunity-watchlist.yml`.
 
 ## Reviewing PRs
 

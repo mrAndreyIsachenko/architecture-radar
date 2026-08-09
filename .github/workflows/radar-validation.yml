@@ -39,13 +39,17 @@ jobs:
           bash -n scripts/check-radar-cadence.sh
           bash -n scripts/check-radar-rerun.sh
           bash -n scripts/prepare-radar-run.sh
+          bash -n scripts/prepare-opportunity-radar-run.sh
+          bash -n scripts/publish-opportunity-radar-run.sh
           bash -n scripts/publish-radar-run.sh
+          bash -n scripts/run-codex-opportunity-radar.sh
           bash -n scripts/run-codex-radar.sh
           python3 -m py_compile scripts/radar-pr-review.py
           python3 -m py_compile scripts/radar-pr-review-status.py
           python3 -m py_compile scripts/check-radar-setup.py
           python3 -m py_compile scripts/summarize-radar-pr.py
           python3 -m py_compile scripts/summarize-radar-report.py
+          python3 -m py_compile scripts/validate-opportunity-radar-state.py
           python3 -m py_compile scripts/validate-radar-state.py
 
       - name: Run unit tests
@@ -65,3 +69,8 @@ jobs:
         env:
           ARCHITECTURE_RADAR_BASE_REF: ${{ github.base_ref }}
         run: scripts/validate-radar-state.py
+
+      - name: Validate opportunity radar artifacts
+        env:
+          OPPORTUNITY_RADAR_BASE_REF: ${{ github.base_ref }}
+        run: scripts/validate-opportunity-radar-state.py
