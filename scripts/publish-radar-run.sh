@@ -9,13 +9,14 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
   exit 2
 fi
 
-if git diff --quiet && git diff --cached --quiet; then
-  echo "No Architecture Radar changes to publish."
+git status --short
+git add README.md interests.md radar.json reports repositories patterns
+
+if git diff --cached --quiet; then
+  echo "No publishable Architecture Radar changes after applying the allowlist."
   exit 0
 fi
 
-git status --short
-git add README.md interests.md radar.json reports repositories patterns
 git commit -m "Architecture radar report ${run_date}"
 
 git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"

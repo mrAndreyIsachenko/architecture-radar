@@ -69,6 +69,7 @@ REQUIRED_FILES = [
     "scripts/validate-opportunity-radar-state.py",
     "scripts/validate-weekly-synthesis-state.py",
     "tests/test_check_radar_setup.py",
+    "tests/test_publish_scripts.py",
     "tests/test_radar_pr_review.py",
     "tests/test_radar_pr_review_status.py",
     "tests/test_summarize_radar_pr.py",
