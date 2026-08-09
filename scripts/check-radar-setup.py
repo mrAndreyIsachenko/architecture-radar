@@ -46,6 +46,7 @@ REQUIRED_FILES = [
     "openspec/specs/generated-pr-validation/spec.md",
     "openspec/specs/opportunity-radar/spec.md",
     "openspec/specs/setup-doctor/spec.md",
+    "openspec/specs/weekly-synthesis/spec.md",
     ".codex/skills/openspec-explore/SKILL.md",
     ".codex/skills/openspec-propose/SKILL.md",
     ".codex/skills/openspec-apply-change/SKILL.md",
