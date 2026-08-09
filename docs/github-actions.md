@@ -45,6 +45,18 @@ Manual runs are available through `workflow_dispatch`. The optional `run_date` i
 
 The agent is instructed not to commit, push, edit remotes, or open pull requests itself.
 
+## Reviewing Generated Pull Requests
+
+Use the local helper to decide whether a review notification is warranted:
+
+```bash
+python3 scripts/radar-pr-review-status.py --format markdown
+```
+
+The helper checks open radar pull requests before returning a no-work result. On a cadence day, if the scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR.
+
+For failed runs, add `--include-failed-log` to include a short actionable excerpt from `gh run view --log-failed`.
+
 ## Expected Failure Modes
 
 - Missing `OPENAI_API_KEY`: the workflow fails before research starts.

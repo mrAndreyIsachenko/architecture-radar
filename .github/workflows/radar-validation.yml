@@ -32,6 +32,7 @@ jobs:
           bash -n scripts/prepare-radar-run.sh
           bash -n scripts/publish-radar-run.sh
           bash -n scripts/run-codex-radar.sh
+          python3 -m py_compile scripts/radar-pr-review-status.py
           python3 -m py_compile scripts/validate-radar-state.py
 
       - name: Check changed-file whitespace
