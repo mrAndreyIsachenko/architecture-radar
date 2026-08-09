@@ -14,6 +14,7 @@ The goal is to make the repository understandable, reusable, and safe to run by 
 - Keep community health files present: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, issue templates, and pull request template.
 - Keep [`release-checklist.md`](release-checklist.md) current before cutting a public release.
 - Run the `validate` check on the default branch.
+- Run `python3 scripts/check-radar-setup.py` with `gh` authenticated and address failures before sharing the repository.
 - Confirm `main` branch protection requires the `validate` status check.
 - Confirm generated radar PRs are not auto-merged.
 

@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-09
+goal: Make first-run setup and repository health problems visible before users
+  spend tokens on a workflow run.
