@@ -29,6 +29,7 @@ last_message="${RUNNER_TEMP:-/tmp}/opportunity-radar-last-message-${run_date}.md
   printf -- '- If the run is anchored by `opportunity-watchlist.yml`, mark it `watchlist-directed` or `mixed` and do not describe selected opportunities as market-wide winners.\n'
   printf -- '- Prefer one focused recommended next test over multiple unrelated build artifacts.\n'
   printf -- '- Prefix important evidence bullets in every selected opportunity file with full market labels such as `M2 repeated pain:` or `M4 workaround evidence:`.\n'
+  printf -- '- Ensure every Signal Ledger URL in `opportunity-reports/%s.md` appears in a date-prefixed signal note matching `signals/%s-*.md`.\n' "$run_date" "$run_date"
   printf -- '- Before your final answer, run `scripts/validate-opportunity-radar-state.py` and fix artifacts until it passes, or report the blocker explicitly.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
   cat opportunity-interests.md

@@ -105,6 +105,40 @@ def write_complete_state(root: Path, *, array_name: str = "selected", stage: str
     )
 
 
+def complete_signal_note(url: str = "https://example.com/issue") -> str:
+    return "\n".join(
+        [
+            "# Agent trace debugging signal note",
+            "",
+            "- Sources:",
+            f"  - {url}",
+            "- Date range: 2026-08-10 to 2026-08-11",
+            "- Family: ai-llm-demand",
+            "- Signal type: repeated-pain",
+            "- Labels: M2 repeated pain, M4 workaround evidence",
+            "- Notes: Repeated public issue comments show agent debugging pain that should be revisited later.",
+            "",
+        ]
+    )
+
+
+def write_topic_scope(root: Path) -> None:
+    docs = root / "docs"
+    docs.mkdir(exist_ok=True)
+    (docs / "opportunity-research-scope.md").write_text(
+        "## Topic Families\n\n- `ai-llm-demand`\n",
+        encoding="utf-8",
+    )
+
+
+def write_signal_note(root: Path, url: str = "https://example.com/issue") -> Path:
+    write_topic_scope(root)
+    signal = root / "signals" / "2026-08-11-agent-trace-debugging.md"
+    signal.parent.mkdir(exist_ok=True)
+    signal.write_text(complete_signal_note(url), encoding="utf-8")
+    return signal
+
+
 def complete_opportunity() -> str:
     sections = {
         "Opportunity Summary": "Trace-backed debugging reports for small agent teams.",
@@ -168,6 +202,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(complete_report(), encoding="utf-8")
             write_complete_state(root)
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -183,6 +218,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(bad_report, encoding="utf-8")
             write_complete_state(root)
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -206,6 +242,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(bad_report, encoding="utf-8")
             write_complete_state(root)
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -235,6 +272,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(bad_report, encoding="utf-8")
             write_complete_state(root)
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -251,6 +289,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(complete_report(), encoding="utf-8")
             write_complete_state(root, stage="selected-for-build")
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -267,6 +306,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.parent.mkdir()
             report.write_text(complete_report(), encoding="utf-8")
             write_complete_state(root, paid_wedge="Teams pay for a different validated debugging workflow.")
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
@@ -275,6 +315,52 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 self.assertRaises(SystemExit),
             ):
                 validator.validate_report_structure()
+
+    def test_report_structure_rejects_signal_url_missing_from_notes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(), encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root, "https://example.com/different-issue")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_signal_note_file_accepts_required_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            signal = write_signal_note(root)
+
+            with patch.object(validator, "ROOT", root):
+                self.assertEqual(validator.validate_signal_note_file(signal), {"https://example.com/issue"})
+
+    def test_signal_note_file_rejects_missing_date(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            signal = write_signal_note(root)
+            signal.write_text(complete_signal_note().replace("- Date range: 2026-08-10 to 2026-08-11\n", ""), encoding="utf-8")
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_signal_note_file(signal)
 
     def test_label_text_rejects_architecture_evidence_labels(self) -> None:
         with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
