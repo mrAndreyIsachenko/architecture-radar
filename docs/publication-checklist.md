@@ -11,6 +11,7 @@ The goal is to make the repository understandable, reusable, and safe to run by 
 - Add GitHub topics that match the reusable mechanics, not only the current research domain.
 - Keep `README.md` understandable in the first screen: what it is, why it exists, what can be copied, and where to start.
 - Keep `QUICKSTART.md` current with the actual workflow inputs, required secrets, default model, and branch protection recommendations.
+- Keep community health files present: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, issue templates, and pull request template.
 - Run the `validate` check on the default branch.
 - Confirm `main` branch protection requires the `validate` status check.
 - Confirm generated radar PRs are not auto-merged.
