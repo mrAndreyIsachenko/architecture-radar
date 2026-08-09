@@ -34,6 +34,7 @@ REQUIRED_FILES = [
     ".github/workflows/architecture-radar.yml",
     ".github/workflows/opportunity-radar.yml",
     ".github/workflows/radar-validation.yml",
+    ".github/workflows/weekly-synthesis.yml",
     ".github/pull_request_template.md",
     ".github/ISSUE_TEMPLATE/bug_report.md",
     ".github/ISSUE_TEMPLATE/feature_request.md",
@@ -41,6 +42,8 @@ REQUIRED_FILES = [
     ".github/ISSUE_TEMPLATE/config.yml",
     "openspec/config.yaml",
     "openspec/specs/architecture-radar/spec.md",
+    "openspec/specs/opportunity-radar/spec.md",
+    "openspec/specs/setup-doctor/spec.md",
     ".codex/skills/openspec-explore/SKILL.md",
     ".codex/skills/openspec-propose/SKILL.md",
     ".codex/skills/openspec-apply-change/SKILL.md",
@@ -51,9 +54,12 @@ REQUIRED_FILES = [
     "scripts/run-codex-radar.sh",
     "scripts/prepare-radar-run.sh",
     "scripts/prepare-opportunity-radar-run.sh",
+    "scripts/prepare-weekly-synthesis-run.sh",
     "scripts/publish-opportunity-radar-run.sh",
     "scripts/publish-radar-run.sh",
+    "scripts/publish-weekly-synthesis-run.sh",
     "scripts/run-codex-opportunity-radar.sh",
+    "scripts/run-codex-weekly-synthesis.sh",
     "scripts/check-radar-cadence.sh",
     "scripts/check-radar-rerun.sh",
     "scripts/radar-pr-review.py",
@@ -61,6 +67,7 @@ REQUIRED_FILES = [
     "scripts/summarize-radar-pr.py",
     "scripts/summarize-radar-report.py",
     "scripts/validate-opportunity-radar-state.py",
+    "scripts/validate-weekly-synthesis-state.py",
     "tests/test_check_radar_setup.py",
     "tests/test_radar_pr_review.py",
     "tests/test_radar_pr_review_status.py",
@@ -68,10 +75,12 @@ REQUIRED_FILES = [
     "tests/test_summarize_radar_report.py",
     "tests/test_validate_opportunity_radar_state.py",
     "tests/test_validate_radar_state.py",
+    "tests/test_validate_weekly_synthesis_state.py",
 ]
 
 REQUIRED_DIRS = [
     "reports",
+    "weekly-reports",
     "opportunity-reports",
     "repositories",
     "opportunities",
@@ -112,6 +121,18 @@ OPPORTUNITY_WORKFLOW_NEEDLES = [
 ]
 
 OPPORTUNITY_WORKFLOW_FORBIDDEN = ["schedule:"]
+
+WEEKLY_SYNTHESIS_WORKFLOW_NEEDLES = [
+    "name: Weekly Synthesis",
+    "workflow_dispatch:",
+    "schedule:",
+    "contents: write",
+    "pull-requests: write",
+    "OPENAI_API_KEY",
+    "scripts/run-codex-weekly-synthesis.sh",
+    "scripts/validate-weekly-synthesis-state.py",
+    "scripts/publish-weekly-synthesis-run.sh",
+]
 
 REQUIRED_RELEASE = "v0.1.0"
 REQUIRED_SECRET = "OPENAI_API_KEY"
@@ -278,6 +299,11 @@ def check_workflow_text(root: Path) -> list[Check]:
             "opportunity-workflow",
             ".github/workflows/opportunity-radar.yml",
             OPPORTUNITY_WORKFLOW_NEEDLES,
+        ),
+        (
+            "weekly-synthesis-workflow",
+            ".github/workflows/weekly-synthesis.yml",
+            WEEKLY_SYNTHESIS_WORKFLOW_NEEDLES,
         ),
     ]
 
@@ -496,7 +522,7 @@ def github_checks(
         else:
             checks.append(make_check("github:release:v0.1.0", "warn", "v0.1.0 release exists but is not published as expected", release=release_data))
 
-    for workflow in ("architecture-radar.yml", "opportunity-radar.yml", "radar-validation.yml"):
+    for workflow in ("architecture-radar.yml", "opportunity-radar.yml", "radar-validation.yml", "weekly-synthesis.yml"):
         result = run_gh(["workflow", "view", workflow, "--repo", resolved_repo])
         if result.returncode == 0:
             checks.append(make_check(f"github:workflow:{workflow}", "pass", f"{workflow} is visible on GitHub"))

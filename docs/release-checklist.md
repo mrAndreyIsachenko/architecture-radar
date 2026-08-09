@@ -41,6 +41,7 @@ bash -n scripts/*.sh
 python3 scripts/check-radar-setup.py --skip-github
 scripts/validate-opportunity-radar-state.py
 scripts/validate-radar-state.py
+scripts/validate-weekly-synthesis-state.py
 git diff --check
 ```
 

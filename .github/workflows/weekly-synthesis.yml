@@ -1,0 +1,72 @@
+name: Weekly Synthesis
+
+on:
+  schedule:
+    # GitHub cron is UTC. This runs weekly on Monday at 07:30 Europe/Moscow.
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Override synthesis date in YYYY-MM-DD format"
+        required: false
+        type: string
+      model:
+        description: "Override Codex model for this manual run"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-synthesis
+  cancel-in-progress: false
+
+jobs:
+  synthesis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TZ: Europe/Moscow
+      CODEX_HOME: /home/runner/.codex
+      CODEX_MODEL: ${{ github.event.inputs.model || vars.WEEKLY_SYNTHESIS_CODEX_MODEL || 'gpt-5.4-mini' }}
+      WEEKLY_SYNTHESIS_DATE: ${{ github.event.inputs.run_date || '' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex@0.146.0
+
+      - name: Authenticate Codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          mkdir -p "$CODEX_HOME"
+          printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key
+
+      - name: Prepare weekly branch
+        run: scripts/prepare-weekly-synthesis-run.sh
+
+      - name: Run weekly synthesis agent
+        run: scripts/run-codex-weekly-synthesis.sh
+
+      - name: Validate weekly synthesis artifacts
+        run: scripts/validate-weekly-synthesis-state.py
+
+      - name: Publish pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/publish-weekly-synthesis-run.sh
