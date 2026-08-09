@@ -10,6 +10,8 @@ Every selected opportunity SHALL include a concrete next test that can be execut
 - **THEN** it includes the observed signal, repeated pain, likely user or buyer, current workaround or money signal, proposed offer, success threshold, falsification threshold, and evidence gaps
 - **AND** it records paid wedge, distribution channel, private data barrier, OSS commoditization risk, product shape, pricing hypothesis, and do-not-build-until condition
 
+## ADDED Requirements
+
 ### Requirement: Opportunity State Preserves Build Readiness
 
 Opportunity Radar SHALL keep build-readiness metadata comparable across selected, deferred, and watchlisted opportunities.
