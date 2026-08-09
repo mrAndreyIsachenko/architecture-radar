@@ -69,6 +69,22 @@ class SetupDoctorTest(unittest.TestCase):
                     "      - run: openspec validate --all --strict --no-interactive",
                 ]
             ),
+            ".github/workflows/generated-pr-validation.yml": "\n".join(
+                [
+                    "name: Generated PR Validation",
+                    "on:",
+                    "  workflow_run:",
+                    "    workflows:",
+                    "      - Architecture Radar",
+                    "      - Opportunity Radar",
+                    "      - Weekly Synthesis",
+                    "permissions:",
+                    "  checks: write",
+                    "  pull-requests: read",
+                    "steps:",
+                    "  - run: scripts/mark-generated-pr-validation.py",
+                ]
+            ),
             ".github/workflows/opportunity-radar.yml": "\n".join(
                 [
                     "name: Opportunity Radar",
@@ -151,6 +167,7 @@ class SetupDoctorTest(unittest.TestCase):
                 return completed({"tagName": "v0.1.0", "isDraft": False, "targetCommitish": "main"})
             if args in (
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
+                ["workflow", "view", "generated-pr-validation.yml", "--repo", "example/radar"],
                 ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
                 ["workflow", "view", "weekly-synthesis.yml", "--repo", "example/radar"],
@@ -176,6 +193,7 @@ class SetupDoctorTest(unittest.TestCase):
                 return completed({"tagName": "v0.1.0", "isDraft": False, "targetCommitish": "main"})
             if args in (
                 ["workflow", "view", "architecture-radar.yml", "--repo", "example/radar"],
+                ["workflow", "view", "generated-pr-validation.yml", "--repo", "example/radar"],
                 ["workflow", "view", "opportunity-radar.yml", "--repo", "example/radar"],
                 ["workflow", "view", "radar-validation.yml", "--repo", "example/radar"],
                 ["workflow", "view", "weekly-synthesis.yml", "--repo", "example/radar"],

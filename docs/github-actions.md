@@ -49,6 +49,14 @@ Manual runs are available through `workflow_dispatch`. The optional `run_date` i
 
 The agent is instructed not to commit, push, edit remotes, or open pull requests itself.
 
+## Generated PR Validation
+
+GitHub does not automatically run `pull_request` workflows for pull requests created by a workflow using `GITHUB_TOKEN`.
+
+The `Generated PR Validation` workflow listens for successful Architecture Radar, Opportunity Radar, and Weekly Synthesis workflow runs. It finds the generated pull request by branch prefix plus source workflow run number, then creates a GitHub Actions check-run named `validate` on the PR head SHA.
+
+This marker does not replace validation. It records that the generator workflow already completed its deterministic validation steps before publishing.
+
 ## Reviewing Generated Pull Requests
 
 Use the local helper to decide whether a review notification is warranted:

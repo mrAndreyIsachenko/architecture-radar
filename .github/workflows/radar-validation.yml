@@ -50,6 +50,7 @@ jobs:
           python3 -m py_compile scripts/radar-pr-review.py
           python3 -m py_compile scripts/radar-pr-review-status.py
           python3 -m py_compile scripts/check-radar-setup.py
+          python3 -m py_compile scripts/mark-generated-pr-validation.py
           python3 -m py_compile scripts/summarize-radar-pr.py
           python3 -m py_compile scripts/summarize-radar-report.py
           python3 -m py_compile scripts/validate-opportunity-radar-state.py
