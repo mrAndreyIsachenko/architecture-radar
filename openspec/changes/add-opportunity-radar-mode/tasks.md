@@ -4,6 +4,7 @@
 - [x] 1.2 Add the `add-opportunity-radar-mode` proposal, design, tasks, and delta spec.
 - [x] 1.3 Document that non-trivial behavior changes should start with OpenSpec, while generated radar artifacts do not require OpenSpec changes.
 - [x] 1.4 Add OpenSpec validation to the project checks.
+- [x] 1.5 Add OpenSpec-generated Codex skills under `.codex/skills/`.
 
 ## 2. Opportunity Radar Scaffold
 

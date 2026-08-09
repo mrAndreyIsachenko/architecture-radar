@@ -48,6 +48,8 @@ Generated radar reports, repository reviews, pattern updates, and routine resear
 
 The current OpenSpec root lives under `openspec/`.
 
+The checked-in Codex integration lives under `.codex/skills/`. Restart Codex after pulling changes that update these skills.
+
 ## Pull Request Expectations
 
 Explain:

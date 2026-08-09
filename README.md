@@ -156,6 +156,7 @@ The model occupies exactly one step. Everything before it decides whether it sho
 
 | Path | Role |
 |---|---|
+| `.codex/skills/` | OpenSpec-generated Codex skills for explore/propose/apply/archive workflows |
 | `QUICKSTART.md` | fork-to-first-PR setup guide |
 | `interests.md` | authoritative research priorities and open problems — findings must tie to these, not to inferred needs |
 | `watchlist.yml` | explicit high-signal repositories or model/dataset/runtime artifacts that discovery must account for even when broad queries miss them |
@@ -231,6 +232,8 @@ python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
 Non-trivial behavior changes use OpenSpec before implementation. This applies to workflow behavior, validators, evidence taxonomies, artifact schemas, publishing boundaries, new radar modes, and recurring automation semantics.
 
 Generated radar artifacts do not need OpenSpec changes.
+
+OpenSpec's Codex integration lives under `.codex/skills/`. Restart Codex after pulling changes that add or update those skills.
 
 ```bash
 openspec validate --all --strict --no-interactive
