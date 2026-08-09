@@ -1,6 +1,43 @@
 {
   "schema_version": 1,
-  "selected": [],
+  "generated_at": "2026-08-09",
+  "selected": [
+    {
+      "id": "langgraph-checkpoint-persistence-and-cost-diagnostics",
+      "family": "ai-llm-demand",
+      "title": "LangGraph checkpoint persistence and cost diagnostics",
+      "file": "opportunities/langgraph-checkpoint-persistence-and-cost-diagnostics.md",
+      "stage": "selected",
+      "labels": [
+        "M2 repeated pain",
+        "M3 competitor proof",
+        "M4 workaround evidence"
+      ]
+    },
+    {
+      "id": "tailscale-split-tunnel-routing-exception-diagnostics",
+      "family": "privacy-networking-demand",
+      "title": "Tailscale split-tunnel routing exception diagnostics",
+      "file": "opportunities/tailscale-split-tunnel-routing-exception-diagnostics.md",
+      "stage": "selected",
+      "labels": [
+        "M2 repeated pain",
+        "M3 competitor proof",
+        "M4 workaround evidence"
+      ]
+    },
+    {
+      "id": "ardupilot-telemetry-integrity-and-failsafe-diagnostics",
+      "family": "drones-robotics-demand",
+      "title": "ArduPilot telemetry integrity and failsafe diagnostics",
+      "file": "opportunities/ardupilot-telemetry-integrity-and-failsafe-diagnostics.md",
+      "stage": "selected",
+      "labels": [
+        "M2 repeated pain",
+        "M4 workaround evidence"
+      ]
+    }
+  ],
   "deferred": [],
   "watchlisted": []
 }
