@@ -38,7 +38,7 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
-- A manual-only Opportunity Radar workflow for testing market-signal research without mixing it into Architecture Radar state.
+- A weekly scheduled Opportunity Radar workflow for testing market-signal research without mixing it into Architecture Radar state, with manual dispatch for event-driven checks.
 
 ## Example Output
 
@@ -234,7 +234,7 @@ The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override re
 
 Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
 
-Opportunity Radar is intentionally manual-only. Run it from `Actions -> Opportunity Radar -> Run workflow` after reviewing `opportunity-interests.md`, `docs/opportunity-research-scope.md`, and `opportunity-watchlist.yml`.
+Opportunity Radar runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow. Run it manually from `Actions -> Opportunity Radar -> Run workflow` after notable demand signals or when validating a specific opportunity hypothesis.
 
 Weekly Synthesis runs separately from discovery. It reads committed radar artifacts and writes `weekly-reports/YYYY-Www.md` with pattern movement, topic coverage, repeated candidates or signals, evidence gaps, and one next-week focus. Run it from `Actions -> Weekly Synthesis -> Run workflow`, or let the weekly schedule open a synthesis PR.
 

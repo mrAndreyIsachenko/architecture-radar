@@ -3,7 +3,6 @@
 ## Purpose
 
 Opportunity Radar maintains a separate, reviewable library of public demand signals and testable opportunity hypotheses. It complements Architecture Radar without mixing market artifacts into repository-review artifacts.
-
 ## Requirements
 ### Requirement: Opportunity Radar Uses Separate Artifacts
 
@@ -70,16 +69,6 @@ Every selected opportunity SHALL include a concrete next test that can be execut
 - **THEN** it includes the observed signal, repeated pain, likely user or buyer, current workaround or money signal, proposed offer, success threshold, falsification threshold, and evidence gaps
 - **AND** it records paid wedge, distribution channel, private data barrier, OSS commoditization risk, product shape, pricing hypothesis, and do-not-build-until condition
 
-### Requirement: Opportunity Radar Starts Manual-Only
-
-Opportunity Radar SHALL start as a manual workflow before any recurring schedule is enabled.
-
-#### Scenario: Workflow is added
-
-- **WHEN** the first Opportunity Radar workflow is implemented
-- **THEN** it supports `workflow_dispatch`
-- **AND** it does not include a scheduled trigger
-
 ### Requirement: Opportunity State Preserves Build Readiness
 
 Opportunity Radar SHALL keep build-readiness metadata comparable across selected, deferred, and watchlisted opportunities, and SHALL keep each entry's stage consistent with the array that contains it.
@@ -109,3 +98,19 @@ Opportunity Radar SHALL NOT mark opportunities as selected for build when the pa
 - **WHEN** an opportunity requires access to private code or private data before the next useful validation
 - **THEN** it is kept in `watchlisted`
 - **AND** it is not marked `selected-for-build`
+
+### Requirement: Opportunity Radar Runs Weekly And Manually
+
+Opportunity Radar SHALL support a weekly scheduled run while preserving manual
+dispatch for event-driven demand checks.
+
+#### Scenario: Weekly workflow trigger is configured
+
+- **WHEN** the Opportunity Radar workflow is configured
+- **THEN** it includes a scheduled trigger for Tuesday at `05:30 UTC`
+- **AND** it includes `workflow_dispatch`
+
+#### Scenario: Manual run remains available
+
+- **WHEN** a user wants to validate a specific demand hypothesis outside the weekly cadence
+- **THEN** the workflow can be started manually with `workflow_dispatch`

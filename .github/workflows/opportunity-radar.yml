@@ -1,6 +1,9 @@
 name: Opportunity Radar
 
 on:
+  schedule:
+    # GitHub cron is UTC. This runs weekly on Tuesday at 08:30 Europe/Moscow.
+    - cron: "30 5 * * 2"
   workflow_dispatch:
     inputs:
       run_date:

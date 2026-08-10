@@ -118,7 +118,7 @@ Manual runs bypass the cadence gate. Same-day reruns still respect the rerun gua
 
 ## 7. Optional: Run Opportunity Radar
 
-Opportunity Radar is separate from Architecture Radar and starts manual-only. It researches public demand signals and writes to:
+Opportunity Radar is separate from Architecture Radar. It runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow, and can also be started manually. It researches public demand signals and writes to:
 
 - `opportunity-reports/`
 - `opportunities/`
@@ -133,7 +133,7 @@ Before running it, edit:
 | `docs/opportunity-research-scope.md` | Topic families, signal types, evidence labels, and selection rules |
 | `opportunity-watchlist.yml` | Public sources the opportunity run should account for |
 
-Then open:
+For an event-driven run, open:
 
 `Actions -> Opportunity Radar -> Run workflow`
 
