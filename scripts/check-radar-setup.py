@@ -160,6 +160,20 @@ WEEKLY_SYNTHESIS_WORKFLOW_NEEDLES = [
     "scripts/publish-weekly-synthesis-run.sh",
 ]
 
+GENERATED_PR_PUBLISHER_SCRIPTS = [
+    "scripts/publish-radar-run.sh",
+    "scripts/publish-opportunity-radar-run.sh",
+    "scripts/publish-weekly-synthesis-run.sh",
+]
+
+GENERATED_PR_GOVERNANCE_NEEDLES = [
+    "## Agent Governance",
+    "User request:",
+    "Scope confirmed: yes",
+    "Autonomous follow-up: no",
+    "OpenSpec change: Not required; generated research artifact PR.",
+]
+
 REQUIRED_RELEASE = "v0.1.0"
 REQUIRED_SECRET = "OPENAI_API_KEY"
 REQUIRED_BRANCH = "main"
@@ -361,6 +375,30 @@ def check_workflow_text(root: Path) -> list[Check]:
     return checks
 
 
+def check_generated_pr_publisher_text(root: Path) -> list[Check]:
+    checks: list[Check] = []
+    for rel_path in GENERATED_PR_PUBLISHER_SCRIPTS:
+        path = root / rel_path
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            checks.append(make_check(f"publisher-governance:{rel_path}:read", "fail", f"missing {rel_path}; restore the publisher script"))
+            continue
+
+        for needle in GENERATED_PR_GOVERNANCE_NEEDLES:
+            if needle in text:
+                checks.append(make_check(f"publisher-governance:{rel_path}:{needle}", "pass", f"{rel_path} contains {needle!r}"))
+            else:
+                checks.append(
+                    make_check(
+                        f"publisher-governance:{rel_path}:{needle}",
+                        "fail",
+                        f"{rel_path} is missing generated PR governance body field {needle!r}",
+                    )
+                )
+    return checks
+
+
 def check_open_spec_cli(
     root: Path,
     run_command: CommandRunner,
@@ -408,6 +446,7 @@ def local_checks(
     checks.extend(check_radar_json(root))
     checks.extend(check_opportunities_json(root))
     checks.extend(check_workflow_text(root))
+    checks.extend(check_generated_pr_publisher_text(root))
     checks.extend(check_open_spec_cli(root, run_command, which))
     return checks
 

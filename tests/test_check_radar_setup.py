@@ -43,6 +43,36 @@ class SetupDoctorTest(unittest.TestCase):
         content_by_path = {
             "radar.json": json.dumps({"schema_version": 1, "repositories": []}),
             "opportunities.json": json.dumps({"schema_version": 1, "selected": [], "deferred": [], "watchlisted": []}),
+            "scripts/publish-radar-run.sh": "\n".join(
+                [
+                    "#!/usr/bin/env bash",
+                    "echo '## Agent Governance'",
+                    "echo 'User request:'",
+                    "echo 'Scope confirmed: yes'",
+                    "echo 'Autonomous follow-up: no'",
+                    "echo 'OpenSpec change: Not required; generated research artifact PR.'",
+                ]
+            ),
+            "scripts/publish-opportunity-radar-run.sh": "\n".join(
+                [
+                    "#!/usr/bin/env bash",
+                    "echo '## Agent Governance'",
+                    "echo 'User request:'",
+                    "echo 'Scope confirmed: yes'",
+                    "echo 'Autonomous follow-up: no'",
+                    "echo 'OpenSpec change: Not required; generated research artifact PR.'",
+                ]
+            ),
+            "scripts/publish-weekly-synthesis-run.sh": "\n".join(
+                [
+                    "#!/usr/bin/env bash",
+                    "echo '## Agent Governance'",
+                    "echo 'User request:'",
+                    "echo 'Scope confirmed: yes'",
+                    "echo 'Autonomous follow-up: no'",
+                    "echo 'OpenSpec change: Not required; generated research artifact PR.'",
+                ]
+            ),
             ".github/workflows/architecture-radar.yml": "\n".join(
                 [
                     "name: Architecture Radar",
@@ -137,6 +167,12 @@ class SetupDoctorTest(unittest.TestCase):
         checks = doctor.local_checks(self.root, which=lambda name: None)
         failures = [check.id for check in checks if check.severity == "fail"]
         self.assertIn("file:interests.md", failures)
+
+    def test_generated_pr_publisher_without_governance_fields_is_failure(self) -> None:
+        (self.root / "scripts/publish-weekly-synthesis-run.sh").write_text("#!/usr/bin/env bash\n", encoding="utf-8")
+        checks = doctor.local_checks(self.root, which=lambda name: None)
+        failures = [check.id for check in checks if check.severity == "fail"]
+        self.assertIn("publisher-governance:scripts/publish-weekly-synthesis-run.sh:User request:", failures)
 
     def test_invalid_radar_json_is_failure(self) -> None:
         (self.root / "radar.json").write_text("{nope", encoding="utf-8")
