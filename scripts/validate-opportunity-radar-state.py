@@ -34,6 +34,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Signal Ledger",
     "Opportunity Reviews",
     "Build Readiness",
+    "Money Readiness",
     "Recommended Next Test",
     "Rejected Or Deferred Signals",
     "Evidence Gaps",
@@ -59,6 +60,19 @@ BUILD_READINESS_REQUIRED_COLUMNS = {
     "Do not build until",
     "Build decision",
 }
+MONEY_READINESS_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Pain",
+    "Spend",
+    "Reachability",
+    "Timing",
+    "Buildability",
+    "Buyer",
+    "Existing spend",
+    "Paid experiment",
+    "Source classes",
+    "Stage",
+}
 
 SELECTED_OPPORTUNITY_SECTIONS = {
     "Opportunity Summary",
@@ -66,6 +80,13 @@ SELECTED_OPPORTUNITY_SECTIONS = {
     "Repeated Pain Or Demand Signal",
     "Likely User Or Buyer",
     "Current Workaround Or Money Signal",
+    "Technology Shift",
+    "Buyer",
+    "Expensive Workflow",
+    "Existing Spend",
+    "Paid Experiment",
+    "Money-First Scores",
+    "Source Classes",
     "Paid Wedge",
     "Distribution Channel",
     "Private Data Barrier",
@@ -112,13 +133,56 @@ STATE_PRODUCT_SHAPE_VALUES = {
     "unclear",
 }
 STATE_PRICING_HYPOTHESIS_VALUES = {"free", "team", "pro", "unclear"}
+STATE_SOURCE_CLASS_VALUES = {
+    "github",
+    "forum",
+    "social",
+    "product",
+    "pricing",
+    "job",
+    "procurement",
+    "marketplace",
+    "docs",
+    "benchmark",
+    "news",
+    "other",
+}
+TECHNOLOGY_SHIFT_REQUIRED_FIELDS = {
+    "what_changed",
+    "when",
+    "old_constraint",
+    "new_capability",
+    "cost_delta",
+    "quality_delta",
+    "latency_delta",
+    "accessibility_delta",
+    "affected_workflows",
+}
+MONEY_SCORE_FIELDS = {
+    "pain_score",
+    "spend_score",
+    "reachability_score",
+    "timing_score",
+    "buildability_score",
+}
 STATE_REQUIRED_COMPARISON_FIELDS = {
     "score",
+    "pain_score",
+    "spend_score",
+    "reachability_score",
+    "timing_score",
+    "buildability_score",
     "confidence",
     "money_signal",
     "reachability",
     "evidence_count",
     "next_test",
+    "technology_shift",
+    "buyer",
+    "expensive_workflow",
+    "existing_spend",
+    "paid_experiment",
+    "source_classes",
     "paid_wedge",
     "distribution_channel",
     "private_data_barrier",
@@ -127,9 +191,9 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "pricing_hypothesis",
     "do_not_build_until",
 }
-STATE_STAGE_VALUES = {"selected", "selected-for-test", "selected-for-build", "deferred", "watchlist", "watchlisted"}
+STATE_STAGE_VALUES = {"selected", "selected-for-test", "sell-before-build", "selected-for-build", "deferred", "watchlist", "watchlisted"}
 STATE_STAGE_VALUES_BY_ARRAY = {
-    "selected": {"selected", "selected-for-test", "selected-for-build"},
+    "selected": {"selected", "selected-for-test", "sell-before-build", "selected-for-build"},
     "deferred": {"deferred"},
     "watchlisted": {"watchlist", "watchlisted"},
 }
@@ -141,6 +205,17 @@ BUILD_READINESS_STATE_FIELDS = {
     "Product shape": "product_shape",
     "Pricing hypothesis": "pricing_hypothesis",
     "Do not build until": "do_not_build_until",
+}
+MONEY_READINESS_STATE_FIELDS = {
+    "Pain": "pain_score",
+    "Spend": "spend_score",
+    "Reachability": "reachability_score",
+    "Timing": "timing_score",
+    "Buildability": "buildability_score",
+    "Buyer": "buyer",
+    "Existing spend": "existing_spend",
+    "Paid experiment": "paid_experiment",
+    "Source classes": "source_classes",
 }
 UNCLEAR_TEXT_MARKERS = {
     "unclear",
@@ -424,6 +499,73 @@ def clean_table_cell(value: str) -> str:
     return value.strip().strip("`").strip()
 
 
+def parse_int_cell(value: object, path: Path, row_index: str, column: str) -> int:
+    text = clean_table_cell(str(value))
+    if not re.fullmatch(r"\d+", text):
+        fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} column `{column}` must be an integer")
+    score = int(text)
+    if not 0 <= score <= 5:
+        fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} column `{column}` must be from 0 to 5")
+    return score
+
+
+def validate_money_score(value: object, context: str, field: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5:
+        fail(f"{context} {field} must be an integer from 0 to 5")
+    return value
+
+
+def split_source_classes(value: object) -> list[str]:
+    if isinstance(value, list):
+        raw_values = value
+    else:
+        text = clean_table_cell(str(value))
+        text = text.replace("`", "")
+        normalized_lines = []
+        for line in text.splitlines():
+            normalized_lines.append(re.sub(r"^\s*[-*]\s*", "", line).strip())
+        text = ",".join(line for line in normalized_lines if line)
+        raw_values = re.split(r"\s*,\s*|\s*;\s*", text) if text else []
+    return [str(item).strip().lower() for item in raw_values if str(item).strip()]
+
+
+def validate_source_classes(value: object, context: str) -> list[str]:
+    source_classes = split_source_classes(value)
+    if not source_classes:
+        fail(f"{context} source_classes must contain at least one source class")
+    duplicates = sorted({item for item in source_classes if source_classes.count(item) > 1})
+    if duplicates:
+        fail(f"{context} source_classes contains duplicates: {', '.join(duplicates)}")
+    unsupported = sorted(set(source_classes) - STATE_SOURCE_CLASS_VALUES)
+    if unsupported:
+        fail(f"{context} source_classes has unsupported values: {', '.join(unsupported)}")
+    return source_classes
+
+
+def is_github_only(source_classes: list[str]) -> bool:
+    return set(source_classes) == {"github"}
+
+
+def validate_technology_shift(value: object, context: str) -> None:
+    if not isinstance(value, dict):
+        fail(f"{context} technology_shift must be an object")
+    missing = TECHNOLOGY_SHIFT_REQUIRED_FIELDS - set(value)
+    if missing:
+        fail(f"{context} technology_shift missing fields: {', '.join(sorted(missing))}")
+
+    for field in sorted(TECHNOLOGY_SHIFT_REQUIRED_FIELDS - {"affected_workflows"}):
+        text = str(value.get(field, "")).strip()
+        if len(text) < 3:
+            fail(f"{context} technology_shift.{field} is too short")
+
+    affected = value.get("affected_workflows")
+    if not isinstance(affected, list) or not affected:
+        fail(f"{context} technology_shift.affected_workflows must be a non-empty list")
+    for index, workflow in enumerate(affected, start=1):
+        if len(str(workflow).strip()) < 3:
+            fail(f"{context} technology_shift.affected_workflows[{index}] is too short")
+
+
 def normalize_report_text(value: object) -> str:
     text = clean_table_cell(str(value))
     text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
@@ -495,7 +637,7 @@ def parse_build_readiness_table(path: Path, section_text: str) -> list[dict[str,
             )
         if build_decision not in STATE_STAGE_VALUES:
             fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} has unsupported build decision: {build_decision}")
-        if build_decision in {"selected", "selected-for-test", "selected-for-build"}:
+        if build_decision in {"selected", "selected-for-test", "sell-before-build", "selected-for-build"}:
             if is_unclear_text(paid_wedge):
                 fail(f"{path.relative_to(ROOT)} Build Readiness row {row_index} cannot be selected with an unclear paid wedge")
             if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
@@ -511,6 +653,81 @@ def parse_build_readiness_table(path: Path, section_text: str) -> list[dict[str,
 
 def validate_build_readiness_table(path: Path, section_text: str) -> list[dict[str, str]]:
     return parse_build_readiness_table(path, section_text)
+
+
+def parse_money_readiness_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    if "None" in section_text or "No selected" in section_text:
+        return []
+
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Money Readiness must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = MONEY_READINESS_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Money Readiness missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Money Readiness has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in MONEY_READINESS_REQUIRED_COLUMNS}
+    rows: list[dict[str, object]] = []
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+        parsed: dict[str, object] = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+        for column in ("Pain", "Spend", "Reachability", "Timing", "Buildability"):
+            parsed[column] = parse_int_cell(parsed[column], path, str(row_index), column)
+
+        buyer = str(parsed["Buyer"]).strip()
+        existing_spend = str(parsed["Existing spend"]).strip()
+        paid_experiment = str(parsed["Paid experiment"]).strip()
+        if len(buyer) < 20:
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} buyer is too short")
+        if len(existing_spend) < 20:
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} existing spend is too short")
+        if len(paid_experiment) < 30:
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} paid experiment is too short")
+
+        source_classes = validate_source_classes(parsed["Source classes"], f"{path.relative_to(ROOT)} Money Readiness row {row_index}")
+        parsed["Source classes"] = source_classes
+
+        stage = normalize_stage(parsed["Stage"])
+        if stage not in STATE_STAGE_VALUES:
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} has unsupported stage: {stage}")
+        if stage in {"selected", "selected-for-test", "sell-before-build", "selected-for-build"}:
+            if int(parsed["Spend"]) < 2:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected with spend below 2")
+            if int(parsed["Reachability"]) < 2:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected with reachability below 2")
+            if len(source_classes) < 2 or is_github_only(source_classes):
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected with GitHub-only or single-class evidence")
+        if stage == "selected-for-build":
+            if int(parsed["Spend"]) < 3:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with spend below 3")
+            if int(parsed["Reachability"]) < 3:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with reachability below 3")
+            if int(parsed["Timing"]) < 2:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with timing below 2")
+            if int(parsed["Buildability"]) < 3:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with buildability below 3")
+            if len(source_classes) < 3:
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with fewer than 3 source classes")
+            if is_unclear_text(paid_experiment):
+                fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} cannot be selected-for-build with an unclear paid experiment")
+
+        rows.append(parsed)
+
+    return rows
+
+
+def validate_money_readiness_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    return parse_money_readiness_table(path, section_text)
 
 
 def is_unclear_text(value: object) -> bool:
@@ -600,6 +817,67 @@ def validate_build_readiness_state_consistency(
                 )
 
 
+def validate_money_readiness_state_consistency(
+    path: Path,
+    rows: list[dict[str, object]],
+    state_entries: dict[str, tuple[str, int, dict[str, object]]],
+) -> None:
+    for row in rows:
+        row_index = str(row["_row_index"])
+        opportunity = row["Opportunity"]
+        key = normalize_opportunity_key(opportunity)
+        match = state_entries.get(key)
+        if match is None:
+            fail(f"{path.relative_to(ROOT)} Money Readiness row {row_index} opportunity is missing from opportunities.json: {opportunity}")
+
+        array_name, state_index, entry = match
+        actual_stage = normalize_stage(row["Stage"])
+        expected_stage = state_stage_for_entry(array_name, entry)
+        if actual_stage != expected_stage:
+            fail(
+                f"{path.relative_to(ROOT)} Money Readiness row {row_index} stage `{actual_stage}` "
+                f"does not match opportunities.json {array_name}[{state_index}] stage `{expected_stage}`"
+            )
+
+        for column, state_field in MONEY_READINESS_STATE_FIELDS.items():
+            if column == "Source classes":
+                actual_classes = split_source_classes(row[column])
+                expected_classes = split_source_classes(entry.get(state_field, []))
+                if actual_classes != expected_classes:
+                    fail(
+                        f"{path.relative_to(ROOT)} Money Readiness row {row_index} column `{column}` "
+                        f"does not match opportunities.json {array_name}[{state_index}].{state_field}"
+                    )
+                continue
+
+            actual_value = normalize_report_text(row[column])
+            expected_value = normalize_report_text(entry.get(state_field, ""))
+            if actual_value != expected_value:
+                fail(
+                    f"{path.relative_to(ROOT)} Money Readiness row {row_index} column `{column}` "
+                    f"does not match opportunities.json {array_name}[{state_index}].{state_field}"
+                )
+
+
+def parse_money_scores_section(path_label: str, text: str) -> dict[str, int]:
+    scores: dict[str, int] = {}
+    for label, field in (
+        ("Pain", "pain_score"),
+        ("Spend", "spend_score"),
+        ("Reachability", "reachability_score"),
+        ("Timing", "timing_score"),
+        ("Buildability", "buildability_score"),
+    ):
+        match = re.search(rf"(?im)^\s*(?:[-*]\s*)?{label}\s*:\s*(\d+)\s*$", text)
+        if not match:
+            fail(f"{path_label} Money-First Scores must include `{label}: N`")
+        score = int(match.group(1))
+        if not 0 <= score <= 5:
+            fail(f"{path_label} Money-First Scores `{label}` must be from 0 to 5")
+        scores[field] = score
+    return scores
+
+
 def validate_opportunity_build_readiness(path_label: str, sections: dict[str, str]) -> None:
     for section in SELECTED_OPPORTUNITY_SECTIONS:
         if section in sections and not sections[section].strip():
@@ -621,12 +899,41 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
     if oss_risk and oss_risk not in STATE_OSS_COMMODITIZATION_RISK_VALUES:
         fail(f"{path_label} OSS Commoditization Risk must be one of: {', '.join(sorted(STATE_OSS_COMMODITIZATION_RISK_VALUES))}")
 
+    source_classes = validate_source_classes(sections.get("Source Classes", ""), path_label) if sections.get("Source Classes") else []
+    money_scores = parse_money_scores_section(path_label, sections["Money-First Scores"]) if "Money-First Scores" in sections else {}
+    paid_experiment = sections.get("Paid Experiment", "")
+
     decision = sections.get("Decision", "")
+    if "selected for test" in decision.lower() or "selected-for-test" in decision.lower() or "sell-before-build" in decision.lower():
+        if is_unclear_text(sections.get("Paid Wedge", "")):
+            fail(f"{path_label} cannot be selected with an unclear Paid Wedge")
+        if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
+            fail(f"{path_label} cannot be selected with Private Data Barrier `{private_data_barrier}`")
+        if money_scores.get("spend_score", 0) < 2:
+            fail(f"{path_label} cannot be selected with Spend score below 2")
+        if money_scores.get("reachability_score", 0) < 2:
+            fail(f"{path_label} cannot be selected with Reachability score below 2")
+        if len(source_classes) < 2 or is_github_only(source_classes):
+            fail(f"{path_label} cannot be selected with GitHub-only or single-class evidence")
+        if is_unclear_text(paid_experiment):
+            fail(f"{path_label} cannot be selected with an unclear Paid Experiment")
     if "selected for build" in decision.lower() or "selected-for-build" in decision.lower():
         if is_unclear_text(sections.get("Paid Wedge", "")):
             fail(f"{path_label} cannot be selected for build with an unclear Paid Wedge")
         if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
             fail(f"{path_label} cannot be selected for build with Private Data Barrier `{private_data_barrier}`")
+        if money_scores.get("spend_score", 0) < 3:
+            fail(f"{path_label} cannot be selected for build with Spend score below 3")
+        if money_scores.get("reachability_score", 0) < 3:
+            fail(f"{path_label} cannot be selected for build with Reachability score below 3")
+        if money_scores.get("timing_score", 0) < 2:
+            fail(f"{path_label} cannot be selected for build with Timing score below 2")
+        if money_scores.get("buildability_score", 0) < 3:
+            fail(f"{path_label} cannot be selected for build with Buildability score below 3")
+        if len(source_classes) < 3:
+            fail(f"{path_label} cannot be selected for build with fewer than 3 source classes")
+        if is_unclear_text(paid_experiment):
+            fail(f"{path_label} cannot be selected for build with an unclear Paid Experiment")
 
 
 def validate_report_structure() -> None:
@@ -652,6 +959,8 @@ def validate_report_structure() -> None:
         validate_signal_note_coverage(path, signal_ledger_rows)
         build_readiness_rows = validate_build_readiness_table(path, sections["Build Readiness"])
         validate_build_readiness_state_consistency(path, build_readiness_rows, state_entries)
+        money_readiness_rows = validate_money_readiness_table(path, sections["Money Readiness"])
+        validate_money_readiness_state_consistency(path, money_readiness_rows, state_entries)
 
         selected_text = sections["Selected Opportunities"] + "\n" + sections["Opportunity Reviews"]
         if "None" not in sections["Selected Opportunities"] and "No selected" not in sections["Selected Opportunities"]:
@@ -814,6 +1123,8 @@ def validate_state() -> None:
             score = entry["score"]
             if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 10:
                 fail(f"opportunities.json {field}[{index}] score must be an integer from 0 to 10")
+            context = f"opportunities.json {field}[{index}]"
+            money_scores = {score_field: validate_money_score(entry[score_field], context, score_field) for score_field in MONEY_SCORE_FIELDS}
             confidence = entry["confidence"]
             if confidence not in STATE_CONFIDENCE_VALUES:
                 fail(f"opportunities.json {field}[{index}] confidence must be one of: {', '.join(sorted(STATE_CONFIDENCE_VALUES))}")
@@ -829,6 +1140,20 @@ def validate_state() -> None:
             next_test = str(entry["next_test"]).strip()
             if len(next_test) < 30:
                 fail(f"opportunities.json {field}[{index}] next_test is too short")
+            validate_technology_shift(entry["technology_shift"], context)
+            buyer = str(entry["buyer"]).strip()
+            if len(buyer) < 20:
+                fail(f"opportunities.json {field}[{index}] buyer is too short")
+            expensive_workflow = str(entry["expensive_workflow"]).strip()
+            if len(expensive_workflow) < 30:
+                fail(f"opportunities.json {field}[{index}] expensive_workflow is too short")
+            existing_spend = str(entry["existing_spend"]).strip()
+            if len(existing_spend) < 20:
+                fail(f"opportunities.json {field}[{index}] existing_spend is too short")
+            paid_experiment = str(entry["paid_experiment"]).strip()
+            if len(paid_experiment) < 30:
+                fail(f"opportunities.json {field}[{index}] paid_experiment is too short")
+            source_classes = validate_source_classes(entry["source_classes"], context)
             paid_wedge = str(entry["paid_wedge"]).strip()
             if len(paid_wedge) < 30:
                 fail(f"opportunities.json {field}[{index}] paid_wedge is too short")
@@ -874,11 +1199,31 @@ def validate_state() -> None:
                     fail(f"opportunities.json selected[{index}] has unclear paid_wedge; keep it in watchlisted")
                 if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
                     fail(f"opportunities.json selected[{index}] requires private data/code or has unclear barrier; keep it in watchlisted")
+                if money_scores["spend_score"] < 2:
+                    fail(f"opportunities.json selected[{index}] spend_score is below 2; keep it in watchlisted")
+                if money_scores["reachability_score"] < 2:
+                    fail(f"opportunities.json selected[{index}] reachability_score is below 2; keep it in watchlisted")
+                if len(source_classes) < 2 or is_github_only(source_classes):
+                    fail(f"opportunities.json selected[{index}] has GitHub-only or single-class evidence; keep it in watchlisted")
+                if is_unclear_text(paid_experiment):
+                    fail(f"opportunities.json selected[{index}] paid_experiment is unclear; keep it in watchlisted")
             if normalize_stage(stage) == "selected-for-build":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_wedge")
                 if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with private_data_barrier `{private_data_barrier}`")
+                if money_scores["spend_score"] < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with spend_score below 3")
+                if money_scores["reachability_score"] < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with reachability_score below 3")
+                if money_scores["timing_score"] < 2:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with timing_score below 2")
+                if money_scores["buildability_score"] < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with buildability_score below 3")
+                if len(source_classes) < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with fewer than 3 source classes")
+                if is_unclear_text(paid_experiment):
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_experiment")
 
             family = entry.get("family")
             if family is not None and family not in families:

@@ -12,7 +12,7 @@ The core idea: let the model research and write, but let deterministic GitHub Ac
 
 The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
 
-The repository also includes a separate **Opportunity Radar** mode for manual, evidence-backed demand research. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
+The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
-- A weekly scheduled Opportunity Radar workflow for testing market-signal research without mixing it into Architecture Radar state, with manual dispatch for event-driven checks.
+- A weekly scheduled Opportunity Radar workflow for testing demand and first-money paths without mixing it into Architecture Radar state, with manual dispatch for event-driven checks.
 
 ## Example Output
 
@@ -47,7 +47,7 @@ Real generated pull requests from this repository:
 | Mode | Pull request | Generated artifacts |
 |---|---|---|
 | Architecture Radar | [PR #9, Architecture Radar 2026-08-08](https://github.com/mrAndreyIsachenko/architecture-radar/pull/9) | [`reports/2026-08-08.md`](reports/2026-08-08.md), [`reports/2026-08-08-supplement-1.md`](reports/2026-08-08-supplement-1.md), [Reorg-Safe Materialization Windows](patterns/reorg-safe-materialization-windows.md), and [Deferred Image Materialization](patterns/deferred-image-materialization.md) |
-| Opportunity Radar | [PR #27, Opportunity Radar 2026-08-09](https://github.com/mrAndreyIsachenko/architecture-radar/pull/27) | [`opportunity-reports/2026-08-09.md`](opportunity-reports/2026-08-09.md), three selected opportunity records under [`opportunities/`](opportunities/), and normalized signal notes under [`signals/`](signals/) |
+| Opportunity Radar | [PR #27, Opportunity Radar 2026-08-09](https://github.com/mrAndreyIsachenko/architecture-radar/pull/27) | [`opportunity-reports/2026-08-09.md`](opportunity-reports/2026-08-09.md), three opportunity records under [`opportunities/`](opportunities/), and normalized signal notes under [`signals/`](signals/) |
 | Weekly Synthesis | [PR #32, Weekly Synthesis 2026-W32](https://github.com/mrAndreyIsachenko/architecture-radar/pull/32) | [`weekly-reports/2026-W32.md`](weekly-reports/2026-W32.md), combining committed Architecture Radar and Opportunity Radar evidence without fresh discovery |
 
 The useful part is the review shape, not the specific topics: selected candidates or opportunities, rejected candidates, evidence gaps, pattern updates, and one concrete next action all arrive in a PR that CI can reject.
@@ -234,7 +234,7 @@ The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override re
 
 Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
 
-Opportunity Radar runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow. Run it manually from `Actions -> Opportunity Radar -> Run workflow` after notable demand signals or when validating a specific opportunity hypothesis.
+Opportunity Radar runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow. It now uses money-first selection: GitHub-only pain stays watchlisted, `sell-before-build` is a valid outcome, and build recommendations require spend, reachability, timing, buildability, source-class diversity, and a concrete paid experiment. Run it manually from `Actions -> Opportunity Radar -> Run workflow` after notable demand signals or when validating a specific opportunity hypothesis.
 
 Weekly Synthesis runs separately from discovery. It reads committed radar artifacts and writes `weekly-reports/YYYY-Www.md` with pattern movement, topic coverage, repeated candidates or signals, evidence gaps, and one next-week focus. Run it from `Actions -> Weekly Synthesis -> Run workflow`, or let the weekly schedule open a synthesis PR.
 
