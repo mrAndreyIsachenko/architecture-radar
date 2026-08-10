@@ -21,6 +21,21 @@ spec.loader.exec_module(validator)
 PAID_WEDGE = "Teams pay to reduce engineering time spent reconstructing failed agent runs."
 DISTRIBUTION_CHANNEL = "CLI installed from GitHub or PyPI and run locally against exported traces."
 DO_NOT_BUILD_UNTIL = "Three teams agree to run the audit on real traces or one team asks for a paid follow-up."
+BUYER = "Engineering managers responsible for production agent reliability."
+EXISTING_SPEND = "Teams already spend engineering hours manually reading traces and reconstructing failed runs."
+PAID_EXPERIMENT = "Offer a $49 manual trace audit to three agent teams and treat one paid request as validation."
+SOURCE_CLASSES = ["github", "forum"]
+TECHNOLOGY_SHIFT = {
+    "what_changed": "Agent traces became common enough that small teams need repeatable debugging workflows.",
+    "when": "2026-08-11",
+    "old_constraint": "Trace debugging required ad hoc logs and custom scripts.",
+    "new_capability": "A lightweight audit can summarize failures and recovery paths.",
+    "cost_delta": "Manual review time can be reduced if the report is accepted.",
+    "quality_delta": "Debugging output becomes more consistent across incidents.",
+    "latency_delta": "Initial triage can happen before a full engineering investigation.",
+    "accessibility_delta": "Public examples and exported traces make a first test reachable.",
+    "affected_workflows": ["Agent incident debugging", "Trace review"],
+}
 
 
 def complete_report(selected: bool = True) -> str:
@@ -33,10 +48,18 @@ def complete_report(selected: bool = True) -> str:
             f"| Agent trace debugging | {PAID_WEDGE} | {DISTRIBUTION_CHANNEL} | `public-only` | `medium` | `cli` | `team` | {DO_NOT_BUILD_UNTIL} | `selected-for-test` |",
         ]
     )
+    money_readiness = "\n".join(
+        [
+            "| Opportunity | Pain | Spend | Reachability | Timing | Buildability | Buyer | Existing spend | Paid experiment | Source classes | Stage |",
+            "|---|---|---|---|---|---|---|---|---|---|---|",
+            f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |",
+        ]
+    )
     if not selected:
         selected_text = "None."
         reviews = "No selected opportunities."
         build_readiness = "None."
+        money_readiness = "None."
 
     sections = {
         "Prerequisites And State": "- workspace verified",
@@ -52,6 +75,7 @@ def complete_report(selected: bool = True) -> str:
         ),
         "Opportunity Reviews": reviews,
         "Build Readiness": build_readiness,
+        "Money Readiness": money_readiness,
         "Recommended Next Test": "Interview three teams and offer a trace-debugging report.",
         "Rejected Or Deferred Signals": "- None.",
         "Evidence Gaps": "- No paid demand yet.",
@@ -63,7 +87,16 @@ def complete_report(selected: bool = True) -> str:
     return "\n".join(body)
 
 
-def complete_state(*, array_name: str = "selected", stage: str = "selected-for-test", paid_wedge: str = PAID_WEDGE) -> str:
+def complete_state(
+    *,
+    array_name: str = "selected",
+    stage: str = "selected-for-test",
+    paid_wedge: str = PAID_WEDGE,
+    spend_score: int = 2,
+    reachability_score: int = 3,
+    source_classes: list[str] | None = None,
+    paid_experiment: str = PAID_EXPERIMENT,
+) -> str:
     data: dict[str, object] = {
         "schema_version": 1,
         "discovery_mode": "watchlist-directed",
@@ -78,11 +111,22 @@ def complete_state(*, array_name: str = "selected", stage: str = "selected-for-t
         "file": "opportunities/agent-trace-debugging.md",
         "stage": stage,
         "score": 7,
+        "pain_score": 5,
+        "spend_score": spend_score,
+        "reachability_score": reachability_score,
+        "timing_score": 3,
+        "buildability_score": 4,
         "confidence": "medium",
         "money_signal": "weak",
         "reachability": "high",
         "evidence_count": 3,
         "next_test": "Offer a manual trace debugging report to three agent teams.",
+        "technology_shift": TECHNOLOGY_SHIFT,
+        "buyer": BUYER,
+        "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
+        "existing_spend": EXISTING_SPEND,
+        "paid_experiment": paid_experiment,
+        "source_classes": source_classes or SOURCE_CLASSES,
         "paid_wedge": paid_wedge,
         "distribution_channel": DISTRIBUTION_CHANNEL,
         "private_data_barrier": "public-only",
@@ -98,9 +142,27 @@ def complete_state(*, array_name: str = "selected", stage: str = "selected-for-t
     return json.dumps(data)
 
 
-def write_complete_state(root: Path, *, array_name: str = "selected", stage: str = "selected-for-test", paid_wedge: str = PAID_WEDGE) -> None:
+def write_complete_state(
+    root: Path,
+    *,
+    array_name: str = "selected",
+    stage: str = "selected-for-test",
+    paid_wedge: str = PAID_WEDGE,
+    spend_score: int = 2,
+    reachability_score: int = 3,
+    source_classes: list[str] | None = None,
+    paid_experiment: str = PAID_EXPERIMENT,
+) -> None:
     (root / "opportunities.json").write_text(
-        complete_state(array_name=array_name, stage=stage, paid_wedge=paid_wedge),
+        complete_state(
+            array_name=array_name,
+            stage=stage,
+            paid_wedge=paid_wedge,
+            spend_score=spend_score,
+            reachability_score=reachability_score,
+            source_classes=source_classes,
+            paid_experiment=paid_experiment,
+        ),
         encoding="utf-8",
     )
 
@@ -146,6 +208,21 @@ def complete_opportunity() -> str:
         "Repeated Pain Or Demand Signal": "Teams repeatedly ask how to inspect failed agent runs.",
         "Likely User Or Buyer": "Engineering teams deploying multi-step LLM agents.",
         "Current Workaround Or Money Signal": "Teams use ad hoc logs and manual trace reading.",
+        "Technology Shift": "Agent traces are common enough that lightweight incident audit workflows are now testable.",
+        "Buyer": BUYER,
+        "Expensive Workflow": "Engineers spend incident response time manually reconstructing failed agent runs.",
+        "Existing Spend": EXISTING_SPEND,
+        "Paid Experiment": PAID_EXPERIMENT,
+        "Money-First Scores": "\n".join(
+            [
+                "- Pain: 5",
+                "- Spend: 2",
+                "- Reachability: 3",
+                "- Timing: 3",
+                "- Buildability: 4",
+            ]
+        ),
+        "Source Classes": "github, forum",
         "Paid Wedge": PAID_WEDGE,
         "Distribution Channel": DISTRIBUTION_CHANNEL,
         "Private Data Barrier": "public-only",
@@ -234,6 +311,30 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             "| Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |\n"
             "|---|---|---|---|---|---|---|---|---|\n"
             "| Agent trace debugging | Teams pay to reduce engineering time spent reconstructing failed agent runs. | CLI installed from GitHub or PyPI and run locally against exported traces. | `public-only` | `medium` | `cli` | `team` | Three teams agree to run the audit on real traces or one team asks for a paid follow-up. | `selected-for-test` |\n\n",
+            "",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_money_readiness(self) -> None:
+        bad_report = complete_report().replace(
+            "## Money Readiness\n\n"
+            f"| Opportunity | Pain | Spend | Reachability | Timing | Buildability | Buyer | Existing spend | Paid experiment | Source classes | Stage |\n"
+            f"|---|---|---|---|---|---|---|---|---|---|---|\n"
+            f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |\n\n",
             "",
         )
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -435,11 +536,22 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                                 "family": "ai-llm-demand",
                                 "stage": "selected-for-test",
                                 "score": 7,
+                                "pain_score": 5,
+                                "spend_score": 2,
+                                "reachability_score": 3,
+                                "timing_score": 3,
+                                "buildability_score": 4,
                                 "confidence": "medium",
                                 "money_signal": "weak",
                                 "reachability": "high",
                                 "evidence_count": 3,
                                 "next_test": "Offer a manual trace debugging report to three agent teams.",
+                                "technology_shift": TECHNOLOGY_SHIFT,
+                                "buyer": BUYER,
+                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
+                                "existing_spend": EXISTING_SPEND,
+                                "paid_experiment": PAID_EXPERIMENT,
+                                "source_classes": SOURCE_CLASSES,
                                 "paid_wedge": "Teams pay to reduce engineering time spent reconstructing failed agent runs.",
                                 "distribution_channel": "A CLI installed from GitHub or PyPI and run locally against exported traces.",
                                 "private_data_barrier": "public-only",
@@ -480,11 +592,22 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                                 "family": "ai-llm-demand",
                                 "stage": "selected-for-test",
                                 "score": 7,
+                                "pain_score": 5,
+                                "spend_score": 2,
+                                "reachability_score": 3,
+                                "timing_score": 3,
+                                "buildability_score": 4,
                                 "confidence": "medium",
                                 "money_signal": "weak",
                                 "reachability": "high",
                                 "evidence_count": 3,
                                 "next_test": "Offer a manual trace debugging report to three agent teams.",
+                                "technology_shift": TECHNOLOGY_SHIFT,
+                                "buyer": BUYER,
+                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
+                                "existing_spend": EXISTING_SPEND,
+                                "paid_experiment": PAID_EXPERIMENT,
+                                "source_classes": SOURCE_CLASSES,
                                 "paid_wedge": "unclear",
                                 "distribution_channel": "A CLI installed from GitHub or PyPI and run locally.",
                                 "private_data_barrier": "public-only",
@@ -527,11 +650,22 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                                 "family": "ai-llm-demand",
                                 "stage": "watchlist",
                                 "score": 5,
+                                "pain_score": 4,
+                                "spend_score": 1,
+                                "reachability_score": 1,
+                                "timing_score": 2,
+                                "buildability_score": 3,
                                 "confidence": "medium-low",
                                 "money_signal": "none-found",
                                 "reachability": "medium",
                                 "evidence_count": 3,
                                 "next_test": "Find direct evidence that teams pay for trace debugging.",
+                                "technology_shift": TECHNOLOGY_SHIFT,
+                                "buyer": "Engineering teams deploying multi-step LLM agents.",
+                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
+                                "existing_spend": "unclear; no direct budget evidence yet.",
+                                "paid_experiment": "unclear; a team must ask for a paid report or share a budget-backed workflow.",
+                                "source_classes": ["github"],
                                 "paid_wedge": "unclear; no direct budget evidence yet",
                                 "distribution_channel": "Likely local CLI or report, but the buying path is unproven.",
                                 "private_data_barrier": "unclear",
@@ -549,6 +683,98 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
 
             with patch.object(validator, "ROOT", root):
                 validator.validate_state()
+
+    def test_state_schema_allows_sell_before_build_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(stage="sell-before-build"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_low_spend_score(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(spend_score=1),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_github_only_source_classes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(source_classes=["github"]),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_build_with_too_few_source_classes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(stage="selected-for-build", spend_score=3, reachability_score=3),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_money_readiness_rejects_selected_with_low_spend(self) -> None:
+        readiness = "\n".join(
+            [
+                "| Opportunity | Pain | Spend | Reachability | Timing | Buildability | Buyer | Existing spend | Paid experiment | Source classes | Stage |",
+                "|---|---|---|---|---|---|---|---|---|---|---|",
+                f"| Agent trace debugging | 5 | 1 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |",
+            ]
+        )
+
+        with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+            validator.validate_money_readiness_table(ROOT / "opportunity-reports" / "test.md", readiness)
+
+    def test_money_readiness_rejects_selected_with_github_only_sources(self) -> None:
+        readiness = "\n".join(
+            [
+                "| Opportunity | Pain | Spend | Reachability | Timing | Buildability | Buyer | Existing spend | Paid experiment | Source classes | Stage |",
+                "|---|---|---|---|---|---|---|---|---|---|---|",
+                f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github | `selected-for-test` |",
+            ]
+        )
+
+        with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+            validator.validate_money_readiness_table(ROOT / "opportunity-reports" / "test.md", readiness)
 
     def test_state_schema_rejects_stage_mismatched_array(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

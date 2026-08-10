@@ -118,7 +118,7 @@ Manual runs bypass the cadence gate. Same-day reruns still respect the rerun gua
 
 ## 7. Optional: Run Opportunity Radar
 
-Opportunity Radar is separate from Architecture Radar. It runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow, and can also be started manually. It researches public demand signals and writes to:
+Opportunity Radar is separate from Architecture Radar. It runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow, and can also be started manually. It researches public demand signals with money-first selection: GitHub-only pain stays watchlisted, `sell-before-build` is a valid next step, and build recommendations require source-class diversity plus a concrete paid experiment. It writes to:
 
 - `opportunity-reports/`
 - `opportunities/`

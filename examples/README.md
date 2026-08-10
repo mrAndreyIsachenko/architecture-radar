@@ -1,6 +1,6 @@
 # Examples
 
-These examples show how to repoint Architecture Radar without changing the workflow wrapper.
+These examples show how to repoint a radar workflow without changing the workflow wrapper.
 
 Copy an example's files into the repository root:
 
@@ -10,11 +10,13 @@ Copy an example's files into the repository root:
 | `research-scope.md` | `docs/research-scope.md` |
 | `watchlist.yml` | `watchlist.yml` |
 
-Then run the `Architecture Radar` workflow manually.
+For Architecture Radar examples, run the `Architecture Radar` workflow manually.
+For Opportunity Radar examples, copy into the opportunity files named by the
+example and run the `Opportunity Radar` workflow.
 
 ## Available Examples
 
-- [`opportunity-demand-radar`](opportunity-demand-radar/) — tracks demand, pain points, emerging products, and commercial opportunities with evidence discipline.
+- [`opportunity-demand-radar`](opportunity-demand-radar/) — tracks demand, pain points, emerging products, and commercial opportunities with money-first evidence discipline.
 
 ## Adaptation Rule
 
