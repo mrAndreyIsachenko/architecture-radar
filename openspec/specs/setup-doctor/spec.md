@@ -3,7 +3,6 @@
 ## Purpose
 
 Setup Doctor provides a diagnostic readiness check for local clones and GitHub repository configuration so contributors can find missing setup requirements before running radar workflows.
-
 ## Requirements
 ### Requirement: Setup Doctor Reports Local Readiness
 
@@ -55,3 +54,15 @@ The setup doctor SHALL NOT mutate repository files, GitHub settings, secrets, br
 - **WHEN** the setup doctor finds missing GitHub settings
 - **THEN** it reports the problem and suggested remediation
 - **AND** does not modify remote settings
+
+### Requirement: Setup Doctor Checks Opportunity Radar Weekly Schedule
+
+Setup Doctor SHALL verify that Opportunity Radar supports both manual dispatch
+and the configured weekly schedule.
+
+#### Scenario: Opportunity workflow is configured
+
+- **WHEN** local setup checks inspect `.github/workflows/opportunity-radar.yml`
+- **THEN** the workflow contains `workflow_dispatch:`
+- **AND** the workflow contains `schedule:`
+- **AND** the workflow contains the Tuesday `05:30 UTC` cron expression

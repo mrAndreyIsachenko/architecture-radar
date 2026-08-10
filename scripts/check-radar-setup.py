@@ -138,6 +138,8 @@ GENERATED_PR_VALIDATION_WORKFLOW_NEEDLES = [
 OPPORTUNITY_WORKFLOW_NEEDLES = [
     "name: Opportunity Radar",
     "workflow_dispatch:",
+    "schedule:",
+    "30 5 * * 2",
     "contents: write",
     "pull-requests: write",
     "OPENAI_API_KEY",
@@ -145,8 +147,6 @@ OPPORTUNITY_WORKFLOW_NEEDLES = [
     "scripts/validate-opportunity-radar-state.py",
     "scripts/publish-opportunity-radar-run.sh",
 ]
-
-OPPORTUNITY_WORKFLOW_FORBIDDEN = ["schedule:"]
 
 WEEKLY_SYNTHESIS_WORKFLOW_NEEDLES = [
     "name: Weekly Synthesis",
@@ -366,12 +366,6 @@ def check_workflow_text(root: Path) -> list[Check]:
             else:
                 checks.append(make_check(f"{check_prefix}:{needle}", "fail", f"{rel_path} is missing {needle!r}; update the workflow configuration"))
 
-        if check_prefix == "opportunity-workflow":
-            for forbidden in OPPORTUNITY_WORKFLOW_FORBIDDEN:
-                if forbidden in text:
-                    checks.append(make_check(f"{check_prefix}:no-{forbidden}", "fail", f"{rel_path} must remain manual-only and not contain {forbidden!r}"))
-                else:
-                    checks.append(make_check(f"{check_prefix}:no-{forbidden}", "pass", f"{rel_path} is manual-only with no {forbidden!r} trigger"))
     return checks
 
 

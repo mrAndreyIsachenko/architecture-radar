@@ -121,6 +121,8 @@ class SetupDoctorTest(unittest.TestCase):
                 [
                     "name: Opportunity Radar",
                     "on:",
+                    "  schedule:",
+                    "    - cron: \"30 5 * * 2\"",
                     "  workflow_dispatch:",
                     "permissions:",
                     "  contents: write",
