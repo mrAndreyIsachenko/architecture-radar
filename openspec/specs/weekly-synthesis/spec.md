@@ -2,7 +2,6 @@
 
 ## Purpose
 Weekly synthesis turns accumulated Architecture Radar and Opportunity Radar artifacts into a focused weekly review without performing new discovery. It keeps synthesis output separate from daily research artifacts and publishes changes through pull requests so weekly recommendations remain reviewable.
-
 ## Requirements
 ### Requirement: Weekly Synthesis Uses Separate Reports
 
@@ -46,3 +45,15 @@ Weekly synthesis SHALL publish generated reports through pull requests rather th
 - **WHEN** the workflow has generated weekly report changes
 - **THEN** the deterministic publish step commits only allowlisted weekly synthesis artifacts
 - **AND** opens a pull request against `main`
+
+### Requirement: Weekly Synthesis Pull Requests Carry Governance Metadata
+
+Weekly Synthesis generated pull requests SHALL include the governance metadata
+required by the repository pull request validator.
+
+#### Scenario: Weekly synthesis publisher creates pull request body
+
+- **WHEN** the Weekly Synthesis publisher writes a pull request body
+- **THEN** the body includes `User request:`
+- **AND** the body includes `Scope confirmed: yes`
+- **AND** the body includes `Autonomous follow-up: no`
