@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-08
+- Last updated: 2026-08-11
 
 ## Problem
 
@@ -90,3 +90,8 @@ Blockbook applies the same recovery idea from a different angle. Instead of expl
 - E1 source verified: ChainFoundry `chainindex/crates/chainindex-core/src/tracker.rs` tracks a sliding block window and rewinds on fork detection.
 - E1 source verified: ChainFoundry `chainindex/crates/chainindex-core/src/checkpoint.rs` persists block hash/number checkpoints on a configurable interval.
 - E2 test verified: ChainFoundry `chainindex/crates/chainindex-core/src/backfill.rs` and `src/tracker.rs` tests cover retry, progress, and rollback behavior.
+- E1 source verified: Blockbook `db/sync.go:22-245` defines `SyncWorker`, `MissingBlockRetryConfig`, retry normalization, liveness caps, and top-level `ResyncIndex` orchestration.
+- E1 source verified: Blockbook `db/sync.go:247-438` handles fork detection, disconnect/reconnect recovery, and shutdown-aware sequential connection.
+- E1 source verified: Blockbook `db/sync.go:446-920` implements abort-aware worker coordination for `ParallelConnectBlocks` and `BulkConnectBlocks`, including the missing-block retry path and stall deadline.
+- E2 test verified: Blockbook `tests/sync/handlefork.go:17-220` simulates a missing block that later resolves, then verifies the index reconnects to the real chain state.
+- E2 test verified: Blockbook `tests/sync/connectblocks.go:36-220` verifies sequential connect, parallel connect, and shutdown interruption behavior.
