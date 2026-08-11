@@ -96,6 +96,10 @@ jobs:
         if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
         run: scripts/run-codex-radar.sh
 
+      - name: Normalize evidence labels
+        if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
+        run: python3 scripts/normalize-radar-evidence-labels.py
+
       - name: Validate radar artifacts
         if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
         run: scripts/validate-radar-state.py
