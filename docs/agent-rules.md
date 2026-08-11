@@ -272,7 +272,7 @@ Normalize evidence labels before writing repository reviews, reports, patterns, 
 - If the evidence path is `README`, `docs/`, `NEWS`, `CHANGELOG`, `RELEASE`, `ADR`, `spec/`, issue, pull request, or release-note material, use `E3 maintainer stated`, not `E1 source verified`.
 - Use `E1 source verified` only for implementation code that defines runtime behavior at the reviewed commit.
 
-`scripts/validate-radar-state.py` enforces this normalization in CI. A mislabeled evidence path fails the run before publication.
+The generated workflow first runs `scripts/normalize-radar-evidence-labels.py` to downgrade unambiguous `E1` labels on test, documentation, release, ADR, and spec paths. Then `scripts/validate-radar-state.py` enforces the rule in CI. Ambiguous mixed-evidence lines still fail before publication.
 
 Attach evidence using, where possible:
 

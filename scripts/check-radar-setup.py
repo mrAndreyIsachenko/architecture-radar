@@ -56,6 +56,7 @@ REQUIRED_FILES = [
     ".codex/skills/openspec-sync-specs/SKILL.md",
     ".codex/skills/openspec-archive-change/SKILL.md",
     "scripts/validate-radar-state.py",
+    "scripts/normalize-radar-evidence-labels.py",
     "scripts/mark-generated-pr-validation.py",
     "scripts/run-codex-radar.sh",
     "scripts/prepare-radar-run.sh",
@@ -80,6 +81,7 @@ REQUIRED_FILES = [
     "tests/fixtures/agent-governance/negative_cases.json",
     "tests/test_agent_governance_negative.py",
     "tests/test_mark_generated_pr_validation.py",
+    "tests/test_normalize_radar_evidence_labels.py",
     "tests/test_publish_scripts.py",
     "tests/test_radar_pr_review.py",
     "tests/test_radar_pr_review_status.py",
@@ -113,6 +115,7 @@ ARCHITECTURE_WORKFLOW_NEEDLES = [
     "contents: write",
     "pull-requests: write",
     "OPENAI_API_KEY",
+    "scripts/normalize-radar-evidence-labels.py",
 ]
 
 VALIDATION_WORKFLOW_NEEDLES = [

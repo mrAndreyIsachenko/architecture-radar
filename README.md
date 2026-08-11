@@ -83,7 +83,9 @@ Facts, claims, interpretations, and guesses stay in separate categories instead 
 
 The predictable failure is label inflation — the model reads a README, and `E1` makes a better-sounding report than `E3`.
 
-[`scripts/validate-radar-state.py`](scripts/validate-radar-state.py) catches that class deterministically. It scans every changed artifact for lines tagged `E1 source verified`, extracts the backtick-quoted evidence paths on those lines, and classifies each path by shape. A path under `tests/` or named `*_test.go` must be `E2`. A path under `docs/` or named `README*`, `CHANGELOG*`, or an ADR must be `E3`. Mislabel one and the run fails before anything is published.
+[`scripts/normalize-radar-evidence-labels.py`](scripts/normalize-radar-evidence-labels.py) fixes the unambiguous cases deterministically before validation. If the model writes `E1 source verified` for a test path, the line becomes `E2 test verified`; if it writes `E1` for `README*`, `docs/`, `CHANGELOG*`, release, ADR, or `spec/` evidence, the line becomes `E3 maintainer stated`.
+
+[`scripts/validate-radar-state.py`](scripts/validate-radar-state.py) remains the hard gate. It scans every changed artifact for remaining lines tagged `E1 source verified`, extracts the backtick-quoted evidence paths on those lines, and classifies each path by shape. Ambiguous mixed-evidence lines still fail before anything is published.
 
 No model grades another model here. It is path classification, and it runs in CI.
 
@@ -151,7 +153,9 @@ problem in interests.md → observed mechanism → source evidence → proposed 
         │             docs/agent-rules.md + docs/research-scope.md
         │      writes reports/ repositories/ patterns/ radar.json
         │
-        ├── validate artifacts        [deterministic — fails the run on inflated evidence]
+        ├── normalize evidence labels [deterministic — downgrades unambiguous E1 over-labeling]
+        │
+        ├── validate artifacts        [deterministic — fails the run on remaining inflated evidence]
         │
         └── publish pull request      [deterministic — path allowlist, token scoped here only]
 ```
