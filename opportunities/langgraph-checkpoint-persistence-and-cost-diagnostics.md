@@ -1,30 +1,67 @@
 # LangGraph Checkpoint Persistence And Cost Diagnostics
 
 ## Opportunity Summary
-Production LangGraph users keep reporting persistence loss, replay duplication, and checkpoint bloat. The opportunity is a narrow diagnostic offer that helps teams measure whether their saver/runtime setup is safe and affordable before they scale agent workflows.
+Production LangGraph teams keep hitting checkpoint bloat, replay duplication, and persistence failures. The shortest credible path to first money is a sell-before-build checkpoint audit that measures whether a workflow is safe and affordable before more agent infrastructure is added.
 
 ## Evidence
-- M2 repeated pain: `#7714` (2026-05-05) reports LangGraph checkpoint serialization causing 85% storage bloat and 37.8% token overhead with no opt-out path.
-- M2 repeated pain: `#5790` (2025-07-31) says `langgraph dev` ignores persistent checkpointer configuration and loses state on restart.
-- M2 repeated pain: `#5672` (2025-07-25) says canceling a streaming run drops in-progress state that users saw before cancel.
-- M2 repeated pain: `#7417` (2026-04-05) reports long tool calls being silently re-dispatched from the last checkpoint, doubling or tripling work.
-- M4 workaround evidence: `#7263` (2026-04) shows a linear N+1 query path in checkpoint listing, which pushes users toward custom tuning or alternative savers.
-- M3 competitor proof: third-party integrations and community checkpointer packages already exist around LangGraph persistence, which suggests teams are willing to buy or build around the gap.
+- M2 repeated pain: `#7417` (2026-04-05) reports long tool calls being silently re-dispatched from the last checkpoint on LangGraph Cloud, creating duplicate work and cost.
+- M2 repeated pain: `#7714` (2026-05-05) reports checkpoint serialization causing 85% storage bloat and 37.8% token overhead.
+- M2 repeated pain: `#6792` (2026-02-12) says resuming after interrupt re-runs prior task outputs instead of reusing completed work.
+- M2 repeated pain: `#6956` (2026-02-26) shows `get_state().next` becoming empty after a second interrupt, which breaks the expected resume path.
+- M1 paid demand: a current GoFundMe job post asks for LangGraph and production-grade agentic AI experience, showing budgeted hiring around the stack.
+- M3 competitor proof: LangChain's own blogs and docs now position LangGraph Platform, persistence, observability, and memory as production infrastructure.
+- M4 workaround evidence: public issue threads repeatedly imply custom saver tuning, debug tooling, or third-party checkpointer packages.
 
 ## Repeated Pain Or Demand Signal
-Stateful agent teams want durable execution and usable checkpoints, but the default paths still produce bloated storage, duplicate execution, and lost state in dev or cancel flows.
+Teams building durable AI workflows want persistence that survives interrupts, resumes, and long tool calls without inflating storage or duplicating work.
 
 ## Likely User Or Buyer
-Agent platform teams, internal automation teams, and consultants shipping production LangGraph workflows.
+Agent platform teams, internal automation teams, and consultants shipping LangGraph-backed production workflows.
 
 ## Current Workaround Or Money Signal
-Users try alternate checkpoint backends, custom savers, LangSmith debugging, and third-party packages that patch around persistence or governance gaps.
+Users tune checkpointers manually, switch saver backends, rely on LangSmith-style tracing, and hire for production agent work.
+
+## Technology Shift
+- What changed: LangGraph moved from a developer framework into a production runtime with checkpointer libraries, platform hosting, and observability messaging.
+- When: 2025-05-14 through 2026-08-11, with the strongest public signals in 2026.
+- Old constraint: teams had to assemble durable execution, memory, and replay debugging on their own.
+- New capability: LangGraph now standardizes persistence and observability primitives, which makes a focused audit possible.
+- Cost delta: unclear; the public issues show storage bloat and duplicate runs, but no line-item spend is published.
+- Quality delta: higher reliability is possible, but correctness bugs still show up in real usage.
+- Latency delta: unclear.
+- Accessibility delta: public docs, blogs, issues, and hiring pages make the buyer reachable without private access.
+- Affected workflows: production agent runs, checkpoint tuning, replay debugging, and memory/observability reviews.
+
+## Buyer
+Agent platform teams, internal automation teams, and consultants shipping production LangGraph workflows.
+
+## Expensive Workflow
+Engineers spend time debugging checkpoint bloat, replay drift, duplicate execution, and persistence failures in production LangGraph workflows.
+
+## Existing Spend
+Public hiring shows companies staffing LangGraph and agentic AI roles, and LangChain's own product and documentation footprint shows active investment in the ecosystem.
+
+## Paid Experiment
+Sell a paid checkpoint audit/report to one LangGraph-heavy team. Deliver a one-page risk summary plus a CLI run against a public demo or sanitized export. Success is one paid pilot or three serious requests for sample output within 7 days.
+
+## Money-First Scores
+- Pain: 5
+- Spend: 3
+- Reachability: 4
+- Timing: 4
+- Buildability: 4
+
+## Source Classes
+- github
+- docs
+- job
+- news
 
 ## Paid Wedge
-Teams pay to reduce engineering time spent debugging checkpoint bloat, replay drift, duplicate execution, and persistence failures in production LangGraph workflows.
+Reduce engineering time and infrastructure waste caused by checkpoint bloat, duplicate execution, and persistence failures in LangGraph production workflows.
 
 ## Distribution Channel
-CLI distributed from GitHub or PyPI and run locally against user-owned LangGraph saver setups, with an optional later GitHub Action.
+Public landing page plus manual audit booking, with the report or CLI delivered after inbound interest from teams already adopting LangGraph.
 
 ## Private Data Barrier
 public-only
@@ -33,27 +70,27 @@ public-only
 medium
 
 ## Product Shape
-cli
+report
 
 ## Pricing Hypothesis
 team
 
 ## Do Not Build Until
-At least 3 independent teams run the CLI on real workflows, or 1 team shares a production issue that the audit exposes faster than their current debugging path.
+At least one team pays for a checkpoint audit, or three teams ask for a sample report and provide a real workflow export.
 
 ## Proposed Offer
-A free checkpoint audit toolkit that measures storage growth, query count, replay correctness, and duplicate-run risk for LangGraph deployments.
+A paid checkpoint audit that measures storage growth, query count, replay fidelity, and duplicate-run risk.
 
 ## Success Threshold
-At least 3 independent teams run the audit in one week, or 1 team reports a concrete production issue that the audit reveals faster than their current process.
+One paid pilot, or three serious requests for a sample report within 7 days.
 
 ## Falsification Threshold
-No one runs the audit, or the results show no meaningful difference between common saver/runtime combinations on real workloads.
+No team will share a sanitized trace export, or the audit is redundant with existing docs and tracing.
 
 ## Evidence Gaps
-- No public spend data.
-- No direct proof yet that teams would pay for a standalone tool instead of using the existing docs and logs.
-- Need more evidence from production deployments outside GitHub issues.
+- No direct spend line item is public.
+- No proof yet that buyers want a report instead of existing tracing.
+- No proof yet that the audit should expand into a product.
 
 ## Decision
-Selected for test. Do not expand beyond the CLI audit until the `Do Not Build Until` condition is satisfied.
+Sell before build. Keep the scope limited to an audit/report until the paid experiment is validated.
