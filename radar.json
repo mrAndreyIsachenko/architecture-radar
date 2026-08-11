@@ -85,8 +85,7 @@
       "decision_reason": "Graphiti has source evidence for episode-anchored entity/fact extraction, edge deduplication, temporal invalidation, and hybrid retrieval. The reusable mechanism is strongest for relationship facts; entity node attributes are mutable in the reviewed source, and important extraction/contradiction decisions remain LLM-mediated.",
       "revisit_reason": "Track whether Graphiti adds explicit confidence, evidence hashes, deterministic validation around extracted facts, attribute-level temporal history, or clarified provider-level group routing.",
       "next_revisit_condition": "Revisit after releases that add confidence scoring, provenance export, deterministic validation of LLM-extracted facts, temporal node attributes, or fixed tenant/group routing semantics."
-    }
-    ,
+    },
     {
       "repository": "DeusData/codebase-memory-mcp",
       "URL": "https://github.com/DeusData/codebase-memory-mcp",
@@ -664,6 +663,164 @@
       "decision_reason": "The repository is a high-signal model release with runtime support links, but the inspectable source remains thin and the known operational issues are still centered on repetition loops and deployment-specific inference behavior. It is better treated as a watch-model than a deep source review.",
       "revisit_reason": "Revisit if the repository gains deeper runtime code, a companion adapter, or a material release note resolving repeated-output failures.",
       "next_revisit_condition": "Revisit after a new runtime adapter, a substantive source rewrite, or issue/release evidence that changes the deployment picture."
+    },
+    {
+      "repository": "opendatalab/MinerU",
+      "URL": "https://github.com/opendatalab/MinerU",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "mineru/backend/pipeline/pipeline_analyze.py",
+        "mineru/backend/hybrid/hybrid_analyze.py",
+        "tests/unittest/test_e2e.py"
+      ],
+      "operational_blockers": [
+        "Needs validation against the exact OCR/model backend and device matrix used in production",
+        "No explicit source provenance envelope for extracted pages or regions"
+      ],
+      "first_seen": "2026-08-11",
+      "last_reviewed": "2026-08-11",
+      "commit_reviewed": "79d6d8d79fb8f3ddba5cc34c07a16f0ec36f56c7",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "batch processing",
+        "OCR fallback"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "windowed batch document analyzer",
+        "effort-gated OCR promotion"
+      ],
+      "decision": "track",
+      "decision_reason": "Windowed document orchestration and hybrid OCR gating are reusable for batch parsing, but the backend/model coupling means adoption still needs a local workload test.",
+      "revisit_reason": "Revisit after a material change to window sizing, hybrid effort gating, OCR-det batching, or provenance output.",
+      "next_revisit_condition": "Material change to window sizing, hybrid effort gating, OCR-det batching, or provenance output."
+    },
+    {
+      "repository": "wenet-ec/edge-core",
+      "URL": "https://github.com/wenet-ec/edge-core",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "edge_agent/lib/edge_agent/commands/commands.ex",
+        "edge_agent/lib/edge_agent/commands/workers/execute_command_worker.ex",
+        "edge_agent/lib/edge_agent/diagnostics/wireguard_interface.ex"
+      ],
+      "operational_blockers": [
+        "Depends on the hostscript binary and host ip command",
+        "Control-plane behavior is product-coupled and environment sensitive",
+        "WireGuard probes require real interface state to validate"
+      ],
+      "first_seen": "2026-08-11",
+      "last_reviewed": "2026-08-11",
+      "commit_reviewed": "82290162021a4158f9ba8298fa64fb7e148f198f",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "workflow recovery",
+        "VPN",
+        "access control",
+        "network diagnostics"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "recoverable command queue",
+        "WireGuard health probe"
+      ],
+      "decision": "track",
+      "decision_reason": "The repo turns remote execution into a durable row-state machine with explicit cancellation, reporting, and interface health probes, which is reusable even though the broader platform is product-shaped.",
+      "revisit_reason": "Revisit after a material change to the command state machine, Oban workers, or WireGuard diagnostic semantics.",
+      "next_revisit_condition": "Material change to the command state machine, Oban workers, or WireGuard diagnostic semantics."
+    },
+    {
+      "repository": "trezor/blockbook",
+      "URL": "https://github.com/trezor/blockbook",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "db/sync.go",
+        "tests/sync/handlefork.go",
+        "tests/sync/connectblocks.go"
+      ],
+      "operational_blockers": [
+        "Load-balanced or lagging RPC backends can produce false-positive fork probes",
+        "Needs chain-specific live backend validation before production use",
+        "Retry and stall knobs require operator tuning"
+      ],
+      "first_seen": "2026-08-11",
+      "last_reviewed": "2026-08-11",
+      "commit_reviewed": "6ce54d0b22cccccabf09aea3b096197195b5bb5a",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "deterministic materialization",
+        "transaction interpretation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "liveness-capped chain probe",
+        "abort-aware worker ring"
+      ],
+      "decision": "track",
+      "decision_reason": "SyncWorker keeps blockchain projection recoverable with hash probes, fork disconnects, a stall cap, and separate bulk/parallel paths, making it a strong reuse baseline for reorg-safe indexing.",
+      "revisit_reason": "Revisit after a material change to retry thresholds, fork handling, or bulk/parallel sync semantics.",
+      "next_revisit_condition": "Material change to retry thresholds, fork handling, or bulk/parallel sync semantics."
+    },
+    {
+      "repository": "mem0ai/mem0",
+      "URL": "https://github.com/mem0ai/mem0",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "mem0/memory/main.py",
+        "mem0/memory/storage.py",
+        "tests/memory/test_main.py",
+        "tests/utils/test_entity_extraction.py"
+      ],
+      "operational_blockers": [
+        "LLM extraction remains heuristic and can return empty or invalid JSON",
+        "Entity linking is probabilistic and depends on vector-store behavior",
+        "Needs workload-specific validation of the selected vector store and reranker"
+      ],
+      "first_seen": "2026-08-11",
+      "last_reviewed": "2026-08-11",
+      "commit_reviewed": "4debc58a83377b18be81ae1e5969a300736b2fac",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "context engineering",
+        "memory write policy",
+        "evidence-backed retrieval",
+        "entity resolution"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "identity-scoped memory mutation gate",
+        "entity-linked memory history"
+      ],
+      "decision": "track",
+      "decision_reason": "Mem0 enforces scoped memory mutation, transactional history, and entity relinking around a vector store, which is directly reusable for memory policy and context engineering.",
+      "revisit_reason": "Revisit after a material change to identity scoping, entity cleanup, or the search/update contract.",
+      "next_revisit_condition": "Material change to identity scoping, entity cleanup, or the search/update contract."
     }
   ]
 }

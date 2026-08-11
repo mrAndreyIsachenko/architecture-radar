@@ -31,12 +31,14 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Threshold-based block stream: Graph Node uses a reorg threshold to decide when to revert or advance and keeps storage-level cleanup bounded.
 - Worker-ring indexer: MultiChain Indexer uses regular, catchup, manual, and rescanner workers with KV/Redis state and explicit retry queues.
 - Layered chain toolkit: ChainFoundry combines a sliding block tracker, explicit reorg classification, configurable checkpoint persistence, and segmented backfill workers so rollback, recovery, and live indexing stay separate.
+- Liveness-capped sync worker: Blockbook keeps a resync loop around `SyncWorker`, separates `ResyncIndex`, `connectBlocks`, `BulkConnectBlocks`, and `ParallelConnectBlocks`, and restarts when a block hash disappears or the local tip forks.
 
 ## Known Repositories
 
 - `graphprotocol/graph-node` reviewed at `2adda68a79dff3703ab444ac8d846c189d9ce3c0`.
 - `fystack/multichain-indexer` reviewed at `90f4b3156c36bf048ec513e395f7dadef66f32e1`.
 - `DarshanKumar89/chainfoundry` reviewed at `090279cb7acb35b52803c711e353d91c85fa6bd4`.
+- `trezor/blockbook` reviewed at `6ce54d0b22cccccabf09aea3b096197195b5bb5a`.
 
 ## Comparison Of Implementations
 
@@ -46,6 +48,8 @@ MultiChain Indexer moves more of the recovery logic into cooperating workers. Re
 
 ChainFoundry keeps the boundary split across smaller primitives: `BlockTracker` owns the sliding window, `ReorgDetector` classifies the failure mode, `CheckpointManager` persists the last confirmed position, and `BackfillEngine` handles batched historical recovery. The mechanism is the same shape, but the implementation is packaged as a reusable Rust toolkit rather than a single indexer.
 
+Blockbook applies the same recovery idea from a different angle. Instead of explicit finalized/provisional windows, `SyncWorker` treats the local tip as a recoverable projection, probes the remote chain hash-by-hash, restarts on missing-block or fork mismatch, and keeps bulk/parallel sync bounded by a wall-clock stall cap. That makes it a useful comparison point for liveness-first recovery, especially when the downstream sink is a mutable RocksDB projection rather than a pure event stream.
+
 ## Failure Modes
 
 - Misconfigured thresholds can push provisional data into the finalized path too early.
@@ -53,6 +57,8 @@ ChainFoundry keeps the boundary split across smaller primitives: `BlockTracker` 
 - Catchup queues can drift from live head state if progress bookkeeping is incomplete.
 - Probabilistic prefilters can create false positives unless a second validation step exists.
 - Operational tuning can become difficult when reorg depth, catchup range sizing, and retry limits all interact.
+- Liveness caps can hide a backend that is too slow to catch up if operators only look for hard failures.
+- Hash-probe retries can over-disconnect on load-balanced or lagging backends when the probe target is not the canonical node.
 
 ## Trade-Offs
 
