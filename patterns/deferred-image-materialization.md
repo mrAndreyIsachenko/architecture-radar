@@ -3,7 +3,7 @@
 - Canonical name: Deferred Image Materialization
 - Aliases: lazy high-res page promotion, lowres-first page promotion, page-image promotion after structural parse, page crop promotion
 - Avoided duplicate names: eager rasterization, always-highres OCR, full-page first pass, blanket page rendering
-- Last updated: 2026-08-08
+- Last updated: 2026-08-14
 
 ## Problem
 
@@ -25,15 +25,19 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 
 - Marker: `DocumentBuilder.build_document` creates lowres pages and per-page lazy loaders, then `render_highres` promotes only pages that `page_needs_highres`; `TableProcessor` crops and OCRs only unresolved tables or forms.
 - Docling: `StandardPdfPipeline._assemble_document` delays page and element image generation until after structural assembly, then crops only `PictureItem` and `TableItem` regions using `prov` metadata; failed pages are backfilled to keep numbering stable.
+- HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 
 ## Known Repositories
 
 - `datalab-to/marker` reviewed at `e1a6226adfaab4cd573cfa96e12d60905ee38036`.
 - `docling-project/docling` reviewed at `8050c42be2b179504445cb8f3c75655e27cbb662`.
+- `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 
 ## Comparison Of Implementations
 
 Marker is more explicit about the promotion boundary. It starts with lowres page objects, attaches a page-local highres loader, and decides promotion from layout or OCR state plus block type. Docling is broader: it assembles pages first, then emits page images or cropped element images only when the output format or downstream processor asks for them. Docling's failure retention is stronger; Marker’s per-page lazy loader is sharper.
+
+HURIDOCS sits closer to a document-conversion service than a library pipeline. It keeps the structural pass cheap, promotes only when tables, formulas, or pictures need richer pixels, and deletes the temporary PDF unless the caller explicitly asks to keep it. That makes it a practical late-promotion variant, but the markup conversion path is more service-specific than Marker or Docling.
 
 ## Failure Modes
 
@@ -42,6 +46,7 @@ Marker is more explicit about the promotion boundary. It starts with lowres page
 - Lazy loaders that reopen renderers repeatedly can increase latency and resource churn.
 - Promotion based on heuristics can drift when model thresholds change.
 - If failed pages are not retained, page numbering breaks downstream.
+- Rendering picture segments only when they exist can still miss image-heavy tables if upstream segmentation under-classifies them.
 
 ## Trade-Offs
 
@@ -53,6 +58,7 @@ Marker is more explicit about the promotion boundary. It starts with lowres page
 
 - Directly relevant to `document-ai-ocr` batch processing, layout-aware extraction, page/region provenance, and memory control.
 - Useful for document parsing runtimes that need to stay resumable under mixed scanned and born-digital inputs.
+- Especially relevant when the pipeline has separate fast and slow modes and a second-stage OCR or conversion pass only needs richer pixels for a subset of segments.
 
 ## Adoption Conditions
 
@@ -60,6 +66,7 @@ Marker is more explicit about the promotion boundary. It starts with lowres page
 - Add tests that prove promoted pages keep stable provenance and page numbering.
 - Set explicit memory and promotion thresholds.
 - Verify that fallback OCR or crop extraction does not re-render already accepted content.
+- Verify that temporary input files are cleaned up on the default path and that a keep-file flag is the only way to retain them.
 
 ## Evidence References
 
@@ -71,3 +78,9 @@ Marker is more explicit about the promotion boundary. It starts with lowres page
 - E1 source verified: `marker/processors/table.py` `TableProcessor.run_ocr_fallback` renders highres crops only for unresolved tables and forms.
 - E2 test verified: `tests/builders/test_document_builder.py::test_document_builder_inline_eq` verifies the pdftext-first path and embedded text layer.
 - E2 test verified: `tests/builders/test_ocr_builder.py::test_clean_html` and `tests/processors/test_table_processor.py::test_table_processor` verify HTML cleanup, repeat-loop suppression, and table HTML promotion.
+- E1 source verified: HURIDOCS `src/adapters/infrastructure/pdf_analysis_service_adapter.py:24-49` saves the PDF once, builds a structural image representation, predicts layout, promotes to 200 dpi only for tables and formulas, and deletes the temp file by default.
+- E1 source verified: HURIDOCS `src/adapters/infrastructure/markup_conversion/pdf_to_markup_service_adapter.py:356-405` renders page images only when picture segments exist and then processes segments in page order.
+- E1 source verified: HURIDOCS `src/adapters/storage/file_system_repository.py:9-55` writes PDFs and markdown/XML to explicit file locations and deletes temp PDFs through the repository boundary.
+- E2 test verified: HURIDOCS `src/tests/test_end_to_end.py:55-152` verifies regular and fast PDF extraction plus XML save/load.
+- E2 test verified: HURIDOCS `src/tests/test_end_to_end.py:188-253` verifies TOC extraction in both slow and fast modes.
+- E2 test verified: HURIDOCS `src/tests/test_end_to_end.py:255-497` verifies text extraction, HTML extraction, segment-box handling, and malformed segment rejection.

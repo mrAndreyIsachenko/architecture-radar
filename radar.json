@@ -821,6 +821,132 @@
       "decision_reason": "Mem0 enforces scoped memory mutation, transactional history, and entity relinking around a vector store, which is directly reusable for memory policy and context engineering.",
       "revisit_reason": "Revisit after a material change to identity scoping, entity cleanup, or the search/update contract.",
       "next_revisit_condition": "Material change to identity scoping, entity cleanup, or the search/update contract."
+    },
+    {
+      "repository": "clearideas/agent-runtime",
+      "URL": "https://github.com/clearideas/agent-runtime",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "packages/core/src/agent-runtime.ts",
+        "packages/core/src/execution-plan.ts",
+        "packages/store-local/src/run-store.file.ts",
+        "packages/store-sqlite/src/index.ts",
+        "packages/core/src/agent-runtime.test.ts",
+        "packages/store-local/src/run-store.file.test.ts"
+      ],
+      "operational_blockers": [
+        "Cross-process takeover still depends on the selected store backend",
+        "Manifest hashing and checkpoint sequence discipline must remain stable",
+        "Checkpointing every committed step adds storage and serialization overhead"
+      ],
+      "first_seen": "2026-08-14",
+      "last_reviewed": "2026-08-14",
+      "commit_reviewed": "c8a4856863405c817315bbd8ff89a07fea6b24a5",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "execution tracing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "manifest-hashed checkpoint envelope",
+        "attempt-fenced run recovery"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a reusable runtime pattern for manifest-hashed checkpoints, attempt fencing, resumable runs, and explicit suspend/fail/cancel transitions.",
+      "revisit_reason": "Revisit after a material change to checkpoint storage, manifest validation, resume semantics, or store backends.",
+      "next_revisit_condition": "Material change to checkpoint storage, manifest validation, resume semantics, or store backends."
+    },
+    {
+      "repository": "huridocs/pdf-document-layout-analysis",
+      "URL": "https://github.com/huridocs/pdf-document-layout-analysis",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/use_cases/pdf_analysis/analyze_pdf_use_case.py",
+        "src/adapters/infrastructure/pdf_analysis_service_adapter.py",
+        "src/adapters/infrastructure/markup_conversion/pdf_to_markup_service_adapter.py",
+        "src/adapters/storage/file_system_repository.py",
+        "src/tests/test_end_to_end.py"
+      ],
+      "operational_blockers": [
+        "Selective promotion still depends on segmentation quality",
+        "Model/backend validation is workload-specific",
+        "Temp-file cleanup and keep-file behavior need production validation"
+      ],
+      "first_seen": "2026-08-14",
+      "last_reviewed": "2026-08-14",
+      "commit_reviewed": "cb47514458a29cadbc1e3a667050c1a6de1d25a5",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR fallback"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "structural-first PDF conversion",
+        "late DPI promotion for OCR"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and end-to-end tests show a reusable structural-first PDF pipeline that promotes only the segments needing richer pixels.",
+      "revisit_reason": "Revisit after a material change to the layout predictor, promotion thresholds, or temp-file lifecycle.",
+      "next_revisit_condition": "Material change to the layout predictor, promotion thresholds, or temp-file lifecycle."
+    },
+    {
+      "repository": "microsoft/agent-framework-durable-extension",
+      "URL": "https://github.com/microsoft/agent-framework-durable-extension",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "docs/features/durable-agents/README.md",
+        "python/samples/11_subworkflow/worker.py",
+        "dotnet/samples/DurableAgents/ConsoleApps/05_AgentOrchestration_HITL/Program.cs",
+        "dotnet/tests/Microsoft.Agents.AI.DurableTask.UnitTests/State/DurableAgentStateMessageTests.cs"
+      ],
+      "operational_blockers": [
+        "Durable backend availability is part of the runtime reliability envelope",
+        "Streaming is callback-based rather than true token streaming",
+        "Nested orchestration behavior must be validated against the intended host"
+      ],
+      "first_seen": "2026-08-14",
+      "last_reviewed": "2026-08-14",
+      "commit_reviewed": "ad941eff53617840c0a046498be36d0b3871329b",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "durable agents",
+        "workflow composition",
+        "human-in-the-loop"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "durable agent session entity",
+        "nested child-orchestration workflow"
+      ],
+      "decision": "track",
+      "decision_reason": "Docs, samples, and tests show a reusable durable-agent mechanism with session entities, child orchestrations, and replay-safe human approval gates.",
+      "revisit_reason": "Revisit after a material change to durable hosting, nested workflow replay, or session serialization.",
+      "next_revisit_condition": "Material change to durable hosting, nested workflow replay, or session serialization."
     }
   ]
 }
