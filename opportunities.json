@@ -46,6 +46,36 @@
         "job",
         "news"
       ],
+      "structural_pattern": "Control and diagnostic layer for production agent runtime persistence, checkpoint replay, and duplicated execution risk.",
+      "primitive_growth": "LangGraph, checkpointer libraries, LangGraph Platform, LangSmith observability, and production agent deployments are now visible across public docs, issues, jobs, and release activity.",
+      "fragmentation_summary": "Checkpoint behavior is split across framework runtime, saver implementations, platform observability, storage backends, and user configuration choices.",
+      "manual_workflow": "Engineers manually inspect issues, checkpoint payloads, trace exports, storage growth, and replay behavior to choose saver settings and diagnose duplicate execution.",
+      "objective_function": "Minimize checkpoint storage cost and duplicated or replayed work while preserving replay correctness and acceptable runtime latency.",
+      "execution_ladder": {
+        "observe": "Read workflow graph metadata, checkpoint configuration, trace exports, checkpoint records, and storage-size samples.",
+        "recommend": "Report checkpoint bloat, replay drift, duplicate execution, and risky saver choices with concrete safer settings.",
+        "choose": "Rank persistence and configuration alternatives against cost, replay fidelity, latency, and operational risk constraints.",
+        "execute": "Apply CI policy gates or configuration checks only after manual review; runtime mutation is not part of the first wedge."
+      },
+      "economic_pain": "The pain shows up as engineering incident time, infrastructure waste from checkpoint bloat, duplicate tool calls, and production reliability risk.",
+      "timing_reason": "Production LangGraph usage, platformization, and public checkpoint issues clustered in 2025-2026, making this a recent agent-runtime fragmentation problem.",
+      "competitors": [
+        "LangSmith observability",
+        "LangGraph Platform",
+        "custom checkpoint saver tuning",
+        "internal trace review scripts"
+      ],
+      "structural_scores": {
+        "fragmentation": 4,
+        "manual_pain": 5,
+        "economic_value": 4,
+        "objective_measurability": 4,
+        "execution_potential": 4,
+        "timing": 4,
+        "competition_gap": 3,
+        "prototype_feasibility": 4,
+        "total": 8
+      },
       "paid_wedge": "Reduce engineering time and infrastructure waste caused by checkpoint bloat, duplicate execution, and persistence failures in LangGraph production workflows.",
       "distribution_channel": "Public landing page plus manual audit booking, with the report or CLI delivered after inbound interest from teams already adopting LangGraph.",
       "private_data_barrier": "public-only",
@@ -106,6 +136,36 @@
         "pricing",
         "product"
       ],
+      "structural_pattern": "Routing-policy audit layer for VPN and overlay-network fragmentation across exit nodes, split DNS, app connectors, and competing VPN behaviors.",
+      "primitive_growth": "Tailscale has expanded visible routing primitives around exit nodes, app connectors, split DNS, ACL policy, and paid team or enterprise plans.",
+      "fragmentation_summary": "Admin choices are fragmented across OS routing, Tailscale exit-node behavior, DNS overrides, app connectors, browser or app exceptions, and legacy VPN expectations.",
+      "manual_workflow": "Admins manually compare docs, issue threads, device routing tables, DNS behavior, and policy settings to explain why traffic exits through the wrong path.",
+      "objective_function": "Minimize broken routing and DNS exceptions while preserving security policy, expected app reachability, and administrator control.",
+      "execution_ladder": {
+        "observe": "Read public policy snippets, device route state, DNS configuration, app connector settings, and exit-node selection rules.",
+        "recommend": "Explain mismatched routes, DNS exceptions, and risky split-tunnel assumptions before rollout.",
+        "choose": "Rank routing-policy alternatives against reachability, privacy, security, and admin-maintenance constraints.",
+        "execute": "Generate review output or policy diffs for admin approval; automatic network changes remain outside the first wedge."
+      },
+      "economic_pain": "The cost is admin rollout time, productivity loss from broken access, and security risk when users bypass or misconfigure routing policy.",
+      "timing_reason": "Tailscale routing primitives, pricing, and docs became more productized in 2025-2026, but public threads still show split-tunnel and exception confusion.",
+      "competitors": [
+        "Tailscale admin console",
+        "Tailscale docs and community support",
+        "network-debugging scripts",
+        "incumbent VPN management consoles"
+      ],
+      "structural_scores": {
+        "fragmentation": 4,
+        "manual_pain": 4,
+        "economic_value": 3,
+        "objective_measurability": 3,
+        "execution_potential": 3,
+        "timing": 3,
+        "competition_gap": 2,
+        "prototype_feasibility": 3,
+        "total": 6
+      },
       "paid_wedge": "Reduce admin time spent debugging split-tunnel, exit-node, and DNS routing failures before rollout.",
       "distribution_channel": "Admin-facing report or CLI, sold through a public landing page and shared in Tailscale-adjacent communities.",
       "private_data_barrier": "unclear",
@@ -160,6 +220,36 @@
         "github",
         "forum"
       ],
+      "structural_pattern": "Telemetry-integrity diagnostic layer for drone operations where flight-controller signals, ESC telemetry, logs, and failsafe interpretation diverge.",
+      "primitive_growth": "ArduPilot telemetry, log-diagnosis discussion, DShot telemetry counters, and autonomous mission workflows create more visible telemetry surfaces to reconcile.",
+      "fragmentation_summary": "Evidence is split across flight logs, telemetry counters, ESC or protocol behavior, failsafe settings, operator reports, and forum diagnosis workflows.",
+      "manual_workflow": "Operators manually inspect logs, forum guidance, telemetry counters, and mission events to decide whether packet loss or telemetry gaps affected safety.",
+      "objective_function": "Maximize telemetry trust and failsafe explainability while minimizing false alarms, missed integrity gaps, and manual post-flight diagnosis time.",
+      "execution_ladder": {
+        "observe": "Read representative flight logs, telemetry counters, failsafe settings, and operator annotations when available.",
+        "recommend": "Classify telemetry gaps, packet-loss patterns, and suspicious failsafe transitions for manual operator review.",
+        "choose": "Rank remediation options such as telemetry tuning, protocol checks, or maintenance actions by risk and evidence strength.",
+        "execute": "Generate a post-flight report only; operational control or autonomous remediation is blocked until private log validation exists."
+      },
+      "economic_pain": "The likely pain is operator safety-review time and mission reliability risk, but public evidence does not yet prove budget for an external diagnostic.",
+      "timing_reason": "Recent public work around telemetry counters and log diagnosis makes the workflow more inspectable, but the market timing remains weaker than the AI/runtime case.",
+      "competitors": [
+        "ArduPilot log tools",
+        "community forum diagnosis",
+        "operator-specific analysis scripts",
+        "manual flight-test review"
+      ],
+      "structural_scores": {
+        "fragmentation": 3,
+        "manual_pain": 4,
+        "economic_value": 2,
+        "objective_measurability": 3,
+        "execution_potential": 2,
+        "timing": 3,
+        "competition_gap": 2,
+        "prototype_feasibility": 2,
+        "total": 5
+      },
       "paid_wedge": "Reduce manual time spent proving whether telemetry is trustworthy after flight or during tuning.",
       "distribution_channel": "Report or CLI shared with operators and integrators, but the acquisition path still depends on direct operator validation.",
       "private_data_barrier": "private-data-required",

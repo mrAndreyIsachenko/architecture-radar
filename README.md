@@ -12,7 +12,7 @@ The core idea: let the model research and write, but let deterministic GitHub Ac
 
 The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
 
-The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
+The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It now looks for fragmentation-driven control-layer openings: places where new primitives or providers create manual comparison, reconciliation, routing, optimization, or execution work. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
-- A weekly scheduled Opportunity Radar workflow for testing demand and first-money paths without mixing it into Architecture Radar state, with manual dispatch for event-driven checks.
+- A weekly scheduled Opportunity Radar workflow for testing demand and first-money paths without mixing it into Architecture Radar state, with structural scoring for fragmentation, manual pain, economic value, objective measurability, execution potential, timing, competition gap, and prototype feasibility.
 
 ## Example Output
 

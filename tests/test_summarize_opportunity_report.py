@@ -38,6 +38,16 @@ REPORT = """# Opportunity Radar Report 2026-08-11
 |---|---|---|---|---|---|---|---|
 | LangGraph #7417 | https://github.com/langchain-ai/langgraph/issues/7417 | ai-llm-demand | operational-risk | `M2 repeated pain` | corroborated | corroborated | Duplicate work. |
 
+## Structural Candidate Ranking
+| Rank | Opportunity | Ecosystem | Score | Why now | Manual workflow | Wedge |
+|---|---|---|---|---|---|---|
+| 1 | LangGraph Checkpoint Persistence And Cost Diagnostics | Agent runtimes | 8 | Runtime primitives fragmented in 2026. | Engineers compare checkpoints and traces manually. | Sell a checkpoint audit. |
+
+## Structural Score Breakdown
+| Opportunity | Fragmentation | Manual pain | Economic value | Objective measurability | Execution potential | Timing | Competition gap | Prototype feasibility | Total |
+|---|---|---|---|---|---|---|---|---|---|
+| LangGraph Checkpoint Persistence And Cost Diagnostics | 4 | 5 | 4 | 4 | 4 | 4 | 3 | 4 | 8 |
+
 ## Build Readiness
 | Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |
 |---|---|---|---|---|---|---|---|---|
@@ -70,6 +80,8 @@ class SummarizeOpportunityReportTest(unittest.TestCase):
         )
         self.assertEqual(summary["build_readiness"][0]["Build decision"], "sell-before-build")
         self.assertEqual(summary["money_readiness"][0]["Stage"], "sell-before-build")
+        self.assertEqual(summary["structural_ranking"][0]["Score"], "8")
+        self.assertEqual(summary["structural_score_breakdown"][0]["Total"], "8")
         self.assertIn("paid LangGraph checkpoint audit", summary["recommended_next_test"])
         self.assertEqual(summary["evidence_gaps"], ["LangGraph still lacks direct proof that teams will pay."])
 

@@ -103,6 +103,8 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
     ledger_rows = parse_table(sections.get("Signal Ledger", ""))
     build_readiness = parse_table(sections.get("Build Readiness", ""))
     money_readiness = parse_table(sections.get("Money Readiness", ""))
+    structural_ranking = parse_table(sections.get("Structural Candidate Ranking", ""))
+    structural_score_breakdown = parse_table(sections.get("Structural Score Breakdown", ""))
 
     return {
         "path": str(path),
@@ -114,6 +116,8 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
         "executive_summary": list_items(sections.get("Executive Summary", "")),
         "build_readiness": build_readiness,
         "money_readiness": money_readiness,
+        "structural_ranking": structural_ranking,
+        "structural_score_breakdown": structural_score_breakdown,
         "recommended_next_test": plain_text(sections.get("Recommended Next Test", "")),
         "evidence_gaps": list_items(sections.get("Evidence Gaps", "")),
     }
@@ -142,6 +146,12 @@ def emit_markdown(summaries: list[dict[str, object]]) -> None:
 
         print_list("Selected opportunities", summary.get("selected_opportunities"))
         print_list("Executive summary", summary.get("executive_summary"))
+        print_table_summary("Structural ranking", summary.get("structural_ranking"), ("Rank", "Opportunity", "Score", "Wedge"))
+        print_table_summary(
+            "Structural scores",
+            summary.get("structural_score_breakdown"),
+            ("Opportunity", "Total", "Fragmentation", "Manual pain", "Economic value"),
+        )
         print_list("Evidence gaps", summary.get("evidence_gaps"))
 
         next_test = str(summary.get("recommended_next_test") or "").strip()
@@ -156,6 +166,18 @@ def print_list(label: str, values: object) -> None:
     print(f"{label}:")
     for value in values:
         print(f"- {value}")
+
+
+def print_table_summary(label: str, values: object, columns: tuple[str, ...]) -> None:
+    if not isinstance(values, list) or not values:
+        return
+    print(f"{label}:")
+    for row in values:
+        if not isinstance(row, dict):
+            continue
+        parts = [str(row.get(column, "")).strip() for column in columns if str(row.get(column, "")).strip()]
+        if parts:
+            print(f"- {' | '.join(parts)}")
 
 
 def main() -> None:

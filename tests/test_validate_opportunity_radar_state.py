@@ -36,6 +36,31 @@ TECHNOLOGY_SHIFT = {
     "accessibility_delta": "Public examples and exported traces make a first test reachable.",
     "affected_workflows": ["Agent incident debugging", "Trace review"],
 }
+STRUCTURAL_PATTERN = "Diagnostic control layer for fragmented agent trace, runtime, and checkpoint debugging workflows."
+PRIMITIVE_GROWTH = "Agent runtimes, tracing exports, checkpoint savers, and observability tools are now common enough to create operational fragmentation."
+FRAGMENTATION_SUMMARY = "Failure evidence is split across traces, checkpoints, logs, issue threads, and local configuration, so teams compare signals manually."
+MANUAL_WORKFLOW = "Engineers manually inspect exported traces, checkpoint metadata, logs, and issue references to reconstruct failed agent runs."
+OBJECTIVE_FUNCTION = "Minimize incident triage time and duplicated agent work while preserving replay correctness."
+EXECUTION_LADDER = {
+    "observe": "Read exported traces, checkpoint metadata, runtime logs, and relevant configuration files.",
+    "recommend": "Explain likely failure modes and suggest safer trace or checkpoint review actions.",
+    "choose": "Rank debugging paths by incident impact, confidence, and engineering effort.",
+    "execute": "Generate a local audit report only; automatic runtime mutation is outside the first wedge.",
+}
+ECONOMIC_PAIN = "Engineering time is spent reconstructing failures, repeated tool calls, and unreliable replay behavior instead of fixing the incident."
+TIMING_REASON = "Agent runtime adoption and trace exports are now common enough that small teams need repeatable diagnostics."
+COMPETITORS = ["manual trace review", "observability dashboards", "custom debug scripts"]
+STRUCTURAL_SCORES = {
+    "fragmentation": 4,
+    "manual_pain": 4,
+    "economic_value": 3,
+    "objective_measurability": 3,
+    "execution_potential": 3,
+    "timing": 3,
+    "competition_gap": 3,
+    "prototype_feasibility": 4,
+    "total": 7,
+}
 
 
 def complete_report(selected: bool = True) -> str:
@@ -55,11 +80,27 @@ def complete_report(selected: bool = True) -> str:
             f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |",
         ]
     )
+    structural_ranking = "\n".join(
+        [
+            "| Rank | Opportunity | Ecosystem | Score | Why now | Manual workflow | Wedge |",
+            "|---|---|---|---|---|---|---|",
+            f"| 1 | Agent trace debugging | Agent runtime observability | 7 | {TIMING_REASON} | {MANUAL_WORKFLOW} | {PAID_WEDGE} |",
+        ]
+    )
+    structural_scores = "\n".join(
+        [
+            "| Opportunity | Fragmentation | Manual pain | Economic value | Objective measurability | Execution potential | Timing | Competition gap | Prototype feasibility | Total |",
+            "|---|---|---|---|---|---|---|---|---|---|",
+            "| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 7 |",
+        ]
+    )
     if not selected:
         selected_text = "None."
         reviews = "No selected opportunities."
         build_readiness = "None."
         money_readiness = "None."
+        structural_ranking = "None."
+        structural_scores = "None."
 
     sections = {
         "Prerequisites And State": "- workspace verified",
@@ -73,6 +114,8 @@ def complete_report(selected: bool = True) -> str:
                 "| GitHub issue | https://example.com/issue | `ai-llm-demand` | `repeated-pain` | `M2 repeated pain` | selected | Repeated agent debugging pain. |",
             ]
         ),
+        "Structural Candidate Ranking": structural_ranking,
+        "Structural Score Breakdown": structural_scores,
         "Opportunity Reviews": reviews,
         "Build Readiness": build_readiness,
         "Money Readiness": money_readiness,
@@ -96,6 +139,8 @@ def complete_state(
     reachability_score: int = 3,
     source_classes: list[str] | None = None,
     paid_experiment: str = PAID_EXPERIMENT,
+    structural_scores: dict[str, int] | None = None,
+    manual_workflow: str = MANUAL_WORKFLOW,
 ) -> str:
     data: dict[str, object] = {
         "schema_version": 1,
@@ -127,6 +172,16 @@ def complete_state(
         "existing_spend": EXISTING_SPEND,
         "paid_experiment": paid_experiment,
         "source_classes": source_classes or SOURCE_CLASSES,
+        "structural_pattern": STRUCTURAL_PATTERN,
+        "primitive_growth": PRIMITIVE_GROWTH,
+        "fragmentation_summary": FRAGMENTATION_SUMMARY,
+        "manual_workflow": manual_workflow,
+        "objective_function": OBJECTIVE_FUNCTION,
+        "execution_ladder": EXECUTION_LADDER,
+        "economic_pain": ECONOMIC_PAIN,
+        "timing_reason": TIMING_REASON,
+        "competitors": COMPETITORS,
+        "structural_scores": structural_scores or STRUCTURAL_SCORES,
         "paid_wedge": paid_wedge,
         "distribution_channel": DISTRIBUTION_CHANNEL,
         "private_data_barrier": "public-only",
@@ -152,6 +207,8 @@ def write_complete_state(
     reachability_score: int = 3,
     source_classes: list[str] | None = None,
     paid_experiment: str = PAID_EXPERIMENT,
+    structural_scores: dict[str, int] | None = None,
+    manual_workflow: str = MANUAL_WORKFLOW,
 ) -> None:
     (root / "opportunities.json").write_text(
         complete_state(
@@ -162,6 +219,8 @@ def write_complete_state(
             reachability_score=reachability_score,
             source_classes=source_classes,
             paid_experiment=paid_experiment,
+            structural_scores=structural_scores,
+            manual_workflow=manual_workflow,
         ),
         encoding="utf-8",
     )
@@ -205,6 +264,35 @@ def complete_opportunity() -> str:
     sections = {
         "Opportunity Summary": "Trace-backed debugging reports for small agent teams.",
         "Evidence": "- `M2 repeated pain`: repeated public issues about debugging failed agent runs.",
+        "Structural Pattern": STRUCTURAL_PATTERN,
+        "Primitive Growth": PRIMITIVE_GROWTH,
+        "Fragmentation": FRAGMENTATION_SUMMARY,
+        "Manual Workflow": MANUAL_WORKFLOW,
+        "Objective Function": OBJECTIVE_FUNCTION,
+        "Execution Ladder": "\n".join(
+            [
+                "- Observe: Read exported traces, checkpoint metadata, runtime logs, and relevant configuration files.",
+                "- Recommend: Explain likely failure modes and suggest safer trace or checkpoint review actions.",
+                "- Choose: Rank debugging paths by incident impact, confidence, and engineering effort.",
+                "- Execute: Generate a local audit report only; automatic runtime mutation is outside the first wedge.",
+            ]
+        ),
+        "Economic Pain": ECONOMIC_PAIN,
+        "Timing Reason": TIMING_REASON,
+        "Competitors": "\n".join(f"- {competitor}" for competitor in COMPETITORS),
+        "Structural Scores": "\n".join(
+            [
+                "- Fragmentation: 4",
+                "- Manual pain: 4",
+                "- Economic value: 3",
+                "- Objective measurability: 3",
+                "- Execution potential: 3",
+                "- Timing: 3",
+                "- Competition gap: 3",
+                "- Prototype feasibility: 4",
+                "- Total: 7",
+            ]
+        ),
         "Repeated Pain Or Demand Signal": "Teams repeatedly ask how to inspect failed agent runs.",
         "Likely User Or Buyer": "Engineering teams deploying multi-step LLM agents.",
         "Current Workaround Or Money Signal": "Teams use ad hoc logs and manual trace reading.",
@@ -337,6 +425,48 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |\n\n",
             "",
         )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_structural_sections(self) -> None:
+        bad_report = complete_report().replace(
+            "## Structural Candidate Ranking\n\n"
+            f"| Rank | Opportunity | Ecosystem | Score | Why now | Manual workflow | Wedge |\n"
+            f"|---|---|---|---|---|---|---|\n"
+            f"| 1 | Agent trace debugging | Agent runtime observability | 7 | {TIMING_REASON} | {MANUAL_WORKFLOW} | {PAID_WEDGE} |\n\n",
+            "",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_structural_score_total_mismatch(self) -> None:
+        bad_report = complete_report().replace("| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 7 |", "| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 8 |")
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             report = root / "opportunity-reports" / "2026-08-11.md"
@@ -499,6 +629,25 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             ):
                 validator.validate_selected_opportunity_files()
 
+    def test_selected_opportunity_file_rejects_selected_with_unclear_structural_workflow(self) -> None:
+        text = complete_opportunity().replace(MANUAL_WORKFLOW, "unclear manual workflow").replace(
+            "selected for manual test",
+            "selected for test",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            opportunity = root / "opportunities" / "trace-debugging.md"
+            opportunity.parent.mkdir()
+            opportunity.write_text(text, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "changed_opportunity_files", return_value=[opportunity]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_selected_opportunity_files()
+
     def test_state_schema_accepts_empty_state_arrays(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -526,50 +675,47 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "opportunities.json").write_text(
-                json.dumps(
-                    {
-                        "schema_version": 1,
-                        "discovery_mode": "watchlist-directed",
-                        "selected": [
-                            {
-                                "id": "agent-trace-debugging",
-                                "family": "ai-llm-demand",
-                                "stage": "selected-for-test",
-                                "score": 7,
-                                "pain_score": 5,
-                                "spend_score": 2,
-                                "reachability_score": 3,
-                                "timing_score": 3,
-                                "buildability_score": 4,
-                                "confidence": "medium",
-                                "money_signal": "weak",
-                                "reachability": "high",
-                                "evidence_count": 3,
-                                "next_test": "Offer a manual trace debugging report to three agent teams.",
-                                "technology_shift": TECHNOLOGY_SHIFT,
-                                "buyer": BUYER,
-                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
-                                "existing_spend": EXISTING_SPEND,
-                                "paid_experiment": PAID_EXPERIMENT,
-                                "source_classes": SOURCE_CLASSES,
-                                "paid_wedge": "Teams pay to reduce engineering time spent reconstructing failed agent runs.",
-                                "distribution_channel": "A CLI installed from GitHub or PyPI and run locally against exported traces.",
-                                "private_data_barrier": "public-only",
-                                "oss_commoditization_risk": "medium",
-                                "product_shape": "cli",
-                                "pricing_hypothesis": "team",
-                                "do_not_build_until": "Three teams agree to run the audit on real traces or one asks for a paid follow-up.",
-                                "labels": ["M2", "M4"],
-                            }
-                        ],
-                        "deferred": [],
-                        "watchlisted": [],
-                    }
-                ),
+                complete_state(),
                 encoding="utf-8",
             )
 
             with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_invalid_structural_total(self) -> None:
+        bad_scores = dict(STRUCTURAL_SCORES)
+        bad_scores["total"] = 9
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(structural_scores=bad_scores),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_unclear_structural_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(manual_workflow="unclear manual workflow for the selected opportunity"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_state()
 
     def test_state_schema_rejects_selected_with_unclear_paid_wedge(self) -> None:
@@ -582,46 +728,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "opportunities.json").write_text(
-                json.dumps(
-                    {
-                        "schema_version": 1,
-                        "discovery_mode": "watchlist-directed",
-                        "selected": [
-                            {
-                                "id": "agent-trace-debugging",
-                                "family": "ai-llm-demand",
-                                "stage": "selected-for-test",
-                                "score": 7,
-                                "pain_score": 5,
-                                "spend_score": 2,
-                                "reachability_score": 3,
-                                "timing_score": 3,
-                                "buildability_score": 4,
-                                "confidence": "medium",
-                                "money_signal": "weak",
-                                "reachability": "high",
-                                "evidence_count": 3,
-                                "next_test": "Offer a manual trace debugging report to three agent teams.",
-                                "technology_shift": TECHNOLOGY_SHIFT,
-                                "buyer": BUYER,
-                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
-                                "existing_spend": EXISTING_SPEND,
-                                "paid_experiment": PAID_EXPERIMENT,
-                                "source_classes": SOURCE_CLASSES,
-                                "paid_wedge": "unclear",
-                                "distribution_channel": "A CLI installed from GitHub or PyPI and run locally.",
-                                "private_data_barrier": "public-only",
-                                "oss_commoditization_risk": "medium",
-                                "product_shape": "cli",
-                                "pricing_hypothesis": "team",
-                                "do_not_build_until": "Three teams agree to run the audit on real traces.",
-                                "labels": ["M2", "M4"],
-                            }
-                        ],
-                        "deferred": [],
-                        "watchlisted": [],
-                    }
-                ),
+                complete_state(paid_wedge="unclear"),
                 encoding="utf-8",
             )
 
@@ -638,45 +745,14 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "opportunities.json").write_text(
-                json.dumps(
-                    {
-                        "schema_version": 1,
-                        "discovery_mode": "watchlist-directed",
-                        "selected": [],
-                        "deferred": [],
-                        "watchlisted": [
-                            {
-                                "id": "agent-trace-debugging",
-                                "family": "ai-llm-demand",
-                                "stage": "watchlist",
-                                "score": 5,
-                                "pain_score": 4,
-                                "spend_score": 1,
-                                "reachability_score": 1,
-                                "timing_score": 2,
-                                "buildability_score": 3,
-                                "confidence": "medium-low",
-                                "money_signal": "none-found",
-                                "reachability": "medium",
-                                "evidence_count": 3,
-                                "next_test": "Find direct evidence that teams pay for trace debugging.",
-                                "technology_shift": TECHNOLOGY_SHIFT,
-                                "buyer": "Engineering teams deploying multi-step LLM agents.",
-                                "expensive_workflow": "Engineers lose time manually reconstructing failed agent runs from traces.",
-                                "existing_spend": "unclear; no direct budget evidence yet.",
-                                "paid_experiment": "unclear; a team must ask for a paid report or share a budget-backed workflow.",
-                                "source_classes": ["github"],
-                                "paid_wedge": "unclear; no direct budget evidence yet",
-                                "distribution_channel": "Likely local CLI or report, but the buying path is unproven.",
-                                "private_data_barrier": "unclear",
-                                "oss_commoditization_risk": "high",
-                                "product_shape": "unclear",
-                                "pricing_hypothesis": "unclear",
-                                "do_not_build_until": "A team asks for a paid report or shares a budget-backed workflow.",
-                                "labels": ["M2"],
-                            }
-                        ],
-                    }
+                complete_state(
+                    array_name="watchlisted",
+                    stage="watchlist",
+                    paid_wedge="unclear; no direct budget evidence yet",
+                    spend_score=1,
+                    reachability_score=1,
+                    source_classes=["github"],
+                    paid_experiment="unclear; a team must ask for a paid report or share a budget-backed workflow.",
                 ),
                 encoding="utf-8",
             )

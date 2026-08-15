@@ -10,9 +10,20 @@ The primary question is:
 Where is the shortest credible path to first money?
 ```
 
+The structural question is:
+
+```text
+Where did recent primitive/provider growth create fragmentation, manual comparison or reconciliation, and a new opening for an aggregation, optimization, routing, execution, or control layer?
+```
+
 Do not rank opportunities by technical pain alone. Rank them by buyer, spend,
 reachability, timing, and buildability. Technology is a catalyst: explain what
 changed economically before recommending what to test or build.
+
+Do not generate generic startup ideas. Prefer non-obvious market structures
+that resemble early aggregation/control-layer opportunities: many primitives or
+providers, fragmented choices, manual workflows, measurable objectives, and a
+path from recommendation to execution.
 
 ## Required Workspace
 
@@ -45,6 +56,30 @@ Use public, inspectable sources only:
 
 Do not contact people, send messages, scrape private/authenticated sources, or automate outbound sales.
 
+Search across configurable technical ecosystems rather than defaulting to AI.
+Relevant ecosystems include AI model infrastructure, AI agents and MCP,
+observability, developer tooling, data infrastructure, security, cloud
+infrastructure, fintech and payments, crypto and blockchain, API
+infrastructure, robotics, geospatial, healthcare infrastructure, logistics,
+and industrial software.
+
+Use structural discovery phrases as weak signals, not proof:
+
+- alternatives to;
+- X vs Y;
+- unified API or single API;
+- gateway, router, aggregator, proxy, orchestration, or control plane;
+- normalize, normalization, reconcile, or reconciliation;
+- fallback, provider switching, or multi-provider;
+- manually compare, export from X and import into Y, spreadsheet workflow;
+- internal tooling, custom script, glue code, or "we built our own";
+- fragmented ecosystem, too many tools, multiple vendors, or migration between;
+- compatibility layer, adapters, or abstraction layer.
+
+Keyword matches are only discovery signals. A candidate must still be validated
+with independent evidence for fragmentation, manual workflow, objective
+function, execution potential, and economic pain.
+
 Record the discovery mode for every run:
 
 - `broad-discovery`: the run searched across topic families without being anchored to specific preselected sources.
@@ -56,7 +91,10 @@ When a run is `watchlist-directed`, do not present selected opportunities as mar
 
 ## Signal Accounting
 
-Review at least 15 public signals when a normal manual run has enough source supply. Record every reviewed signal in the report ledger.
+Review at least 20 public signals or raw structural candidates when a normal
+broad or mixed run has enough source supply. Record every reviewed signal in
+the report ledger. If fewer than 20 can be triaged without weak or duplicate
+evidence, state that explicitly.
 
 Use stages:
 
@@ -142,13 +180,64 @@ Use this rough score interpretation:
 - `4`: strong, recent, and buyer-relevant.
 - `5`: direct, recent, repeated, and economically urgent.
 
+## Structural Opportunity Fields
+
+Every opportunity record and every comparable `opportunities.json` entry must
+also include:
+
+- `structural_pattern`: the market-structure thesis, such as aggregation,
+  routing, optimization, execution, procurement, reconciliation, or control
+  plane.
+- `primitive_growth`: what new primitives, providers, APIs, tools, models,
+  protocols, vendors, or data sources multiplied recently, including time range
+  when evidenced.
+- `fragmentation_summary`: what is fragmented and why users face a choice.
+- `manual_workflow`: the concrete workflow users do manually today, such as
+  comparing providers, reconciling outputs, moving data between tools, writing
+  custom scripts, or maintaining fallback logic.
+- `objective_function`: a measurable objective or decision criterion, such as
+  minimizing cost or latency subject to quality, maximizing yield, reducing
+  risk, improving accuracy, or increasing availability.
+- `execution_ladder`: how the opportunity can progress from observe to
+  recommend to choose to execute.
+- `economic_pain`: the cost of the current manual workflow or wrong choice.
+- `timing_reason`: why the opportunity became more interesting in 2025-2026
+  or another recent period, rather than being old known pain.
+- `competitors`: existing competitors, adjacent products, OSS projects, or
+  internal-workaround categories that address part of the problem.
+- `structural_scores`: score object containing `fragmentation`, `manual_pain`,
+  `economic_value`, `objective_measurability`, `execution_potential`, `timing`,
+  `competition_gap`, `prototype_feasibility`, and `total`.
+
+Structural score dimensions are integers from 0 to 5. Compute `total` as a
+0-10 weighted score:
+
+- fragmentation: 15%;
+- manual pain: 15%;
+- economic value: 20%;
+- objective measurability: 10%;
+- execution potential: 10%;
+- timing: 10%;
+- competitive gap: 10%;
+- 1-2 week prototype feasibility: 10%.
+
+Do not let an LLM assign a high structural score without citing evidence for
+each dimension. If evidence is weak, score conservatively.
+
 If `paid_wedge` is unclear, or if `private_data_barrier` is `private-code-required`, `private-data-required`, or `unclear`, the opportunity must stay in `watchlisted`. Do not put it in `selected` and do not mark it `selected-for-build`.
+
+If `manual_workflow`, `objective_function`, `execution_ladder`, or
+`timing_reason` is unclear, the opportunity must stay in `watchlisted`. Do not
+put it in `selected`, `selected-for-test`, `sell-before-build`, or
+`selected-for-build`.
 
 `selected`, `selected-for-test`, and `sell-before-build` are only allowed when:
 
 - `paid_wedge` names a concrete budget or painful cost;
 - `spend_score` is at least 2;
 - `reachability_score` is at least 2;
+- structural `manual_pain`, `economic_value`, `objective_measurability`,
+  `execution_potential`, and `timing` scores are each at least 2;
 - `private_data_barrier` is `none` or `public-only`;
 - `source_classes` contains at least two distinct classes and is not GitHub-only;
 - `paid_experiment` names a concrete buyer, offer, channel, and success/failure threshold.
@@ -160,6 +249,8 @@ If `paid_wedge` is unclear, or if `private_data_barrier` is `private-code-requir
 - `reachability_score` is at least 3;
 - `timing_score` is at least 2;
 - `buildability_score` is at least 3;
+- structural `execution_potential` and `prototype_feasibility` scores are each
+  at least 3;
 - `private_data_barrier` is `none` or `public-only`;
 - `distribution_channel` is credible;
 - `product_shape` is one smallest testable artifact, not a product bundle;
@@ -176,6 +267,8 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - selected opportunities;
 - executive summary;
 - signal ledger;
+- structural candidate ranking;
+- structural score breakdown;
 - opportunity reviews;
 - build readiness table;
 - money readiness table;
@@ -204,6 +297,24 @@ Use the same money-readiness values as `opportunities.json`. Every
 and the stage plus money-readiness fields must agree with the state entry. A
 report row with `spend_score < 2`, `reachability_score < 2`, or GitHub-only
 source classes must have a watchlist build decision in `Build Readiness`.
+
+The `Structural Candidate Ranking` section must contain this table:
+
+```markdown
+| Rank | Opportunity | Ecosystem | Score | Why now | Manual workflow | Wedge |
+|---|---|---|---|---|---|---|
+```
+
+The `Structural Score Breakdown` section must contain this table:
+
+```markdown
+| Opportunity | Fragmentation | Manual pain | Economic value | Objective measurability | Execution potential | Timing | Competition gap | Prototype feasibility | Total |
+|---|---|---|---|---|---|---|---|---|---|
+```
+
+Use the same structural values as `opportunities.json`. Every structural score
+row must match an `opportunities.json` entry by title or id, and `Total` must
+match the weighted structural total after deterministic recomputation.
 
 For each selected opportunity, create or update one file under `opportunities/`.
 
@@ -254,6 +365,31 @@ Update `opportunities.json` with stable structured metadata using this schema:
       "existing_spend": "Existing spend, labor, hiring, procurement, consultant, tool, or workaround evidence.",
       "paid_experiment": "Smallest paid/manual validation offer.",
       "source_classes": ["github", "pricing"],
+      "structural_pattern": "Aggregation, routing, optimization, execution, reconciliation, procurement, or control plane thesis.",
+      "primitive_growth": "Recent primitive/provider/tool growth with dates or explicit uncertainty.",
+      "fragmentation_summary": "What is fragmented and why users face a choice.",
+      "manual_workflow": "Concrete manual workflow users perform today.",
+      "objective_function": "Measurable objective or decision criterion.",
+      "execution_ladder": {
+        "observe": "What the product can observe first.",
+        "recommend": "What recommendation it can make.",
+        "choose": "What choice it can make under constraints.",
+        "execute": "What action it can eventually execute."
+      },
+      "economic_pain": "Cost of current manual workflow or wrong choice.",
+      "timing_reason": "Why this is newly interesting now.",
+      "competitors": ["Existing competitor or adjacent workaround."],
+      "structural_scores": {
+        "fragmentation": 0,
+        "manual_pain": 0,
+        "economic_value": 0,
+        "objective_measurability": 0,
+        "execution_potential": 0,
+        "timing": 0,
+        "competition_gap": 0,
+        "prototype_feasibility": 0,
+        "total": 0
+      },
       "paid_wedge": "What someone concretely pays for.",
       "distribution_channel": "How it is installed, bought, or adopted.",
       "private_data_barrier": "none|public-only|private-code-required|private-data-required|unclear",

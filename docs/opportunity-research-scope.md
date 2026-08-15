@@ -11,6 +11,17 @@ Use these families for signal accounting and selection:
 - `privacy-networking-demand`
 - `drones-robotics-demand`
 - `document-ai-demand`
+- `observability-demand`
+- `developer-tooling-demand`
+- `data-infrastructure-demand`
+- `security-demand`
+- `cloud-infrastructure-demand`
+- `fintech-payments-demand`
+- `api-infrastructure-demand`
+- `robotics-demand`
+- `geospatial-demand`
+- `healthcare-infrastructure-demand`
+- `logistics-industrial-demand`
 
 ## Discovery Sources
 
@@ -24,6 +35,43 @@ Use public, inspectable sources such as:
 - app reviews or marketplace listings when they are public and attributable.
 
 Do not use private communities, authenticated exports, personal data, or outbound outreach in the first implementation.
+
+## Structural Opportunity Pattern
+
+Prefer candidates matching this sequence:
+
+```text
+recent primitive/provider growth
+-> fragmentation
+-> manual comparison, routing, reconciliation, or fallback
+-> measurable objective function
+-> software can progress from observe to recommend to choose to execute
+```
+
+The target is an aggregation, optimization, routing, execution, procurement,
+reconciliation, or control layer. A directory, newsletter, or comparison page is
+not enough unless it can plausibly evolve toward choosing or executing the
+workflow.
+
+## Structural Discovery Signals
+
+Use these as discovery signals only:
+
+- many competing providers appearing in a short period;
+- multiple APIs implementing similar capabilities;
+- frequent "X vs Y vs Z" or "alternatives to X" discussions;
+- compatibility layers, adapters, gateways, routers, aggregators, proxies, or
+  unified APIs;
+- provider switching, fallback logic, migration between vendors, or multiple
+  dashboards;
+- internal scripts, glue code, spreadsheets, or "we built our own" workflows;
+- manual comparison, export/import, reconciliation, normalization, or copy/paste
+  between tools;
+- users comparing pricing, latency, quality, reliability, availability,
+  accuracy, risk, or resource usage.
+
+Do not select a candidate from keywords alone. Require multiple public signals
+and state whether each claim is evidence-backed or interpretation.
 
 ## Technology Shifts
 
@@ -47,6 +95,15 @@ Use `unclear` explicitly when a delta is not evidenced. Do not treat a model
 launch, repository release, or viral announcement as demand by itself; connect
 the shift to an expensive workflow and a reachable buyer.
 
+For structural opportunities, distinguish old known pain from pain caused by a
+recent increase in ecosystem complexity. Where public evidence allows, estimate:
+
+- relevant primitives/providers 12-24 months ago;
+- relevant primitives/providers now;
+- recent release, funding, repository, pricing, or adoption activity;
+- why the opportunity became materially more interesting in 2025-2026 or
+  another recent period.
+
 ## Signal Types
 
 Classify each reviewed signal:
@@ -59,6 +116,10 @@ Classify each reviewed signal:
 - `operational-risk` - failures are expensive, risky, or hard to debug.
 - `infrastructure-shift` - a new model, protocol, hardware, regulation, or platform change creates fresh demand.
 - `incumbent-friction` - adopted tools create recurring complaints about cost, complexity, lock-in, reliability, or missing features.
+- `fragmentation` - rapid primitive/provider growth creates too many choices or incompatible surfaces.
+- `manual-comparison` - users compare, reconcile, route, export/import, or switch providers manually.
+- `optimization-gap` - a workflow has a measurable objective but no trusted chooser or executor.
+- `execution-gap` - users can identify the right choice but still need software to perform the action.
 
 ## Required Analysis
 
@@ -85,6 +146,13 @@ For each selected opportunity, explain:
 19. What small experiment could test demand within one week.
 20. What would falsify the opportunity.
 21. What should explicitly not be built.
+22. Which primitives, providers, tools, APIs, or vendors multiplied recently.
+23. Why the ecosystem is fragmented.
+24. What manual comparison, routing, reconciliation, fallback, or migration
+    workflow exists today.
+25. Whether "better" can be expressed as an objective function with constraints.
+26. Whether the product can move from observe to recommend to choose to execute.
+27. Which competitors or adjacent products cover part of the control layer.
 
 Score every selected, deferred, and watchlisted opportunity from 0 to 5:
 
@@ -93,6 +161,28 @@ Score every selected, deferred, and watchlisted opportunity from 0 to 5:
 - `reachability_score`;
 - `timing_score`;
 - `buildability_score`.
+
+Also score structural dimensions from 0 to 5:
+
+- `fragmentation`;
+- `manual_pain`;
+- `economic_value`;
+- `objective_measurability`;
+- `execution_potential`;
+- `timing`;
+- `competition_gap`;
+- `prototype_feasibility`.
+
+Compute structural `total` as a weighted 0-10 score using:
+
+- fragmentation: 15%;
+- manual pain: 15%;
+- economic value: 20%;
+- objective measurability: 10%;
+- execution potential: 10%;
+- timing: 10%;
+- competition gap: 10%;
+- prototype feasibility: 10%.
 
 ## Evidence Labels
 
@@ -111,15 +201,29 @@ In generated reports and opportunity files, write the full label text, for examp
 
 ## Selection Rule
 
-Select no more than three opportunities per manual run.
+Select no more than five opportunities per manual run.
 
 Selecting zero is valid when evidence is thin, noisy, or not connected to a testable next step.
 
 Do not select an opportunity because it is exciting. Select it because there is enough evidence to justify a small experiment.
 
-If the paid wedge is unclear, if `spend_score < 2`, if `reachability_score < 2`, if the opportunity is GitHub-only, or if the useful next test requires private code or private data, keep the opportunity in watchlist. Do not select it and do not mark it selected for build.
+If the paid wedge is unclear, if `spend_score < 2`, if `reachability_score < 2`, if the opportunity is GitHub-only, if the useful next test requires private code or private data, if the manual workflow is unclear, if no objective function exists, or if the execution path cannot move beyond recommendation, keep the opportunity in watchlist. Do not select it and do not mark it selected for build.
 
 Use `sell-before-build` when the next useful action is a paid/manual offer,
 sample transformation, report, audit, or review before implementation. Do not
 recommend building unless the paid experiment has already been validated by
 evidence in the report.
+
+## Anti-Patterns
+
+Penalize or reject:
+
+- generic AI wrappers without fragmentation, manual workflow, and economic
+  mechanism;
+- pure directories of tools unless they can evolve toward routing,
+  optimization, execution, procurement, or another valuable action;
+- developer annoyance with no spend, labor cost, operational risk, expensive
+  mistake, revenue impact, or willingness-to-pay signal;
+- mature markets where a dominant aggregation or control layer already owns the
+  workflow unless a new fragmentation boundary has appeared;
+- old known pain with no recent ecosystem complexity increase.

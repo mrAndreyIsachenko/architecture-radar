@@ -12,6 +12,50 @@ Production LangGraph teams keep hitting checkpoint bloat, replay duplication, an
 - M3 competitor proof: LangChain's own blogs and docs now position LangGraph Platform, persistence, observability, and memory as production infrastructure.
 - M4 workaround evidence: public issue threads repeatedly imply custom saver tuning, debug tooling, or third-party checkpointer packages.
 
+## Structural Pattern
+Control and diagnostic layer for production agent runtime persistence, checkpoint replay, and duplicated execution risk.
+
+## Primitive Growth
+LangGraph, checkpointer libraries, LangGraph Platform, LangSmith observability, and production agent deployments are now visible across public docs, issues, jobs, and release activity.
+
+## Fragmentation
+Checkpoint behavior is split across framework runtime, saver implementations, platform observability, storage backends, and user configuration choices.
+
+## Manual Workflow
+Engineers manually inspect issues, checkpoint payloads, trace exports, storage growth, and replay behavior to choose saver settings and diagnose duplicate execution.
+
+## Objective Function
+Minimize checkpoint storage cost and duplicated or replayed work while preserving replay correctness and acceptable runtime latency.
+
+## Execution Ladder
+- Observe: Read workflow graph metadata, checkpoint configuration, trace exports, checkpoint records, and storage-size samples.
+- Recommend: Report checkpoint bloat, replay drift, duplicate execution, and risky saver choices with concrete safer settings.
+- Choose: Rank persistence and configuration alternatives against cost, replay fidelity, latency, and operational risk constraints.
+- Execute: Apply CI policy gates or configuration checks only after manual review; runtime mutation is not part of the first wedge.
+
+## Economic Pain
+The pain shows up as engineering incident time, infrastructure waste from checkpoint bloat, duplicate tool calls, and production reliability risk.
+
+## Timing Reason
+Production LangGraph usage, platformization, and public checkpoint issues clustered in 2025-2026, making this a recent agent-runtime fragmentation problem.
+
+## Competitors
+- LangSmith observability
+- LangGraph Platform
+- custom checkpoint saver tuning
+- internal trace review scripts
+
+## Structural Scores
+- Fragmentation: 4
+- Manual pain: 5
+- Economic value: 4
+- Objective measurability: 4
+- Execution potential: 4
+- Timing: 4
+- Competition gap: 3
+- Prototype feasibility: 4
+- Total: 8
+
 ## Repeated Pain Or Demand Signal
 Teams building durable AI workflows want persistence that survives interrupts, resumes, and long tool calls without inflating storage or duplicating work.
 

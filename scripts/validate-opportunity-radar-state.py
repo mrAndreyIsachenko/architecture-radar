@@ -32,6 +32,8 @@ REQUIRED_REPORT_SECTIONS = {
     "Selected Opportunities",
     "Executive Summary",
     "Signal Ledger",
+    "Structural Candidate Ranking",
+    "Structural Score Breakdown",
     "Opportunity Reviews",
     "Build Readiness",
     "Money Readiness",
@@ -73,10 +75,41 @@ MONEY_READINESS_REQUIRED_COLUMNS = {
     "Source classes",
     "Stage",
 }
+STRUCTURAL_RANKING_REQUIRED_COLUMNS = {
+    "Rank",
+    "Opportunity",
+    "Ecosystem",
+    "Score",
+    "Why now",
+    "Manual workflow",
+    "Wedge",
+}
+STRUCTURAL_SCORE_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Fragmentation",
+    "Manual pain",
+    "Economic value",
+    "Objective measurability",
+    "Execution potential",
+    "Timing",
+    "Competition gap",
+    "Prototype feasibility",
+    "Total",
+}
 
 SELECTED_OPPORTUNITY_SECTIONS = {
     "Opportunity Summary",
     "Evidence",
+    "Structural Pattern",
+    "Primitive Growth",
+    "Fragmentation",
+    "Manual Workflow",
+    "Objective Function",
+    "Execution Ladder",
+    "Economic Pain",
+    "Timing Reason",
+    "Competitors",
+    "Structural Scores",
     "Repeated Pain Or Demand Signal",
     "Likely User Or Buyer",
     "Current Workaround Or Money Signal",
@@ -165,6 +198,47 @@ MONEY_SCORE_FIELDS = {
     "timing_score",
     "buildability_score",
 }
+STRUCTURAL_SCORE_FIELDS = {
+    "fragmentation",
+    "manual_pain",
+    "economic_value",
+    "objective_measurability",
+    "execution_potential",
+    "timing",
+    "competition_gap",
+    "prototype_feasibility",
+}
+STRUCTURAL_SCORE_WEIGHTS = {
+    "fragmentation": 15,
+    "manual_pain": 15,
+    "economic_value": 20,
+    "objective_measurability": 10,
+    "execution_potential": 10,
+    "timing": 10,
+    "competition_gap": 10,
+    "prototype_feasibility": 10,
+}
+STRUCTURAL_SCORE_TABLE_FIELDS = {
+    "Fragmentation": "fragmentation",
+    "Manual pain": "manual_pain",
+    "Economic value": "economic_value",
+    "Objective measurability": "objective_measurability",
+    "Execution potential": "execution_potential",
+    "Timing": "timing",
+    "Competition gap": "competition_gap",
+    "Prototype feasibility": "prototype_feasibility",
+    "Total": "total",
+}
+EXECUTION_LADDER_FIELDS = {"observe", "recommend", "choose", "execute"}
+STATE_STRUCTURAL_TEXT_FIELDS = {
+    "structural_pattern",
+    "primitive_growth",
+    "fragmentation_summary",
+    "manual_workflow",
+    "objective_function",
+    "economic_pain",
+    "timing_reason",
+}
 STATE_REQUIRED_COMPARISON_FIELDS = {
     "score",
     "pain_score",
@@ -183,6 +257,16 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "existing_spend",
     "paid_experiment",
     "source_classes",
+    "structural_pattern",
+    "primitive_growth",
+    "fragmentation_summary",
+    "manual_workflow",
+    "objective_function",
+    "execution_ladder",
+    "economic_pain",
+    "timing_reason",
+    "competitors",
+    "structural_scores",
     "paid_wedge",
     "distribution_channel",
     "private_data_barrier",
@@ -241,6 +325,10 @@ WATCHLIST_ALLOWED_SIGNAL_TYPES = {
     "operational-risk",
     "infrastructure-shift",
     "incumbent-friction",
+    "fragmentation",
+    "manual-comparison",
+    "optimization-gap",
+    "execution-gap",
 }
 WATCHLIST_SCALAR_FIELDS = {"source", "url", "family", "signal_type", "priority", "status", "reason"}
 WATCHLIST_LIST_FIELDS = {"search_terms"}
@@ -515,6 +603,87 @@ def validate_money_score(value: object, context: str, field: str) -> int:
     return value
 
 
+def validate_structural_score(value: object, context: str, field: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5:
+        fail(f"{context} structural_scores.{field} must be an integer from 0 to 5")
+    return value
+
+
+def weighted_structural_total(scores: dict[str, int]) -> int:
+    weighted = sum(scores[field] * STRUCTURAL_SCORE_WEIGHTS[field] for field in STRUCTURAL_SCORE_FIELDS)
+    return (weighted * 2 + 50) // 100
+
+
+def validate_structural_scores(value: object, context: str) -> dict[str, int]:
+    if not isinstance(value, dict):
+        fail(f"{context} structural_scores must be an object")
+
+    required = STRUCTURAL_SCORE_FIELDS | {"total"}
+    missing = required - set(value)
+    if missing:
+        fail(f"{context} structural_scores missing fields: {', '.join(sorted(missing))}")
+
+    scores = {field: validate_structural_score(value[field], context, field) for field in STRUCTURAL_SCORE_FIELDS}
+    total = value["total"]
+    if not isinstance(total, int) or isinstance(total, bool) or not 0 <= total <= 10:
+        fail(f"{context} structural_scores.total must be an integer from 0 to 10")
+
+    expected_total = weighted_structural_total(scores)
+    if total != expected_total:
+        fail(f"{context} structural_scores.total must be {expected_total}, got {total}")
+
+    scores["total"] = total
+    return scores
+
+
+def validate_execution_ladder(value: object, context: str) -> dict[str, str]:
+    if not isinstance(value, dict):
+        fail(f"{context} execution_ladder must be an object")
+    missing = EXECUTION_LADDER_FIELDS - set(value)
+    if missing:
+        fail(f"{context} execution_ladder missing fields: {', '.join(sorted(missing))}")
+
+    ladder: dict[str, str] = {}
+    for field in sorted(EXECUTION_LADDER_FIELDS):
+        text = str(value.get(field, "")).strip()
+        if len(text) < 20:
+            fail(f"{context} execution_ladder.{field} is too short")
+        ladder[field] = text
+    return ladder
+
+
+def is_unclear_execution_ladder(value: object) -> bool:
+    if not isinstance(value, dict):
+        return True
+    for field in EXECUTION_LADDER_FIELDS:
+        if is_unclear_text(value.get(field, "")):
+            return True
+    return False
+
+
+def validate_competitors(value: object, context: str) -> list[str]:
+    if not isinstance(value, list) or not value:
+        fail(f"{context} competitors must be a non-empty list")
+    competitors: list[str] = []
+    for index, competitor in enumerate(value, start=1):
+        text = str(competitor).strip()
+        if len(text) < 3:
+            fail(f"{context} competitors[{index}] is too short")
+        competitors.append(text)
+    return competitors
+
+
+def validate_structural_state_fields(entry: dict[str, object], context: str) -> dict[str, int]:
+    for field in sorted(STATE_STRUCTURAL_TEXT_FIELDS):
+        text = str(entry.get(field, "")).strip()
+        if len(text) < 30:
+            fail(f"{context} {field} is too short")
+
+    validate_execution_ladder(entry.get("execution_ladder"), context)
+    validate_competitors(entry.get("competitors"), context)
+    return validate_structural_scores(entry.get("structural_scores"), context)
+
+
 def split_source_classes(value: object) -> list[str]:
     if isinstance(value, list):
         raw_values = value
@@ -730,6 +899,114 @@ def validate_money_readiness_table(path: Path, section_text: str) -> list[dict[s
     return parse_money_readiness_table(path, section_text)
 
 
+def parse_structural_int_cell(
+    path: Path,
+    section_name: str,
+    row_index: str,
+    column: str,
+    value: object,
+    upper_bound: int,
+) -> int:
+    text = clean_table_cell(str(value))
+    if not re.fullmatch(r"\d+", text):
+        fail(f"{path.relative_to(ROOT)} {section_name} row {row_index} column `{column}` must be an integer")
+    score = int(text)
+    if not 0 <= score <= upper_bound:
+        fail(f"{path.relative_to(ROOT)} {section_name} row {row_index} column `{column}` must be from 0 to {upper_bound}")
+    return score
+
+
+def parse_structural_ranking_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    if "None" in section_text or "No structural" in section_text:
+        return []
+
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Structural Candidate Ranking must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = STRUCTURAL_RANKING_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Structural Candidate Ranking missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Structural Candidate Ranking has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in STRUCTURAL_RANKING_REQUIRED_COLUMNS}
+    rows: list[dict[str, object]] = []
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Structural Candidate Ranking row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+        parsed: dict[str, object] = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+        parsed["Rank"] = parse_structural_int_cell(path, "Structural Candidate Ranking", str(row_index), "Rank", parsed["Rank"], 100)
+        parsed["Score"] = parse_structural_int_cell(path, "Structural Candidate Ranking", str(row_index), "Score", parsed["Score"], 10)
+
+        for column in ("Opportunity", "Ecosystem", "Why now", "Manual workflow", "Wedge"):
+            if len(str(parsed[column]).strip()) < 20:
+                fail(f"{path.relative_to(ROOT)} Structural Candidate Ranking row {row_index} column `{column}` is too short")
+
+        rows.append(parsed)
+
+    return rows
+
+
+def validate_structural_ranking_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    return parse_structural_ranking_table(path, section_text)
+
+
+def parse_structural_score_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    if "None" in section_text or "No structural" in section_text:
+        return []
+
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Structural Score Breakdown must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = STRUCTURAL_SCORE_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Structural Score Breakdown missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Structural Score Breakdown has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in STRUCTURAL_SCORE_REQUIRED_COLUMNS}
+    rows: list[dict[str, object]] = []
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Structural Score Breakdown row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+        parsed: dict[str, object] = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+        structural_scores: dict[str, int] = {}
+        for column, field in STRUCTURAL_SCORE_TABLE_FIELDS.items():
+            upper_bound = 10 if field == "total" else 5
+            score = parse_structural_int_cell(path, "Structural Score Breakdown", str(row_index), column, parsed[column], upper_bound)
+            parsed[column] = score
+            structural_scores[field] = score
+
+        expected_total = weighted_structural_total({field: structural_scores[field] for field in STRUCTURAL_SCORE_FIELDS})
+        if structural_scores["total"] != expected_total:
+            fail(
+                f"{path.relative_to(ROOT)} Structural Score Breakdown row {row_index} Total "
+                f"must be {expected_total}, got {structural_scores['total']}"
+            )
+
+        rows.append(parsed)
+
+    return rows
+
+
+def validate_structural_score_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    return parse_structural_score_table(path, section_text)
+
+
 def is_unclear_text(value: object) -> bool:
     text = str(value).strip().lower()
     if not text:
@@ -739,6 +1016,21 @@ def is_unclear_text(value: object) -> bool:
 
 def normalize_stage(value: object) -> str:
     return str(value).strip().lower().replace("_", "-")
+
+
+def decision_text_is_selected_for_test(value: object) -> bool:
+    text = str(value).lower()
+    return (
+        "selected for test" in text
+        or "selected-for-test" in text
+        or "selected for manual test" in text
+        or "sell-before-build" in text
+    )
+
+
+def decision_text_is_selected_for_build(value: object) -> bool:
+    text = str(value).lower()
+    return "selected for build" in text or "selected-for-build" in text
 
 
 def read_opportunities_state() -> dict[str, object]:
@@ -859,6 +1151,37 @@ def validate_money_readiness_state_consistency(
                 )
 
 
+def validate_structural_score_state_consistency(
+    path: Path,
+    rows: list[dict[str, object]],
+    state_entries: dict[str, tuple[str, int, dict[str, object]]],
+) -> None:
+    for row in rows:
+        row_index = str(row["_row_index"])
+        opportunity = row["Opportunity"]
+        key = normalize_opportunity_key(opportunity)
+        match = state_entries.get(key)
+        if match is None:
+            fail(
+                f"{path.relative_to(ROOT)} Structural Score Breakdown row {row_index} "
+                f"opportunity is missing from opportunities.json: {opportunity}"
+            )
+
+        array_name, state_index, entry = match
+        state_scores = entry.get("structural_scores")
+        if not isinstance(state_scores, dict):
+            fail(f"opportunities.json {array_name}[{state_index}].structural_scores must be an object")
+
+        for column, state_field in STRUCTURAL_SCORE_TABLE_FIELDS.items():
+            actual_value = row[column]
+            expected_value = state_scores.get(state_field)
+            if actual_value != expected_value:
+                fail(
+                    f"{path.relative_to(ROOT)} Structural Score Breakdown row {row_index} column `{column}` "
+                    f"does not match opportunities.json {array_name}[{state_index}].structural_scores.{state_field}"
+                )
+
+
 def parse_money_scores_section(path_label: str, text: str) -> dict[str, int]:
     scores: dict[str, int] = {}
     for label, field in (
@@ -876,6 +1199,34 @@ def parse_money_scores_section(path_label: str, text: str) -> dict[str, int]:
             fail(f"{path_label} Money-First Scores `{label}` must be from 0 to 5")
         scores[field] = score
     return scores
+
+
+def parse_structural_scores_section(path_label: str, text: str) -> dict[str, int]:
+    scores: dict[str, int] = {}
+    for label, field in STRUCTURAL_SCORE_TABLE_FIELDS.items():
+        match = re.search(rf"(?im)^\s*(?:[-*]\s*)?{re.escape(label)}\s*:\s*(\d+)\s*$", text)
+        if not match:
+            fail(f"{path_label} Structural Scores must include `{label}: N`")
+        score = int(match.group(1))
+        upper_bound = 10 if field == "total" else 5
+        if not 0 <= score <= upper_bound:
+            fail(f"{path_label} Structural Scores `{label}` must be from 0 to {upper_bound}")
+        scores[field] = score
+
+    expected_total = weighted_structural_total({field: scores[field] for field in STRUCTURAL_SCORE_FIELDS})
+    if scores["total"] != expected_total:
+        fail(f"{path_label} Structural Scores `Total` must be {expected_total}, got {scores['total']}")
+
+    return scores
+
+
+def validate_execution_ladder_section(path_label: str, text: str) -> None:
+    for label in ("Observe", "Recommend", "Choose", "Execute"):
+        match = re.search(rf"(?im)^\s*(?:[-*]\s*)?{label}\s*:\s*(.+?)\s*$", text)
+        if not match:
+            fail(f"{path_label} Execution Ladder must include `{label}: ...`")
+        if len(match.group(1).strip()) < 20:
+            fail(f"{path_label} Execution Ladder `{label}` is too short")
 
 
 def validate_opportunity_build_readiness(path_label: str, sections: dict[str, str]) -> None:
@@ -901,10 +1252,16 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
 
     source_classes = validate_source_classes(sections.get("Source Classes", ""), path_label) if sections.get("Source Classes") else []
     money_scores = parse_money_scores_section(path_label, sections["Money-First Scores"]) if "Money-First Scores" in sections else {}
+    structural_scores = parse_structural_scores_section(path_label, sections["Structural Scores"]) if "Structural Scores" in sections else {}
+    if "Execution Ladder" in sections:
+        validate_execution_ladder_section(path_label, sections["Execution Ladder"])
     paid_experiment = sections.get("Paid Experiment", "")
 
     decision = sections.get("Decision", "")
-    if "selected for test" in decision.lower() or "selected-for-test" in decision.lower() or "sell-before-build" in decision.lower():
+    if decision_text_is_selected_for_test(decision):
+        for section in ("Manual Workflow", "Objective Function", "Execution Ladder", "Timing Reason", "Fragmentation"):
+            if is_unclear_text(sections.get(section, "")):
+                fail(f"{path_label} cannot be selected with unclear {section}")
         if is_unclear_text(sections.get("Paid Wedge", "")):
             fail(f"{path_label} cannot be selected with an unclear Paid Wedge")
         if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
@@ -917,7 +1274,10 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
             fail(f"{path_label} cannot be selected with GitHub-only or single-class evidence")
         if is_unclear_text(paid_experiment):
             fail(f"{path_label} cannot be selected with an unclear Paid Experiment")
-    if "selected for build" in decision.lower() or "selected-for-build" in decision.lower():
+        for score_field in ("manual_pain", "economic_value", "objective_measurability", "execution_potential", "timing"):
+            if structural_scores.get(score_field, 0) < 2:
+                fail(f"{path_label} cannot be selected with structural {score_field} below 2")
+    if decision_text_is_selected_for_build(decision):
         if is_unclear_text(sections.get("Paid Wedge", "")):
             fail(f"{path_label} cannot be selected for build with an unclear Paid Wedge")
         if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
@@ -934,6 +1294,9 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
             fail(f"{path_label} cannot be selected for build with fewer than 3 source classes")
         if is_unclear_text(paid_experiment):
             fail(f"{path_label} cannot be selected for build with an unclear Paid Experiment")
+        for score_field in ("execution_potential", "prototype_feasibility"):
+            if structural_scores.get(score_field, 0) < 3:
+                fail(f"{path_label} cannot be selected for build with structural {score_field} below 3")
 
 
 def validate_report_structure() -> None:
@@ -961,6 +1324,9 @@ def validate_report_structure() -> None:
         validate_build_readiness_state_consistency(path, build_readiness_rows, state_entries)
         money_readiness_rows = validate_money_readiness_table(path, sections["Money Readiness"])
         validate_money_readiness_state_consistency(path, money_readiness_rows, state_entries)
+        validate_structural_ranking_table(path, sections["Structural Candidate Ranking"])
+        structural_score_rows = validate_structural_score_table(path, sections["Structural Score Breakdown"])
+        validate_structural_score_state_consistency(path, structural_score_rows, state_entries)
 
         selected_text = sections["Selected Opportunities"] + "\n" + sections["Opportunity Reviews"]
         if "None" not in sections["Selected Opportunities"] and "No selected" not in sections["Selected Opportunities"]:
@@ -1125,6 +1491,7 @@ def validate_state() -> None:
                 fail(f"opportunities.json {field}[{index}] score must be an integer from 0 to 10")
             context = f"opportunities.json {field}[{index}]"
             money_scores = {score_field: validate_money_score(entry[score_field], context, score_field) for score_field in MONEY_SCORE_FIELDS}
+            structural_scores = validate_structural_state_fields(entry, context)
             confidence = entry["confidence"]
             if confidence not in STATE_CONFIDENCE_VALUES:
                 fail(f"opportunities.json {field}[{index}] confidence must be one of: {', '.join(sorted(STATE_CONFIDENCE_VALUES))}")
@@ -1207,6 +1574,20 @@ def validate_state() -> None:
                     fail(f"opportunities.json selected[{index}] has GitHub-only or single-class evidence; keep it in watchlisted")
                 if is_unclear_text(paid_experiment):
                     fail(f"opportunities.json selected[{index}] paid_experiment is unclear; keep it in watchlisted")
+                for structural_field in (
+                    "structural_pattern",
+                    "fragmentation_summary",
+                    "manual_workflow",
+                    "objective_function",
+                    "timing_reason",
+                ):
+                    if is_unclear_text(entry.get(structural_field, "")):
+                        fail(f"opportunities.json selected[{index}] has unclear {structural_field}; keep it in watchlisted")
+                if is_unclear_execution_ladder(entry.get("execution_ladder")):
+                    fail(f"opportunities.json selected[{index}] has unclear execution_ladder; keep it in watchlisted")
+                for score_field in ("manual_pain", "economic_value", "objective_measurability", "execution_potential", "timing"):
+                    if structural_scores[score_field] < 2:
+                        fail(f"opportunities.json selected[{index}] structural_scores.{score_field} is below 2; keep it in watchlisted")
             if normalize_stage(stage) == "selected-for-build":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_wedge")
@@ -1224,6 +1605,10 @@ def validate_state() -> None:
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with fewer than 3 source classes")
                 if is_unclear_text(paid_experiment):
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_experiment")
+                if structural_scores["execution_potential"] < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with structural_scores.execution_potential below 3")
+                if structural_scores["prototype_feasibility"] < 3:
+                    fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with structural_scores.prototype_feasibility below 3")
 
             family = entry.get("family")
             if family is not None and family not in families:
