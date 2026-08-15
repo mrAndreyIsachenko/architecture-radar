@@ -48,6 +48,11 @@ REPORT = """# Opportunity Radar Report 2026-08-11
 |---|---|---|---|---|---|---|---|---|---|
 | LangGraph Checkpoint Persistence And Cost Diagnostics | 4 | 5 | 4 | 4 | 4 | 4 | 3 | 4 | 8 |
 
+## Commercial Filter
+| Opportunity | Fragmented providers | Multi-provider user | Boundary workflow | Build-vs-buy | Internal build likelihood | Money flow | Permissionless validation | Smallest wedge | Decision |
+|---|---|---|---|---|---|---|---|---|---|
+| LangGraph Checkpoint Persistence And Cost Diagnostics | Runtime, traces, storage, and observability are fragmented. | Agent teams use multiple provider surfaces. | Teams reconcile checkpoint and trace cost boundaries. | Repeated ops glue is easier to buy than rebuild. | medium | Budget flows through platform and observability spend. | Public examples and exported traces are enough. | Checkpoint audit report for one workflow. | sell-before-build |
+
 ## Build Readiness
 | Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |
 |---|---|---|---|---|---|---|---|---|
@@ -82,6 +87,8 @@ class SummarizeOpportunityReportTest(unittest.TestCase):
         self.assertEqual(summary["money_readiness"][0]["Stage"], "sell-before-build")
         self.assertEqual(summary["structural_ranking"][0]["Score"], "8")
         self.assertEqual(summary["structural_score_breakdown"][0]["Total"], "8")
+        self.assertEqual(summary["commercial_filter"][0]["Internal build likelihood"], "medium")
+        self.assertEqual(summary["commercial_filter"][0]["Smallest wedge"], "Checkpoint audit report for one workflow.")
         self.assertIn("paid LangGraph checkpoint audit", summary["recommended_next_test"])
         self.assertEqual(summary["evidence_gaps"], ["LangGraph still lacks direct proof that teams will pay."])
 

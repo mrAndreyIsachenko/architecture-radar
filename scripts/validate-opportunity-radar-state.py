@@ -34,6 +34,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Signal Ledger",
     "Structural Candidate Ranking",
     "Structural Score Breakdown",
+    "Commercial Filter",
     "Opportunity Reviews",
     "Build Readiness",
     "Money Readiness",
@@ -96,6 +97,18 @@ STRUCTURAL_SCORE_REQUIRED_COLUMNS = {
     "Prototype feasibility",
     "Total",
 }
+COMMERCIAL_FILTER_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Fragmented providers",
+    "Multi-provider user",
+    "Boundary workflow",
+    "Build-vs-buy",
+    "Internal build likelihood",
+    "Money flow",
+    "Permissionless validation",
+    "Smallest wedge",
+    "Decision",
+}
 
 SELECTED_OPPORTUNITY_SECTIONS = {
     "Opportunity Summary",
@@ -120,6 +133,16 @@ SELECTED_OPPORTUNITY_SECTIONS = {
     "Paid Experiment",
     "Money-First Scores",
     "Source Classes",
+    "Fragmented Providers",
+    "Multi-Provider User",
+    "Boundary Workflow",
+    "Build-vs-buy Reason",
+    "Internal Build Likelihood",
+    "Money Flow",
+    "Recurrence",
+    "Permissionless Validation",
+    "Smallest Wedge",
+    "Intermediary Maturity",
     "Paid Wedge",
     "Distribution Channel",
     "Private Data Barrier",
@@ -155,6 +178,7 @@ STATE_PRIVATE_DATA_BARRIER_VALUES = {
     "private-data-required",
     "unclear",
 }
+STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES = {"low", "medium", "high"}
 STATE_OSS_COMMODITIZATION_RISK_VALUES = {"low", "medium", "high", "unclear"}
 STATE_PRODUCT_SHAPE_VALUES = {
     "cli",
@@ -239,6 +263,17 @@ STATE_STRUCTURAL_TEXT_FIELDS = {
     "economic_pain",
     "timing_reason",
 }
+STATE_COMMERCIAL_TEXT_FIELDS = {
+    "fragmented_providers",
+    "multi_provider_user",
+    "boundary_workflow",
+    "build_vs_buy_reason",
+    "money_flow",
+    "recurrence",
+    "permissionless_validation",
+    "smallest_wedge",
+    "intermediary_maturity",
+}
 STATE_REQUIRED_COMPARISON_FIELDS = {
     "score",
     "pain_score",
@@ -267,6 +302,16 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "timing_reason",
     "competitors",
     "structural_scores",
+    "fragmented_providers",
+    "multi_provider_user",
+    "boundary_workflow",
+    "build_vs_buy_reason",
+    "internal_build_likelihood",
+    "money_flow",
+    "recurrence",
+    "permissionless_validation",
+    "smallest_wedge",
+    "intermediary_maturity",
     "paid_wedge",
     "distribution_channel",
     "private_data_barrier",
@@ -301,6 +346,16 @@ MONEY_READINESS_STATE_FIELDS = {
     "Paid experiment": "paid_experiment",
     "Source classes": "source_classes",
 }
+COMMERCIAL_FILTER_STATE_FIELDS = {
+    "Fragmented providers": "fragmented_providers",
+    "Multi-provider user": "multi_provider_user",
+    "Boundary workflow": "boundary_workflow",
+    "Build-vs-buy": "build_vs_buy_reason",
+    "Internal build likelihood": "internal_build_likelihood",
+    "Money flow": "money_flow",
+    "Permissionless validation": "permissionless_validation",
+    "Smallest wedge": "smallest_wedge",
+}
 UNCLEAR_TEXT_MARKERS = {
     "unclear",
     "unknown",
@@ -312,6 +367,25 @@ UNCLEAR_TEXT_MARKERS = {
     "no budget",
     "tbd",
     "n/a",
+}
+PLATFORM_WEDGE_MARKERS = {
+    "platform for",
+    "marketplace for",
+    "operating system",
+    "end-to-end",
+    "end to end",
+    "full-stack",
+    "full stack",
+    "suite",
+    "ai-powered",
+    "ai powered",
+}
+HARDWARE_VALIDATION_MARKERS = {
+    "hardware deployment",
+    "deploy hardware",
+    "install hardware",
+    "physical deployment",
+    "requires hardware",
 }
 PRIVATE_DATA_BLOCKING_VALUES = {"private-code-required", "private-data-required", "unclear"}
 WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
@@ -329,6 +403,8 @@ WATCHLIST_ALLOWED_SIGNAL_TYPES = {
     "manual-comparison",
     "optimization-gap",
     "execution-gap",
+    "commercial-glue",
+    "internal-build-risk",
 }
 WATCHLIST_SCALAR_FIELDS = {"source", "url", "family", "signal_type", "priority", "status", "reason"}
 WATCHLIST_LIST_FIELDS = {"search_terms"}
@@ -1014,6 +1090,90 @@ def is_unclear_text(value: object) -> bool:
     return any(marker in text for marker in UNCLEAR_TEXT_MARKERS)
 
 
+def is_platform_shaped_wedge(value: object) -> bool:
+    text = re.sub(r"\s+", " ", str(value).strip().lower())
+    if not text:
+        return False
+    negated_markers = {
+        "not a platform",
+        "not platform",
+        "not a marketplace",
+        "not marketplace",
+        "not an operating system",
+        "not operating system",
+        "not end-to-end",
+        "not end to end",
+        "not full-stack",
+        "not full stack",
+        "not a suite",
+        "not suite",
+    }
+    if any(marker in text for marker in negated_markers):
+        return False
+    return any(marker in text for marker in PLATFORM_WEDGE_MARKERS)
+
+
+def requires_hardware_validation(value: object) -> bool:
+    text = re.sub(r"\s+", " ", str(value).strip().lower())
+    if not text:
+        return False
+    negated_markers = {
+        "without hardware deployment",
+        "does not require hardware",
+        "no hardware deployment",
+        "no physical deployment",
+        "does not require physical deployment",
+    }
+    if any(marker in text for marker in negated_markers):
+        return False
+    return any(marker in text for marker in HARDWARE_VALIDATION_MARKERS)
+
+
+def validate_commercial_state_fields(entry: dict[str, object], context: str) -> str:
+    for field in sorted(STATE_COMMERCIAL_TEXT_FIELDS):
+        text = str(entry.get(field, "")).strip()
+        if len(text) < 30:
+            fail(f"{context} {field} is too short")
+
+    likelihood = str(entry.get("internal_build_likelihood", "")).strip().lower()
+    if likelihood not in STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES:
+        fail(
+            f"{context} internal_build_likelihood must be one of: "
+            + ", ".join(sorted(STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES))
+        )
+    return likelihood
+
+
+def validate_commercial_selection_gates(
+    *,
+    context: str,
+    internal_build_likelihood: str,
+    entry: dict[str, object],
+    require_low_internal_build: bool = False,
+) -> None:
+    if internal_build_likelihood == "high":
+        fail(f"{context} has high internal_build_likelihood; keep it in watchlisted")
+    if require_low_internal_build and internal_build_likelihood != "low":
+        fail(f"{context} selected-for-build requires internal_build_likelihood `low`")
+
+    for field in (
+        "multi_provider_user",
+        "boundary_workflow",
+        "build_vs_buy_reason",
+        "money_flow",
+        "recurrence",
+        "permissionless_validation",
+        "smallest_wedge",
+    ):
+        if is_unclear_text(entry.get(field, "")):
+            fail(f"{context} has unclear {field}; keep it in watchlisted")
+
+    if is_platform_shaped_wedge(entry.get("smallest_wedge", "")):
+        fail(f"{context} has a platform-shaped smallest_wedge; keep it in watchlisted")
+    if requires_hardware_validation(entry.get("permissionless_validation", "")):
+        fail(f"{context} requires hardware-first validation; keep it in watchlisted")
+
+
 def normalize_stage(value: object) -> str:
     return str(value).strip().lower().replace("_", "-")
 
@@ -1024,6 +1184,7 @@ def decision_text_is_selected_for_test(value: object) -> bool:
         "selected for test" in text
         or "selected-for-test" in text
         or "selected for manual test" in text
+        or "sell before build" in text
         or "sell-before-build" in text
     )
 
@@ -1031,6 +1192,90 @@ def decision_text_is_selected_for_test(value: object) -> bool:
 def decision_text_is_selected_for_build(value: object) -> bool:
     text = str(value).lower()
     return "selected for build" in text or "selected-for-build" in text
+
+
+def is_selected_stage(value: object) -> bool:
+    return normalize_stage(value) in {"selected", "selected-for-test", "sell-before-build", "selected-for-build"}
+
+
+def parse_commercial_filter_table(path: Path, section_text: str) -> list[dict[str, str]]:
+    if "None" in section_text or "No commercial" in section_text:
+        return []
+
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Commercial Filter must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = COMMERCIAL_FILTER_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Commercial Filter missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Commercial Filter has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in COMMERCIAL_FILTER_REQUIRED_COLUMNS}
+    rows: list[dict[str, str]] = []
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} has {len(cells)} cells, expected {len(header)}")
+
+        parsed = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+
+        for column in (
+            "Fragmented providers",
+            "Multi-provider user",
+            "Boundary workflow",
+            "Build-vs-buy",
+            "Money flow",
+            "Permissionless validation",
+            "Smallest wedge",
+        ):
+            if len(parsed[column]) < 20:
+                fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} column `{column}` is too short")
+
+        likelihood = parsed["Internal build likelihood"].strip("`").lower()
+        if likelihood not in STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES:
+            fail(
+                f"{path.relative_to(ROOT)} Commercial Filter row {row_index} internal build likelihood "
+                f"must be one of: {', '.join(sorted(STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES))}"
+            )
+        parsed["Internal build likelihood"] = likelihood
+
+        decision = normalize_stage(parsed["Decision"])
+        if decision not in STATE_STAGE_VALUES:
+            fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} has unsupported decision: {decision}")
+
+        if is_selected_stage(decision):
+            if likelihood == "high":
+                fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} cannot be selected with high internal build likelihood")
+            for column in (
+                "Multi-provider user",
+                "Boundary workflow",
+                "Build-vs-buy",
+                "Money flow",
+                "Permissionless validation",
+                "Smallest wedge",
+            ):
+                if is_unclear_text(parsed[column]):
+                    fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} cannot be selected with unclear {column}")
+            if is_platform_shaped_wedge(parsed["Smallest wedge"]):
+                fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} cannot be selected with a platform-shaped wedge")
+            if requires_hardware_validation(parsed["Permissionless validation"]):
+                fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} cannot be selected with hardware-first validation")
+        if decision == "selected-for-build" and likelihood != "low":
+            fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} selected-for-build requires low internal build likelihood")
+
+        rows.append(parsed)
+
+    return rows
+
+
+def validate_commercial_filter_table(path: Path, section_text: str) -> list[dict[str, str]]:
+    return parse_commercial_filter_table(path, section_text)
 
 
 def read_opportunities_state() -> dict[str, object]:
@@ -1151,6 +1396,38 @@ def validate_money_readiness_state_consistency(
                 )
 
 
+def validate_commercial_filter_state_consistency(
+    path: Path,
+    rows: list[dict[str, str]],
+    state_entries: dict[str, tuple[str, int, dict[str, object]]],
+) -> None:
+    for row in rows:
+        row_index = row["_row_index"]
+        opportunity = row["Opportunity"]
+        key = normalize_opportunity_key(opportunity)
+        match = state_entries.get(key)
+        if match is None:
+            fail(f"{path.relative_to(ROOT)} Commercial Filter row {row_index} opportunity is missing from opportunities.json: {opportunity}")
+
+        array_name, state_index, entry = match
+        actual_decision = normalize_stage(row["Decision"])
+        expected_decision = state_stage_for_entry(array_name, entry)
+        if actual_decision != expected_decision:
+            fail(
+                f"{path.relative_to(ROOT)} Commercial Filter row {row_index} decision `{actual_decision}` "
+                f"does not match opportunities.json {array_name}[{state_index}] stage `{expected_decision}`"
+            )
+
+        for column, state_field in COMMERCIAL_FILTER_STATE_FIELDS.items():
+            actual_value = normalize_report_text(row[column])
+            expected_value = normalize_report_text(entry.get(state_field, ""))
+            if actual_value != expected_value:
+                fail(
+                    f"{path.relative_to(ROOT)} Commercial Filter row {row_index} column `{column}` "
+                    f"does not match opportunities.json {array_name}[{state_index}].{state_field}"
+                )
+
+
 def validate_structural_score_state_consistency(
     path: Path,
     rows: list[dict[str, object]],
@@ -1250,12 +1527,26 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
     if oss_risk and oss_risk not in STATE_OSS_COMMODITIZATION_RISK_VALUES:
         fail(f"{path_label} OSS Commoditization Risk must be one of: {', '.join(sorted(STATE_OSS_COMMODITIZATION_RISK_VALUES))}")
 
+    internal_build_likelihood = sections.get("Internal Build Likelihood", "").strip().lower()
+    if internal_build_likelihood and internal_build_likelihood not in STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES:
+        fail(f"{path_label} Internal Build Likelihood must be one of: {', '.join(sorted(STATE_INTERNAL_BUILD_LIKELIHOOD_VALUES))}")
+
     source_classes = validate_source_classes(sections.get("Source Classes", ""), path_label) if sections.get("Source Classes") else []
     money_scores = parse_money_scores_section(path_label, sections["Money-First Scores"]) if "Money-First Scores" in sections else {}
     structural_scores = parse_structural_scores_section(path_label, sections["Structural Scores"]) if "Structural Scores" in sections else {}
     if "Execution Ladder" in sections:
         validate_execution_ladder_section(path_label, sections["Execution Ladder"])
     paid_experiment = sections.get("Paid Experiment", "")
+    commercial_sections = (
+        "Fragmented Providers",
+        "Multi-Provider User",
+        "Boundary Workflow",
+        "Build-vs-buy Reason",
+        "Money Flow",
+        "Recurrence",
+        "Permissionless Validation",
+        "Smallest Wedge",
+    )
 
     decision = sections.get("Decision", "")
     if decision_text_is_selected_for_test(decision):
@@ -1274,6 +1565,15 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
             fail(f"{path_label} cannot be selected with GitHub-only or single-class evidence")
         if is_unclear_text(paid_experiment):
             fail(f"{path_label} cannot be selected with an unclear Paid Experiment")
+        if internal_build_likelihood == "high":
+            fail(f"{path_label} cannot be selected with high Internal Build Likelihood")
+        for section in commercial_sections:
+            if is_unclear_text(sections.get(section, "")):
+                fail(f"{path_label} cannot be selected with unclear {section}")
+        if is_platform_shaped_wedge(sections.get("Smallest Wedge", "")):
+            fail(f"{path_label} cannot be selected with a platform-shaped Smallest Wedge")
+        if requires_hardware_validation(sections.get("Permissionless Validation", "")):
+            fail(f"{path_label} cannot be selected with hardware-first Permissionless Validation")
         for score_field in ("manual_pain", "economic_value", "objective_measurability", "execution_potential", "timing"):
             if structural_scores.get(score_field, 0) < 2:
                 fail(f"{path_label} cannot be selected with structural {score_field} below 2")
@@ -1294,6 +1594,15 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
             fail(f"{path_label} cannot be selected for build with fewer than 3 source classes")
         if is_unclear_text(paid_experiment):
             fail(f"{path_label} cannot be selected for build with an unclear Paid Experiment")
+        if internal_build_likelihood != "low":
+            fail(f"{path_label} cannot be selected for build unless Internal Build Likelihood is `low`")
+        for section in commercial_sections:
+            if is_unclear_text(sections.get(section, "")):
+                fail(f"{path_label} cannot be selected for build with unclear {section}")
+        if is_platform_shaped_wedge(sections.get("Smallest Wedge", "")):
+            fail(f"{path_label} cannot be selected for build with a platform-shaped Smallest Wedge")
+        if requires_hardware_validation(sections.get("Permissionless Validation", "")):
+            fail(f"{path_label} cannot be selected for build with hardware-first Permissionless Validation")
         for score_field in ("execution_potential", "prototype_feasibility"):
             if structural_scores.get(score_field, 0) < 3:
                 fail(f"{path_label} cannot be selected for build with structural {score_field} below 3")
@@ -1327,6 +1636,8 @@ def validate_report_structure() -> None:
         validate_structural_ranking_table(path, sections["Structural Candidate Ranking"])
         structural_score_rows = validate_structural_score_table(path, sections["Structural Score Breakdown"])
         validate_structural_score_state_consistency(path, structural_score_rows, state_entries)
+        commercial_filter_rows = validate_commercial_filter_table(path, sections["Commercial Filter"])
+        validate_commercial_filter_state_consistency(path, commercial_filter_rows, state_entries)
 
         selected_text = sections["Selected Opportunities"] + "\n" + sections["Opportunity Reviews"]
         if "None" not in sections["Selected Opportunities"] and "No selected" not in sections["Selected Opportunities"]:
@@ -1492,6 +1803,7 @@ def validate_state() -> None:
             context = f"opportunities.json {field}[{index}]"
             money_scores = {score_field: validate_money_score(entry[score_field], context, score_field) for score_field in MONEY_SCORE_FIELDS}
             structural_scores = validate_structural_state_fields(entry, context)
+            internal_build_likelihood = validate_commercial_state_fields(entry, context)
             confidence = entry["confidence"]
             if confidence not in STATE_CONFIDENCE_VALUES:
                 fail(f"opportunities.json {field}[{index}] confidence must be one of: {', '.join(sorted(STATE_CONFIDENCE_VALUES))}")
@@ -1588,6 +1900,11 @@ def validate_state() -> None:
                 for score_field in ("manual_pain", "economic_value", "objective_measurability", "execution_potential", "timing"):
                     if structural_scores[score_field] < 2:
                         fail(f"opportunities.json selected[{index}] structural_scores.{score_field} is below 2; keep it in watchlisted")
+                validate_commercial_selection_gates(
+                    context=f"opportunities.json selected[{index}]",
+                    internal_build_likelihood=internal_build_likelihood,
+                    entry=entry,
+                )
             if normalize_stage(stage) == "selected-for-build":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_wedge")
@@ -1609,6 +1926,12 @@ def validate_state() -> None:
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with structural_scores.execution_potential below 3")
                 if structural_scores["prototype_feasibility"] < 3:
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with structural_scores.prototype_feasibility below 3")
+                validate_commercial_selection_gates(
+                    context=f"opportunities.json {field}[{index}]",
+                    internal_build_likelihood=internal_build_likelihood,
+                    entry=entry,
+                    require_low_internal_build=True,
+                )
 
             family = entry.get("family")
             if family is not None and family not in families:

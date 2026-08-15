@@ -61,6 +61,16 @@ STRUCTURAL_SCORES = {
     "prototype_feasibility": 4,
     "total": 7,
 }
+FRAGMENTED_PROVIDERS = "Agent runtimes, trace stores, checkpoint savers, and observability tools create fragmented operational surfaces."
+MULTI_PROVIDER_USER = "Small agent teams use runtime libraries, hosted traces, storage backends, and issue workflows across multiple providers."
+BOUNDARY_WORKFLOW = "Engineers reconcile traces, checkpoints, logs, storage costs, and runtime settings across provider boundaries."
+BUILD_VS_BUY_REASON = "Teams buy because incident diagnostics are repeated operational glue rather than core model or product IP."
+INTERNAL_BUILD_LIKELIHOOD = "medium"
+MONEY_FLOW = "Budget already flows to agent platforms, observability tools, and engineering incident response time."
+RECURRENCE = "The workflow recurs whenever teams ship new agents, change savers, or investigate production incidents."
+PERMISSIONLESS_VALIDATION = "A first audit can use public examples, synthetic traces, and exported local runs without private customer data."
+SMALLEST_WEDGE = "Checkpoint and trace audit report for one failed workflow, not a platform or marketplace."
+INTERMEDIARY_MATURITY = "Existing observability tools help, but a narrow cross-tool incident audit layer is still immature."
 
 
 def complete_report(selected: bool = True) -> str:
@@ -94,6 +104,13 @@ def complete_report(selected: bool = True) -> str:
             "| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 7 |",
         ]
     )
+    commercial_filter = "\n".join(
+        [
+            "| Opportunity | Fragmented providers | Multi-provider user | Boundary workflow | Build-vs-buy | Internal build likelihood | Money flow | Permissionless validation | Smallest wedge | Decision |",
+            "|---|---|---|---|---|---|---|---|---|---|",
+            f"| Agent trace debugging | {FRAGMENTED_PROVIDERS} | {MULTI_PROVIDER_USER} | {BOUNDARY_WORKFLOW} | {BUILD_VS_BUY_REASON} | `{INTERNAL_BUILD_LIKELIHOOD}` | {MONEY_FLOW} | {PERMISSIONLESS_VALIDATION} | {SMALLEST_WEDGE} | `selected-for-test` |",
+        ]
+    )
     if not selected:
         selected_text = "None."
         reviews = "No selected opportunities."
@@ -101,6 +118,7 @@ def complete_report(selected: bool = True) -> str:
         money_readiness = "None."
         structural_ranking = "None."
         structural_scores = "None."
+        commercial_filter = "None."
 
     sections = {
         "Prerequisites And State": "- workspace verified",
@@ -116,6 +134,7 @@ def complete_report(selected: bool = True) -> str:
         ),
         "Structural Candidate Ranking": structural_ranking,
         "Structural Score Breakdown": structural_scores,
+        "Commercial Filter": commercial_filter,
         "Opportunity Reviews": reviews,
         "Build Readiness": build_readiness,
         "Money Readiness": money_readiness,
@@ -141,6 +160,11 @@ def complete_state(
     paid_experiment: str = PAID_EXPERIMENT,
     structural_scores: dict[str, int] | None = None,
     manual_workflow: str = MANUAL_WORKFLOW,
+    internal_build_likelihood: str = INTERNAL_BUILD_LIKELIHOOD,
+    multi_provider_user: str = MULTI_PROVIDER_USER,
+    money_flow: str = MONEY_FLOW,
+    permissionless_validation: str = PERMISSIONLESS_VALIDATION,
+    smallest_wedge: str = SMALLEST_WEDGE,
 ) -> str:
     data: dict[str, object] = {
         "schema_version": 1,
@@ -182,6 +206,16 @@ def complete_state(
         "timing_reason": TIMING_REASON,
         "competitors": COMPETITORS,
         "structural_scores": structural_scores or STRUCTURAL_SCORES,
+        "fragmented_providers": FRAGMENTED_PROVIDERS,
+        "multi_provider_user": multi_provider_user,
+        "boundary_workflow": BOUNDARY_WORKFLOW,
+        "build_vs_buy_reason": BUILD_VS_BUY_REASON,
+        "internal_build_likelihood": internal_build_likelihood,
+        "money_flow": money_flow,
+        "recurrence": RECURRENCE,
+        "permissionless_validation": permissionless_validation,
+        "smallest_wedge": smallest_wedge,
+        "intermediary_maturity": INTERMEDIARY_MATURITY,
         "paid_wedge": paid_wedge,
         "distribution_channel": DISTRIBUTION_CHANNEL,
         "private_data_barrier": "public-only",
@@ -209,6 +243,11 @@ def write_complete_state(
     paid_experiment: str = PAID_EXPERIMENT,
     structural_scores: dict[str, int] | None = None,
     manual_workflow: str = MANUAL_WORKFLOW,
+    internal_build_likelihood: str = INTERNAL_BUILD_LIKELIHOOD,
+    multi_provider_user: str = MULTI_PROVIDER_USER,
+    money_flow: str = MONEY_FLOW,
+    permissionless_validation: str = PERMISSIONLESS_VALIDATION,
+    smallest_wedge: str = SMALLEST_WEDGE,
 ) -> None:
     (root / "opportunities.json").write_text(
         complete_state(
@@ -221,6 +260,11 @@ def write_complete_state(
             paid_experiment=paid_experiment,
             structural_scores=structural_scores,
             manual_workflow=manual_workflow,
+            internal_build_likelihood=internal_build_likelihood,
+            multi_provider_user=multi_provider_user,
+            money_flow=money_flow,
+            permissionless_validation=permissionless_validation,
+            smallest_wedge=smallest_wedge,
         ),
         encoding="utf-8",
     )
@@ -311,6 +355,16 @@ def complete_opportunity() -> str:
             ]
         ),
         "Source Classes": "github, forum",
+        "Fragmented Providers": FRAGMENTED_PROVIDERS,
+        "Multi-Provider User": MULTI_PROVIDER_USER,
+        "Boundary Workflow": BOUNDARY_WORKFLOW,
+        "Build-vs-buy Reason": BUILD_VS_BUY_REASON,
+        "Internal Build Likelihood": INTERNAL_BUILD_LIKELIHOOD,
+        "Money Flow": MONEY_FLOW,
+        "Recurrence": RECURRENCE,
+        "Permissionless Validation": PERMISSIONLESS_VALIDATION,
+        "Smallest Wedge": SMALLEST_WEDGE,
+        "Intermediary Maturity": INTERMEDIARY_MATURITY,
         "Paid Wedge": PAID_WEDGE,
         "Distribution Channel": DISTRIBUTION_CHANNEL,
         "Private Data Barrier": "public-only",
@@ -467,6 +521,36 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
 
     def test_report_structure_rejects_structural_score_total_mismatch(self) -> None:
         bad_report = complete_report().replace("| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 7 |", "| Agent trace debugging | 4 | 4 | 3 | 3 | 3 | 3 | 3 | 4 | 8 |")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_commercial_filter_rejects_selected_with_high_internal_build(self) -> None:
+        commercial_filter = "\n".join(
+            [
+                "| Opportunity | Fragmented providers | Multi-provider user | Boundary workflow | Build-vs-buy | Internal build likelihood | Money flow | Permissionless validation | Smallest wedge | Decision |",
+                "|---|---|---|---|---|---|---|---|---|---|",
+                f"| Agent trace debugging | {FRAGMENTED_PROVIDERS} | {MULTI_PROVIDER_USER} | {BOUNDARY_WORKFLOW} | {BUILD_VS_BUY_REASON} | `high` | {MONEY_FLOW} | {PERMISSIONLESS_VALIDATION} | {SMALLEST_WEDGE} | `selected-for-test` |",
+            ]
+        )
+
+        with patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+            validator.validate_commercial_filter_table(ROOT / "opportunity-reports" / "test.md", commercial_filter)
+
+    def test_report_structure_rejects_commercial_filter_field_mismatch(self) -> None:
+        bad_report = complete_report().replace(MONEY_FLOW, "Budget path differs from the canonical state and should fail consistency checks.")
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             report = root / "opportunity-reports" / "2026-08-11.md"
@@ -648,6 +732,63 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             ):
                 validator.validate_selected_opportunity_files()
 
+    def test_selected_opportunity_file_rejects_selected_with_high_internal_build(self) -> None:
+        text = complete_opportunity().replace(
+            "## Internal Build Likelihood\n\nmedium",
+            "## Internal Build Likelihood\n\nhigh",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            opportunity = root / "opportunities" / "trace-debugging.md"
+            opportunity.parent.mkdir()
+            opportunity.write_text(text, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "changed_opportunity_files", return_value=[opportunity]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_selected_opportunity_files()
+
+    def test_selected_opportunity_file_rejects_selected_with_platform_wedge(self) -> None:
+        text = complete_opportunity().replace(
+            SMALLEST_WEDGE,
+            "Platform for every agent operations workflow across traces, storage, evaluation, and deployment.",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            opportunity = root / "opportunities" / "trace-debugging.md"
+            opportunity.parent.mkdir()
+            opportunity.write_text(text, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "changed_opportunity_files", return_value=[opportunity]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_selected_opportunity_files()
+
+    def test_selected_opportunity_file_treats_sell_before_build_as_selected(self) -> None:
+        text = complete_opportunity().replace("selected for manual test", "Sell before build").replace(
+            MONEY_FLOW,
+            "unclear; no budget or money flow is visible yet",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            opportunity = root / "opportunities" / "trace-debugging.md"
+            opportunity.parent.mkdir()
+            opportunity.write_text(text, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "changed_opportunity_files", return_value=[opportunity]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_selected_opportunity_files()
+
     def test_state_schema_accepts_empty_state_arrays(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -735,6 +876,74 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_state()
 
+    def test_state_schema_rejects_selected_with_high_internal_build(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(internal_build_likelihood="high"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_unclear_multi_provider_user(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(multi_provider_user="unclear; no multi-provider user is proven"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_unclear_money_flow(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(money_flow="unclear; no budget or money flow is visible yet"),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_with_platform_wedge(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(smallest_wedge="Platform for every agent operations workflow across traces, storage, evaluation, and deployment."),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
     def test_state_schema_allows_unclear_paid_wedge_on_watchlist(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -758,6 +967,29 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             )
 
             with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_build_without_low_internal_build_likelihood(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    stage="selected-for-build",
+                    spend_score=3,
+                    reachability_score=3,
+                    source_classes=["github", "docs", "job"],
+                    internal_build_likelihood="medium",
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_state()
 
     def test_state_schema_allows_sell_before_build_stage(self) -> None:

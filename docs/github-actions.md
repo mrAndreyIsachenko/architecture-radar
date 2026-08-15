@@ -31,9 +31,9 @@ permissions:
 
 Architecture Radar runs at 05:00 UTC, which is 08:00 Europe/Moscow. A cadence gate lets the expensive research step run every three days.
 
-Opportunity Radar runs at 05:30 UTC every Tuesday, which is 08:30 Europe/Moscow. It researches public demand signals with money-first selection and structural fragmentation scoring, then writes `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`. Manual dispatch remains available for event-driven opportunity checks.
+Opportunity Radar runs at 05:30 UTC every Tuesday, which is 08:30 Europe/Moscow. It researches public demand signals with money-first selection, structural fragmentation scoring, and a commercial filter for cross-company glue that buyers are more likely to buy than rebuild internally. It writes `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`. Manual dispatch remains available for event-driven opportunity checks.
 
-Opportunity Radar reports must include `Structural Candidate Ranking` and `Structural Score Breakdown`. The score is a deterministic weighted 0-10 total from eight 0-5 dimensions: fragmentation, manual pain, economic value, objective measurability, execution potential, timing, competition gap, and prototype feasibility. A candidate with an unclear manual workflow, objective function, execution ladder, timing reason, or paid wedge stays watchlisted.
+Opportunity Radar reports must include `Structural Candidate Ranking`, `Structural Score Breakdown`, and `Commercial Filter`. The score is a deterministic weighted 0-10 total from eight 0-5 dimensions: fragmentation, manual pain, economic value, objective measurability, execution potential, timing, competition gap, and prototype feasibility. A candidate with an unclear manual workflow, objective function, execution ladder, timing reason, paid wedge, multi-provider user, money flow, or permissionless validation stays watchlisted. A candidate with `internal_build_likelihood=high` also stays watchlisted.
 
 Weekly Synthesis runs at 04:30 UTC every Monday, which is 07:30 Europe/Moscow. It reads committed artifacts and writes `weekly-reports/YYYY-Www.md`; it does not perform new discovery.
 

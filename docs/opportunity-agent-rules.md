@@ -16,6 +16,12 @@ The structural question is:
 Where did recent primitive/provider growth create fragmentation, manual comparison or reconciliation, and a new opening for an aggregation, optimization, routing, execution, or control layer?
 ```
 
+The commercial-filter question is:
+
+```text
+Where does fragmented provider growth create repeated cross-company glue work that buyers use across multiple vendors and are more likely to buy than build internally?
+```
+
 Do not rank opportunities by technical pain alone. Rank them by buyer, spend,
 reachability, timing, and buildability. Technology is a catalyst: explain what
 changed economically before recommending what to test or build.
@@ -24,6 +30,13 @@ Do not generate generic startup ideas. Prefer non-obvious market structures
 that resemble early aggregation/control-layer opportunities: many primitives or
 providers, fragmented choices, manual workflows, measurable objectives, and a
 path from recommendation to execution.
+
+Do not treat fragmentation alone as sufficient. Strong opportunities sit
+between independent vendors, protocols, data sources, infrastructure providers,
+or organizations. Core technology inside one well-funded buyer is weaker because
+the natural buyer can often build it once and keep it proprietary. Cross-company
+glue is stronger because every participant repeatedly solves the same
+non-differentiating integration problem.
 
 ## Required Workspace
 
@@ -75,10 +88,18 @@ Use structural discovery phrases as weak signals, not proof:
 - internal tooling, custom script, glue code, or "we built our own";
 - fragmented ecosystem, too many tools, multiple vendors, or migration between;
 - compatibility layer, adapters, or abstraction layer.
+- invoice reconciliation, usage reconciliation, billing across vendors, or
+  multi-provider reporting;
+- policy, identity, audit, verification, settlement, or monitoring across
+  vendors;
+- "we use A and B", "multi-home", "switching providers", or "fallback provider";
+- consultants, internal integration teams, duplicated connectors, or repeated
+  customer-specific integrations.
 
 Keyword matches are only discovery signals. A candidate must still be validated
 with independent evidence for fragmentation, manual workflow, objective
-function, execution potential, and economic pain.
+function, execution potential, economic pain, multi-provider usage, money flow,
+and build-vs-buy attractiveness.
 
 Record the discovery mode for every run:
 
@@ -224,12 +245,63 @@ Structural score dimensions are integers from 0 to 5. Compute `total` as a
 Do not let an LLM assign a high structural score without citing evidence for
 each dimension. If evidence is weak, score conservatively.
 
+## Commercial Filter Fields
+
+Every opportunity record and every comparable `opportunities.json` entry must
+also include:
+
+- `fragmented_providers`: concrete providers, protocols, products, APIs,
+  vendors, infrastructure providers, or data sources that multiplied.
+- `multi_provider_user`: the actual buyer or user who interacts with more than
+  one provider. If customers usually pick one provider and stay there, say so
+  explicitly.
+- `boundary_workflow`: the ugly work at the boundary, such as normalization,
+  adapters, routing, comparison, reconciliation, failover, orchestration,
+  identity mapping, schema translation, policy enforcement, auditing,
+  verification, settlement, billing reconciliation, migration, monitoring
+  across vendors, or unified reporting.
+- `build_vs_buy_reason`: why the buyer would buy this rather than build it
+  internally. Classify the layer as core/strategic, non-core but necessary, or
+  cross-company coordination.
+- `internal_build_likelihood`: one of `low`, `medium`, or `high`.
+- `money_flow`: who already pays whom in the underlying ecosystem, including
+  usage-based pricing, enterprise contracts, infrastructure spend, transaction
+  volume, hiring, consultants, or adjacent paid vendors.
+- `recurrence`: why the boundary workflow repeats rather than being a one-time
+  integration.
+- `permissionless_validation`: how the wedge can be validated without private
+  code, private data, hardware deployment, or incumbent permission.
+- `smallest_wedge`: one narrow workflow a single engineer could validate in
+  days or a few weeks. Do not write "platform for X" as the wedge.
+- `intermediary_maturity`: whether incumbent aggregation/control layers are
+  absent, immature, partial, or already satisfactory.
+
+Prefer opportunities where `build_vs_buy_reason` is non-core but necessary or a
+cross-company coordination problem. Penalize opportunities where the natural
+buyer owns the entire stack, considers the layer core IP, has a large
+engineering team, can solve it internally once, or rarely uses more than one
+provider.
+
 If `paid_wedge` is unclear, or if `private_data_barrier` is `private-code-required`, `private-data-required`, or `unclear`, the opportunity must stay in `watchlisted`. Do not put it in `selected` and do not mark it `selected-for-build`.
 
 If `manual_workflow`, `objective_function`, `execution_ladder`, or
 `timing_reason` is unclear, the opportunity must stay in `watchlisted`. Do not
 put it in `selected`, `selected-for-test`, `sell-before-build`, or
 `selected-for-build`.
+
+If `multi_provider_user`, `boundary_workflow`, `build_vs_buy_reason`,
+`money_flow`, `recurrence`, `permissionless_validation`, or `smallest_wedge` is
+unclear, the opportunity must stay in `watchlisted`.
+
+If `internal_build_likelihood` is `high`, the opportunity must stay in
+`watchlisted` unless the report proves a separate cross-company buyer or
+non-core purchase path. Do not rank high internal-build candidates near the top.
+
+Reject selected opportunities whose `smallest_wedge` is only a platform,
+marketplace, operating system, end-to-end suite, or generic AI-powered product.
+The wedge should be a small workflow such as normalizing outputs, reconciling
+usage or invoices, routing requests, generating adapters, detecting
+disagreements, migrating config, or producing one cross-vendor audit trail.
 
 `selected`, `selected-for-test`, and `sell-before-build` are only allowed when:
 
@@ -238,6 +310,10 @@ put it in `selected`, `selected-for-test`, `sell-before-build`, or
 - `reachability_score` is at least 2;
 - structural `manual_pain`, `economic_value`, `objective_measurability`,
   `execution_potential`, and `timing` scores are each at least 2;
+- `internal_build_likelihood` is `low` or `medium`;
+- `multi_provider_user`, `boundary_workflow`, `build_vs_buy_reason`,
+  `money_flow`, `recurrence`, `permissionless_validation`, and `smallest_wedge`
+  are concrete;
 - `private_data_barrier` is `none` or `public-only`;
 - `source_classes` contains at least two distinct classes and is not GitHub-only;
 - `paid_experiment` names a concrete buyer, offer, channel, and success/failure threshold.
@@ -251,6 +327,10 @@ put it in `selected`, `selected-for-test`, `sell-before-build`, or
 - `buildability_score` is at least 3;
 - structural `execution_potential` and `prototype_feasibility` scores are each
   at least 3;
+- `internal_build_likelihood` is `low`;
+- `permissionless_validation` is concrete and does not require hardware
+  deployment before validation;
+- `smallest_wedge` is a narrow product-shaped workflow, not a platform;
 - `private_data_barrier` is `none` or `public-only`;
 - `distribution_channel` is credible;
 - `product_shape` is one smallest testable artifact, not a product bundle;
@@ -269,6 +349,7 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - signal ledger;
 - structural candidate ranking;
 - structural score breakdown;
+- commercial filter;
 - opportunity reviews;
 - build readiness table;
 - money readiness table;
@@ -315,6 +396,19 @@ The `Structural Score Breakdown` section must contain this table:
 Use the same structural values as `opportunities.json`. Every structural score
 row must match an `opportunities.json` entry by title or id, and `Total` must
 match the weighted structural total after deterministic recomputation.
+
+The `Commercial Filter` section must contain this table:
+
+```markdown
+| Opportunity | Fragmented providers | Multi-provider user | Boundary workflow | Build-vs-buy | Internal build likelihood | Money flow | Permissionless validation | Smallest wedge | Decision |
+|---|---|---|---|---|---|---|---|---|---|
+```
+
+Use the same commercial-filter values as `opportunities.json`. Every
+Commercial Filter row must match an `opportunities.json` entry by title or id,
+and the commercial-filter fields must agree with the state entry. A row with
+`internal_build_likelihood` of `high`, unclear multi-provider usage, unclear
+money flow, or a platform-shaped wedge must remain watchlisted.
 
 For each selected opportunity, create or update one file under `opportunities/`.
 
@@ -390,6 +484,16 @@ Update `opportunities.json` with stable structured metadata using this schema:
         "prototype_feasibility": 0,
         "total": 0
       },
+      "fragmented_providers": "Concrete providers, protocols, APIs, products, vendors, or data sources that multiplied.",
+      "multi_provider_user": "Who uses more than one provider, protocol, data source, or vendor.",
+      "boundary_workflow": "Repeated cross-provider work at the boundary.",
+      "build_vs_buy_reason": "Why this is non-core enough to buy instead of build internally.",
+      "internal_build_likelihood": "low|medium|high",
+      "money_flow": "Who already pays whom in the underlying ecosystem.",
+      "recurrence": "Why the boundary work repeats instead of being one-time integration.",
+      "permissionless_validation": "How the wedge can be validated without private code/data, hardware deployment, or incumbent permission.",
+      "smallest_wedge": "One narrow first workflow, not a platform.",
+      "intermediary_maturity": "Whether aggregation/control layers are absent, immature, partial, or satisfactory.",
       "paid_wedge": "What someone concretely pays for.",
       "distribution_channel": "How it is installed, bought, or adopted.",
       "private_data_barrier": "none|public-only|private-code-required|private-data-required|unclear",
@@ -429,6 +533,16 @@ Each selected opportunity file must include:
 - paid experiment;
 - money-first scores;
 - source classes;
+- fragmented providers;
+- multi-provider user;
+- boundary workflow;
+- build-vs-buy reason;
+- internal build likelihood;
+- money flow;
+- recurrence;
+- permissionless validation;
+- smallest wedge;
+- intermediary maturity;
 - paid wedge;
 - distribution channel;
 - private data barrier;

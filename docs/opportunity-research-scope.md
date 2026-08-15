@@ -53,6 +53,49 @@ reconciliation, or control layer. A directory, newsletter, or comparison page is
 not enough unless it can plausibly evolve toward choosing or executing the
 workflow.
 
+## Commercial Opportunity Filter
+
+Fragmentation is necessary but not sufficient. Prefer candidates where the
+missing layer sits between independent vendors, infrastructure providers,
+protocols, data sources, or organizations:
+
+```text
+few providers
+-> rapid provider proliferation
+-> fragmentation
+-> multi-provider usage
+-> manual integration, comparison, reconciliation, routing, or switching
+-> new intermediary software layer
+```
+
+The key commercial distinction is:
+
+```text
+core technology inside one buyer -> likely internal build
+cross-company glue across providers -> stronger buy signal
+```
+
+For every selected, deferred, or watchlisted opportunity, estimate:
+
+- what fragmented, naming concrete providers, protocols, products, APIs,
+  vendors, or data sources;
+- who uses more than one provider or must interoperate across providers;
+- what boundary work appears, such as normalization, adapters, routing,
+  comparison, reconciliation, failover, orchestration, identity mapping, schema
+  translation, policy enforcement, auditing, verification, settlement, billing
+  reconciliation, migration, cross-vendor monitoring, or unified reporting;
+- why the buyer will not simply build it internally;
+- `internal_build_likelihood`: `low`, `medium`, or `high`;
+- who already pays whom in the underlying ecosystem;
+- why the workflow recurs instead of being one-time integration;
+- how to validate the wedge without incumbent permission, private code/data, or
+  hardware deployment;
+- the smallest non-platform wedge.
+
+Prefer non-core but necessary workflows and cross-company coordination problems.
+Penalize core IP, full-stack owners, large internal engineering teams,
+one-provider customer behavior, and hardware-first validation.
+
 ## Structural Discovery Signals
 
 Use these as discovery signals only:
@@ -69,6 +112,12 @@ Use these as discovery signals only:
   between tools;
 - users comparing pricing, latency, quality, reliability, availability,
   accuracy, risk, or resource usage.
+- customers reconciling usage, invoices, settlement, identity, policy, audit
+  trails, or reports across several vendors;
+- multi-homing, fallback provider usage, brokered capacity, or provider
+  switching;
+- duplicated adapters, connectors, consultants, integration teams, or customer
+  glue code around the same boundary.
 
 Do not select a candidate from keywords alone. Require multiple public signals
 and state whether each claim is evidence-backed or interpretation.
@@ -120,6 +169,8 @@ Classify each reviewed signal:
 - `manual-comparison` - users compare, reconcile, route, export/import, or switch providers manually.
 - `optimization-gap` - a workflow has a measurable objective but no trusted chooser or executor.
 - `execution-gap` - users can identify the right choice but still need software to perform the action.
+- `commercial-glue` - independent providers create repeated non-core integration work that buyers plausibly buy.
+- `internal-build-risk` - pain is real, but the natural buyer likely builds the layer internally as core IP.
 
 ## Required Analysis
 
@@ -153,6 +204,16 @@ For each selected opportunity, explain:
 25. Whether "better" can be expressed as an objective function with constraints.
 26. Whether the product can move from observe to recommend to choose to execute.
 27. Which competitors or adjacent products cover part of the control layer.
+28. Which concrete providers, protocols, products, APIs, vendors, or data
+    sources fragmented.
+29. Which buyer or user uses more than one provider, and how often.
+30. What cross-provider boundary workflow repeats today.
+31. Why the buyer would buy rather than build internally.
+32. Whether `internal_build_likelihood` is low, medium, or high.
+33. Who already pays whom in the underlying ecosystem.
+34. Whether validation can happen without incumbent permission, private
+    code/data, or hardware deployment.
+35. The smallest wedge that is not a platform.
 
 Score every selected, deferred, and watchlisted opportunity from 0 to 5:
 
@@ -209,6 +270,10 @@ Do not select an opportunity because it is exciting. Select it because there is 
 
 If the paid wedge is unclear, if `spend_score < 2`, if `reachability_score < 2`, if the opportunity is GitHub-only, if the useful next test requires private code or private data, if the manual workflow is unclear, if no objective function exists, or if the execution path cannot move beyond recommendation, keep the opportunity in watchlist. Do not select it and do not mark it selected for build.
 
+Also keep the opportunity in watchlist if multi-provider usage is unclear, money
+flow is unclear, the boundary workflow is one-time, the smallest wedge is a
+broad platform, or `internal_build_likelihood` is `high`.
+
 Use `sell-before-build` when the next useful action is a paid/manual offer,
 sample transformation, report, audit, or review before implementation. Do not
 recommend building unless the paid experiment has already been validated by
@@ -227,3 +292,11 @@ Penalize or reject:
 - mature markets where a dominant aggregation or control layer already owns the
   workflow unless a new fragmentation boundary has appeared;
 - old known pain with no recent ecosystem complexity increase.
+- opportunities where the obvious buyer owns the whole stack and treats the
+  layer as core IP;
+- customers that normally choose one provider and do not multi-home;
+- one-time migrations or integrations with no recurring workflow;
+- wedges that require hardware deployment before validation;
+- broad "platform for X" products with no narrow first paid workflow;
+- markets with providers but no evidence that money already flows through the
+  underlying ecosystem.
