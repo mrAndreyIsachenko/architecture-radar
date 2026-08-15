@@ -2,13 +2,15 @@
   "schema_version": 1,
   "generated_at": "2026-08-11",
   "discovery_mode": "mixed",
-  "selected": [
+  "selected": [],
+  "deferred": [],
+  "watchlisted": [
     {
       "id": "langgraph-checkpoint-persistence-and-cost-diagnostics",
       "family": "ai-llm-demand",
       "title": "LangGraph Checkpoint Persistence And Cost Diagnostics",
       "file": "opportunities/langgraph-checkpoint-persistence-and-cost-diagnostics.md",
-      "stage": "sell-before-build",
+      "stage": "watchlisted",
       "score": 9,
       "pain_score": 5,
       "spend_score": 3,
@@ -82,17 +84,24 @@
       "oss_commoditization_risk": "medium",
       "product_shape": "report",
       "pricing_hypothesis": "team",
-      "do_not_build_until": "At least one team pays for a checkpoint audit, or three teams ask for a sample report and provide a real workflow export.",
+      "do_not_build_until": "At least one team pays for a checkpoint audit, or three teams prove cross-company trace, storage, and observability reconciliation is a recurring budgeted workflow.",
       "labels": [
         "M2 repeated pain",
         "M1 paid demand",
         "M3 competitor proof",
         "M4 workaround evidence"
-      ]
-    }
-  ],
-  "deferred": [],
-  "watchlisted": [
+      ],
+      "fragmented_providers": "LangGraph runtime, checkpointer packages, LangSmith observability, hosted platform paths, and storage backends create several operational provider surfaces rather than one stable workflow.",
+      "multi_provider_user": "LangGraph-heavy teams may use runtime libraries, hosted traces, storage backends, deployment platforms, and incident tools together, but independent multi-provider buyer evidence is still not proven.",
+      "boundary_workflow": "Teams reconcile checkpoint records, trace exports, storage growth, replay behavior, issue evidence, and platform settings across runtime, observability, and persistence boundaries.",
+      "build_vs_buy_reason": "A narrow audit could be bought by small teams or consultants because it is repeated operational glue, but larger platform teams could build internal diagnostics themselves.",
+      "internal_build_likelihood": "medium",
+      "money_flow": "Budget flows through LangGraph adoption, LangSmith or platform spend, observability tooling, and agent engineering time, but direct external checkpoint-audit spend is not proven.",
+      "recurrence": "The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.",
+      "permissionless_validation": "A first report can be tested with public examples, synthetic checkpoint traces, and exported local workflows before asking for private customer traces.",
+      "smallest_wedge": "Checkpoint audit report for one exported workflow that compares storage growth, replay fidelity, duplicate execution risk, and saver configuration.",
+      "intermediary_maturity": "Partial: LangSmith and platform observability exist, while independent checkpoint-cost and replay-risk audit tooling remains immature."
+    },
     {
       "id": "tailscale-split-tunnel-routing-exception-diagnostics",
       "family": "privacy-networking-demand",
@@ -178,7 +187,17 @@
         "M1 paid demand",
         "M3 competitor proof",
         "M4 workaround evidence"
-      ]
+      ],
+      "fragmented_providers": "Tailscale, Mullvad-style VPN use, OS routing tables, DNS controls, app connectors, and legacy VPN expectations create fragmented networking surfaces.",
+      "multi_provider_user": "Admins and power users can combine Tailscale with other VPNs, OS routing, DNS providers, and app-specific exceptions, but direct budgeted multi-provider diagnostic demand remains weak.",
+      "boundary_workflow": "The boundary workflow is explaining route, DNS, exit-node, browser, and app-connector behavior across overlay network, VPN, OS, and SaaS policy layers.",
+      "build_vs_buy_reason": "A policy review is non-core admin glue for small teams, but Tailscale or incumbent network tooling could absorb the diagnostic path upstream.",
+      "internal_build_likelihood": "medium",
+      "money_flow": "Money flows through Tailscale paid plans, enterprise network administration, and VPN subscriptions, but direct external routing-diagnostic spend is not proven.",
+      "recurrence": "The workflow recurs during rollout, device enrollment, routing-policy changes, app-connector changes, DNS changes, and mixed-VPN troubleshooting.",
+      "permissionless_validation": "A first test can use public docs, synthetic route tables, sample DNS policies, and local repro scripts without needing private production networks.",
+      "smallest_wedge": "Routing-policy review report for one exit-node, split-DNS, or app-connector scenario that predicts likely exception failures.",
+      "intermediary_maturity": "Partial to high: admin consoles and docs exist, so an external review wedge has high commoditization risk unless buyers confirm pain."
     },
     {
       "id": "ardupilot-telemetry-integrity-and-failsafe-diagnostics",
@@ -260,7 +279,17 @@
       "labels": [
         "M2 repeated pain",
         "M4 workaround evidence"
-      ]
+      ],
+      "fragmented_providers": "ArduPilot firmware, ESC telemetry, DShot or BDShot counters, ground-control software, logs, failsafe configuration, and operator procedures fragment the evidence surface.",
+      "multi_provider_user": "Drone operators bridge flight-controller firmware, ESC hardware telemetry, ground-control tools, log analyzers, and integrator practices, but paid multi-vendor buyer evidence is weak.",
+      "boundary_workflow": "The boundary workflow is reconciling flight logs, telemetry counters, failsafe events, hardware behavior, and operator annotations after flights or tests.",
+      "build_vs_buy_reason": "This is close to operational safety and integrator know-how, so serious operators may prefer internal scripts unless an external report proves trust and accuracy.",
+      "internal_build_likelihood": "high",
+      "money_flow": "Money flows through drone operations, integrator work, hardware, and safety review time, but direct public spend on external telemetry diagnostics was not found.",
+      "recurrence": "The workflow recurs across flight tests, tuning sessions, telemetry changes, failures, and incident reviews.",
+      "permissionless_validation": "Useful validation likely needs representative private flight logs; public-only examples can show format handling but not operator-grade usefulness.",
+      "smallest_wedge": "Telemetry-integrity report for one uploaded log set that flags packet loss, failsafe transitions, and suspicious telemetry gaps.",
+      "intermediary_maturity": "Immature as an external commercial layer, while community tooling and operator-specific scripts already cover parts of the workflow."
     }
   ]
 }

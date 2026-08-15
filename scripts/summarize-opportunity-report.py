@@ -105,6 +105,7 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
     money_readiness = parse_table(sections.get("Money Readiness", ""))
     structural_ranking = parse_table(sections.get("Structural Candidate Ranking", ""))
     structural_score_breakdown = parse_table(sections.get("Structural Score Breakdown", ""))
+    commercial_filter = parse_table(sections.get("Commercial Filter", ""))
 
     return {
         "path": str(path),
@@ -118,6 +119,7 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
         "money_readiness": money_readiness,
         "structural_ranking": structural_ranking,
         "structural_score_breakdown": structural_score_breakdown,
+        "commercial_filter": commercial_filter,
         "recommended_next_test": plain_text(sections.get("Recommended Next Test", "")),
         "evidence_gaps": list_items(sections.get("Evidence Gaps", "")),
     }
@@ -151,6 +153,11 @@ def emit_markdown(summaries: list[dict[str, object]]) -> None:
             "Structural scores",
             summary.get("structural_score_breakdown"),
             ("Opportunity", "Total", "Fragmentation", "Manual pain", "Economic value"),
+        )
+        print_table_summary(
+            "Commercial filter",
+            summary.get("commercial_filter"),
+            ("Opportunity", "Internal build likelihood", "Smallest wedge", "Decision"),
         )
         print_list("Evidence gaps", summary.get("evidence_gaps"))
 

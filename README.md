@@ -12,7 +12,7 @@ The core idea: let the model research and write, but let deterministic GitHub Ac
 
 The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
 
-The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It now looks for fragmentation-driven control-layer openings: places where new primitives or providers create manual comparison, reconciliation, routing, optimization, or execution work. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
+The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It now looks for fragmentation-driven control-layer openings: places where new primitives or providers create repeated cross-company comparison, reconciliation, routing, optimization, or execution work that is more likely to be bought than rebuilt internally. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ At a high level:
 - Cadence and rerun guards that avoid spending tokens when the research inputs have not changed.
 - Local PR-review helpers for turning a generated radar PR into a short review notification.
 - Example scopes under [`examples/`](examples/) showing how to reuse the same workflow for other research domains.
-- A weekly scheduled Opportunity Radar workflow for testing demand and first-money paths without mixing it into Architecture Radar state, with structural scoring for fragmentation, manual pain, economic value, objective measurability, execution potential, timing, competition gap, and prototype feasibility.
+- A weekly scheduled Opportunity Radar workflow for testing demand and first-money paths without mixing it into Architecture Radar state, with structural scoring plus a commercial filter for fragmented providers, multi-provider users, boundary workflows, money flow, permissionless validation, and internal-build likelihood.
 
 ## Example Output
 
@@ -238,7 +238,7 @@ The model defaults to `gpt-5.4-mini` to keep recurring cost bounded. Override re
 
 Manual runs bypass the cadence gate but still respect the rerun guard, so a same-day rerun does nothing unless `interests.md`, `watchlist.yml`, or the operating prompt changed. The `force_research` input overrides that deliberately and writes `reports/YYYY-MM-DD-supplement-N.md`.
 
-Opportunity Radar runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow. It now uses money-first selection: GitHub-only pain stays watchlisted, `sell-before-build` is a valid outcome, and build recommendations require spend, reachability, timing, buildability, source-class diversity, and a concrete paid experiment. Run it manually from `Actions -> Opportunity Radar -> Run workflow` after notable demand signals or when validating a specific opportunity hypothesis.
+Opportunity Radar runs weekly on Tuesday at 05:30 UTC, which is 08:30 Europe/Moscow. It now uses money-first selection plus a commercial filter: GitHub-only pain stays watchlisted, vague provider fragmentation is insufficient, `internal_build_likelihood=high` blocks selection, and build recommendations require spend, reachability, timing, buildability, source-class diversity, permissionless validation, and a concrete paid experiment. Run it manually from `Actions -> Opportunity Radar -> Run workflow` after notable demand signals or when validating a specific opportunity hypothesis.
 
 Weekly Synthesis runs separately from discovery. It reads committed radar artifacts and writes `weekly-reports/YYYY-Www.md` with pattern movement, topic coverage, repeated candidates or signals, evidence gaps, and one next-week focus. Run it from `Actions -> Weekly Synthesis -> Run workflow`, or let the weekly schedule open a synthesis PR.
 

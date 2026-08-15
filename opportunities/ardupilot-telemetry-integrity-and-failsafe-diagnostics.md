@@ -98,6 +98,36 @@ Ask one integrator or three operators to upload logs for a paid telemetry-integr
 - github
 - forum
 
+## Fragmented Providers
+ArduPilot firmware, ESC telemetry, DShot or BDShot counters, ground-control software, logs, failsafe configuration, and operator procedures fragment the evidence surface.
+
+## Multi-Provider User
+Drone operators bridge flight-controller firmware, ESC hardware telemetry, ground-control tools, log analyzers, and integrator practices, but paid multi-vendor buyer evidence is weak.
+
+## Boundary Workflow
+The boundary workflow is reconciling flight logs, telemetry counters, failsafe events, hardware behavior, and operator annotations after flights or tests.
+
+## Build-vs-buy Reason
+This is close to operational safety and integrator know-how, so serious operators may prefer internal scripts unless an external report proves trust and accuracy.
+
+## Internal Build Likelihood
+high
+
+## Money Flow
+Money flows through drone operations, integrator work, hardware, and safety review time, but direct public spend on external telemetry diagnostics was not found.
+
+## Recurrence
+The workflow recurs across flight tests, tuning sessions, telemetry changes, failures, and incident reviews.
+
+## Permissionless Validation
+Useful validation likely needs representative private flight logs; public-only examples can show format handling but not operator-grade usefulness.
+
+## Smallest Wedge
+Telemetry-integrity report for one uploaded log set that flags packet loss, failsafe transitions, and suspicious telemetry gaps.
+
+## Intermediary Maturity
+Immature as an external commercial layer, while community tooling and operator-specific scripts already cover parts of the workflow.
+
 ## Paid Wedge
 Unclear; telemetry integrity pain is visible, but there is no direct public proof that teams pay for external log diagnostics.
 

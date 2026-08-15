@@ -101,6 +101,36 @@ Sell a paid checkpoint audit/report to one LangGraph-heavy team. Deliver a one-p
 - job
 - news
 
+## Fragmented Providers
+LangGraph runtime, checkpointer packages, LangSmith observability, hosted platform paths, and storage backends create several operational provider surfaces rather than one stable workflow.
+
+## Multi-Provider User
+LangGraph-heavy teams may use runtime libraries, hosted traces, storage backends, deployment platforms, and incident tools together, but independent multi-provider buyer evidence is still not proven.
+
+## Boundary Workflow
+Teams reconcile checkpoint records, trace exports, storage growth, replay behavior, issue evidence, and platform settings across runtime, observability, and persistence boundaries.
+
+## Build-vs-buy Reason
+A narrow audit could be bought by small teams or consultants because it is repeated operational glue, but larger platform teams could build internal diagnostics themselves.
+
+## Internal Build Likelihood
+medium
+
+## Money Flow
+Budget flows through LangGraph adoption, LangSmith or platform spend, observability tooling, and agent engineering time, but direct external checkpoint-audit spend is not proven.
+
+## Recurrence
+The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.
+
+## Permissionless Validation
+A first report can be tested with public examples, synthetic checkpoint traces, and exported local workflows before asking for private customer traces.
+
+## Smallest Wedge
+Checkpoint audit report for one exported workflow that compares storage growth, replay fidelity, duplicate execution risk, and saver configuration.
+
+## Intermediary Maturity
+Partial: LangSmith and platform observability exist, while independent checkpoint-cost and replay-risk audit tooling remains immature.
+
 ## Paid Wedge
 Reduce engineering time and infrastructure waste caused by checkpoint bloat, duplicate execution, and persistence failures in LangGraph production workflows.
 
@@ -120,7 +150,7 @@ report
 team
 
 ## Do Not Build Until
-At least one team pays for a checkpoint audit, or three teams ask for a sample report and provide a real workflow export.
+At least one team pays for a checkpoint audit, or three teams prove cross-company trace, storage, and observability reconciliation is a recurring budgeted workflow.
 
 ## Proposed Offer
 A paid checkpoint audit that measures storage growth, query count, replay fidelity, and duplicate-run risk.
@@ -137,4 +167,4 @@ No team will share a sanitized trace export, or the audit is redundant with exis
 - No proof yet that the audit should expand into a product.
 
 ## Decision
-Sell before build. Keep the scope limited to an audit/report until the paid experiment is validated.
+Watchlisted. Do not sell or build until cross-company trace, storage, and observability reconciliation is proven as a recurring budgeted workflow.

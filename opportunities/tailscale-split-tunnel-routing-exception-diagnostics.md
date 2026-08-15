@@ -101,6 +101,36 @@ Offer a paid routing-policy review to three admins and ask whether the output wo
 - pricing
 - product
 
+## Fragmented Providers
+Tailscale, Mullvad-style VPN use, OS routing tables, DNS controls, app connectors, and legacy VPN expectations create fragmented networking surfaces.
+
+## Multi-Provider User
+Admins and power users can combine Tailscale with other VPNs, OS routing, DNS providers, and app-specific exceptions, but direct budgeted multi-provider diagnostic demand remains weak.
+
+## Boundary Workflow
+The boundary workflow is explaining route, DNS, exit-node, browser, and app-connector behavior across overlay network, VPN, OS, and SaaS policy layers.
+
+## Build-vs-buy Reason
+A policy review is non-core admin glue for small teams, but Tailscale or incumbent network tooling could absorb the diagnostic path upstream.
+
+## Internal Build Likelihood
+medium
+
+## Money Flow
+Money flows through Tailscale paid plans, enterprise network administration, and VPN subscriptions, but direct external routing-diagnostic spend is not proven.
+
+## Recurrence
+The workflow recurs during rollout, device enrollment, routing-policy changes, app-connector changes, DNS changes, and mixed-VPN troubleshooting.
+
+## Permissionless Validation
+A first test can use public docs, synthetic route tables, sample DNS policies, and local repro scripts without needing private production networks.
+
+## Smallest Wedge
+Routing-policy review report for one exit-node, split-DNS, or app-connector scenario that predicts likely exception failures.
+
+## Intermediary Maturity
+Partial to high: admin consoles and docs exist, so an external review wedge has high commoditization risk unless buyers confirm pain.
+
 ## Paid Wedge
 Unclear; public issues show repeated routing pain, but not a specific budget owner or paid diagnostic workflow.
 
