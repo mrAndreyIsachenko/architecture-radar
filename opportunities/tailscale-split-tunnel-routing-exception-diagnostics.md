@@ -12,6 +12,50 @@ Public Tailscale issues repeatedly ask for domain, app, and device exceptions to
 - M4 workaround evidence: `#3506` (2021-12-05) shows users disabling Tailscale DNS settings or manually manipulating DNS search order to cope.
 - M3 competitor proof: the macOS split-tunneling request explicitly points to PIA as an open-source example that already implements the feature.
 
+## Structural Pattern
+Routing-policy audit layer for VPN and overlay-network fragmentation across exit nodes, split DNS, app connectors, and competing VPN behaviors.
+
+## Primitive Growth
+Tailscale has expanded visible routing primitives around exit nodes, app connectors, split DNS, ACL policy, and paid team or enterprise plans.
+
+## Fragmentation
+Admin choices are fragmented across OS routing, Tailscale exit-node behavior, DNS overrides, app connectors, browser or app exceptions, and legacy VPN expectations.
+
+## Manual Workflow
+Admins manually compare docs, issue threads, device routing tables, DNS behavior, and policy settings to explain why traffic exits through the wrong path.
+
+## Objective Function
+Minimize broken routing and DNS exceptions while preserving security policy, expected app reachability, and administrator control.
+
+## Execution Ladder
+- Observe: Read public policy snippets, device route state, DNS configuration, app connector settings, and exit-node selection rules.
+- Recommend: Explain mismatched routes, DNS exceptions, and risky split-tunnel assumptions before rollout.
+- Choose: Rank routing-policy alternatives against reachability, privacy, security, and admin-maintenance constraints.
+- Execute: Generate review output or policy diffs for admin approval; automatic network changes remain outside the first wedge.
+
+## Economic Pain
+The cost is admin rollout time, productivity loss from broken access, and security risk when users bypass or misconfigure routing policy.
+
+## Timing Reason
+Tailscale routing primitives, pricing, and docs became more productized in 2025-2026, but public threads still show split-tunnel and exception confusion.
+
+## Competitors
+- Tailscale admin console
+- Tailscale docs and community support
+- network-debugging scripts
+- incumbent VPN management consoles
+
+## Structural Scores
+- Fragmentation: 4
+- Manual pain: 4
+- Economic value: 3
+- Objective measurability: 3
+- Execution potential: 3
+- Timing: 3
+- Competition gap: 2
+- Prototype feasibility: 3
+- Total: 6
+
 ## Repeated Pain Or Demand Signal
 Users want fine-grained control over where traffic goes, but the current model still forces coarse app exclusion, DNS hacks, or alternative VPNs for everyday web traffic.
 
@@ -20,6 +64,42 @@ IT admins, security-conscious teams, and power users managing laptops, phones, a
 
 ## Current Workaround Or Money Signal
 People disable MagicDNS, use App Connectors, exclude the browser, or switch to other VPN products when Tailscale routing does not fit the workflow.
+
+## Technology Shift
+- What changed: Tailscale's exit-node, app-connector, and DNS docs now formalize routing choices, while pricing and enterprise plans make the product a budgeted admin tool.
+- When: 2025-12-05 through 2026-08-11, with pricing and documentation refreshed in 2026.
+- Old constraint: routing exceptions were debugged with ad hoc DNS changes, browser exclusions, or forum workarounds.
+- New capability: admins can now reason about exit nodes, app connectors, split DNS, and plan-level features from public docs and pricing pages.
+- Cost delta: unclear; public pricing proves budget attachment, but no dedicated diagnostic spend is visible.
+- Quality delta: better routing control exists, but the public issues still show mismatch and regression risk.
+- Latency delta: unclear.
+- Accessibility delta: public docs and issue threads make the problem reachable, but the buyer path is still fuzzy.
+- Affected workflows: exit-node rollout validation, split-tunnel policy debugging, DNS override troubleshooting, and mixed VPN administration.
+
+## Buyer
+IT admins, security-conscious teams, and power users managing laptops, phones, and exit-node policies.
+
+## Expensive Workflow
+Admins lose rollout time diagnosing split-tunnel routing exceptions, DNS behavior, and mixed-VPN conflicts.
+
+## Existing Spend
+Tailscale has public paid plans and enterprise features, and users already rely on app connectors, DNS overrides, or other VPNs when routing does not match the workflow.
+
+## Paid Experiment
+Offer a paid routing-policy review to three admins and ask whether the output would prevent rollout mistakes; success is one paid review or three clear requests for a sample report.
+
+## Money-First Scores
+- Pain: 4
+- Spend: 2
+- Reachability: 3
+- Timing: 3
+- Buildability: 3
+
+## Source Classes
+- github
+- docs
+- pricing
+- product
 
 ## Paid Wedge
 Unclear; public issues show repeated routing pain, but not a specific budget owner or paid diagnostic workflow.
