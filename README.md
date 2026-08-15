@@ -250,7 +250,7 @@ The local PR-review heartbeat should use the repository helper before deciding w
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-It checks open `Architecture Radar YYYY-MM-DD` pull requests before reporting no work, mirrors the workflow cadence from the same anchor date, returns `DONT_NOTIFY` while a due scheduled run is missing, queued, or in progress, includes failed-run excerpts, summarizes fresh radar PRs from GitHub metadata plus changed report files, and emits a `looks_mergeable` or `needs_manual_review` recommendation.
+By default it checks both `Architecture Radar YYYY-MM-DD` and `Opportunity Radar YYYY-MM-DD` pull requests before reporting no work. It mirrors the Architecture Radar 3-day cadence, waits through the Opportunity Radar Tuesday schedule delay, includes failed-run excerpts, summarizes fresh PRs from GitHub metadata plus changed report files, and emits a `looks_mergeable` or `needs_manual_review` recommendation. Use `--radar architecture` or `--radar opportunity` to limit the check.
 
 Lower-level helpers are still available when needed. After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
 
@@ -262,6 +262,12 @@ Or summarize an open radar PR directly from GitHub metadata and changed report f
 
 ```bash
 python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
+```
+
+For an Opportunity Radar PR:
+
+```bash
+python3 scripts/summarize-opportunity-pr.py PR_NUMBER --format markdown
 ```
 
 Weekly synthesis PRs are intentionally small: review the single report under `weekly-reports/` and check whether the next-week focus follows from existing evidence rather than fresh discovery.

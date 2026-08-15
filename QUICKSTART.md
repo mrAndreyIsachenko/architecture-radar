@@ -155,9 +155,10 @@ After a successful run, the workflow opens a PR titled like:
 
 ```text
 Architecture Radar YYYY-MM-DD
+Opportunity Radar YYYY-MM-DD
 ```
 
-Use the helper locally to summarize what changed:
+Use the helper locally to summarize what changed across generated radar PRs:
 
 ```bash
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
@@ -167,6 +168,12 @@ For a specific open PR:
 
 ```bash
 python3 scripts/summarize-radar-pr.py PR_NUMBER --format markdown
+```
+
+For a specific Opportunity Radar PR:
+
+```bash
+python3 scripts/summarize-opportunity-pr.py PR_NUMBER --format markdown
 ```
 
 After checking out the PR branch, summarize the report directly:
