@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single entrypoint for the local Architecture Radar PR-review heartbeat."""
+"""Single entrypoint for the local generated radar PR-review heartbeat."""
 
 from __future__ import annotations
 
@@ -12,11 +12,12 @@ from pathlib import Path
 
 
 DEFAULT_REPO = "mrAndreyIsachenko/architecture-radar"
-DEFAULT_WORKFLOW = "architecture-radar.yml"
+DEFAULT_ARCHITECTURE_WORKFLOW = "architecture-radar.yml"
 DEFAULT_TZ = "Europe/Moscow"
 DEFAULT_ANCHOR = "2026-08-02"
 DEFAULT_CADENCE_DAYS = 3
 DEFAULT_SCHEDULE_HOUR_UTC = 5
+DEFAULT_SCHEDULE_MINUTE_UTC = 0
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -30,12 +31,26 @@ def load_module(name: str, path: Path):
 
 status_helper = load_module("radar_pr_review_status", ROOT / "scripts" / "radar-pr-review-status.py")
 pr_summary_helper = load_module("summarize_radar_pr", ROOT / "scripts" / "summarize-radar-pr.py")
+opportunity_pr_summary_helper = load_module(
+    "summarize_opportunity_pr",
+    ROOT / "scripts" / "summarize-opportunity-pr.py",
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default=os.environ.get("ARCHITECTURE_RADAR_REPOSITORY", DEFAULT_REPO))
-    parser.add_argument("--workflow", default=os.environ.get("ARCHITECTURE_RADAR_WORKFLOW", DEFAULT_WORKFLOW))
+    parser.add_argument(
+        "--radar",
+        choices=("all", "architecture", "opportunity"),
+        default=os.environ.get("RADAR_PR_REVIEW_RADAR", "all"),
+        help="Radar profile to check. Defaults to both Architecture and Opportunity Radar.",
+    )
+    parser.add_argument(
+        "--workflow",
+        default=os.environ.get("RADAR_PR_REVIEW_WORKFLOW"),
+        help="Override workflow file for a single selected radar profile.",
+    )
     parser.add_argument("--timezone", default=os.environ.get("ARCHITECTURE_RADAR_TIMEZONE", DEFAULT_TZ))
     parser.add_argument("--now", help="Current time as ISO-8601. Defaults to real current UTC time.")
     parser.add_argument(
@@ -52,6 +67,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=int(os.environ.get("ARCHITECTURE_RADAR_SCHEDULE_HOUR_UTC", str(DEFAULT_SCHEDULE_HOUR_UTC))),
     )
+    parser.add_argument(
+        "--schedule-minute-utc",
+        type=int,
+        default=int(os.environ.get("ARCHITECTURE_RADAR_SCHEDULE_MINUTE_UTC", str(DEFAULT_SCHEDULE_MINUTE_UTC))),
+    )
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--include-failed-log", action="store_true")
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
@@ -61,12 +81,14 @@ def parse_args() -> argparse.Namespace:
 def status_args(args: argparse.Namespace) -> Namespace:
     return Namespace(
         repo=args.repo,
+        radar=args.radar,
         workflow=args.workflow,
         timezone=args.timezone,
         now=args.now,
         cadence_anchor=args.cadence_anchor,
         cadence_days=args.cadence_days,
         schedule_hour_utc=args.schedule_hour_utc,
+        schedule_minute_utc=args.schedule_minute_utc,
         limit=args.limit,
         format="json",
         include_failed_log=args.include_failed_log,
@@ -92,7 +114,14 @@ def build_review(args: argparse.Namespace) -> dict[str, object]:
     for pr in fresh_prs:
         if not isinstance(pr, dict) or not pr.get("number"):
             continue
-        overviews.append(pr_summary_helper.summarize_pr(args.repo, str(pr["number"])))
+        radar = str(pr.get("radar") or "architecture")
+        if radar == "opportunity":
+            overviews.append(opportunity_pr_summary_helper.summarize_pr(args.repo, str(pr["number"])))
+        else:
+            overview = pr_summary_helper.summarize_pr(args.repo, str(pr["number"]))
+            if isinstance(overview, dict):
+                overview["radar"] = "architecture"
+            overviews.append(overview)
 
     review["pr_overviews"] = overviews
     return review
@@ -114,6 +143,18 @@ def emit_markdown(review: dict[str, object]) -> None:
     print(f"Status: {status.get('status')}")
     print(f"Message: {message}")
 
+    radars = status.get("radars") or []
+    if isinstance(radars, list) and radars:
+        print("Radar statuses:")
+        for radar_status in radars:
+            if isinstance(radar_status, dict):
+                print(
+                    "- "
+                    f"{radar_status.get('radar_label')}: "
+                    f"{radar_status.get('status')}/{radar_status.get('notification')} - "
+                    f"{radar_status.get('message')}"
+                )
+
     latest_run = status.get("latest_run") or {}
     if isinstance(latest_run, dict) and latest_run:
         print(
@@ -129,10 +170,25 @@ def emit_markdown(review: dict[str, object]) -> None:
         for line in failed_log_excerpt:
             print(f"- {line}")
 
+    failed_runs = status.get("failed_runs") or []
+    if isinstance(failed_runs, list) and failed_runs:
+        for failed in failed_runs:
+            if not isinstance(failed, dict):
+                continue
+            excerpt = failed.get("failed_log_excerpt") or []
+            if isinstance(excerpt, list) and excerpt:
+                print(f"Failure excerpt for {failed.get('radar_label')}:")
+                for line in excerpt:
+                    print(f"- {line}")
+
     overviews = review.get("pr_overviews") or []
     for overview in overviews:
-        if isinstance(overview, dict):
-            print()
+        if not isinstance(overview, dict):
+            continue
+        print()
+        if overview.get("radar") == "opportunity":
+            opportunity_pr_summary_helper.emit_markdown(overview)
+        else:
             pr_summary_helper.emit_markdown(overview)
 
 

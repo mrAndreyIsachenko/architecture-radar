@@ -16,15 +16,17 @@ assert spec.loader is not None
 spec.loader.exec_module(radar)
 
 
-def args(now: str, *, include_failed_log: bool = False) -> Namespace:
+def args(now: str, *, radar_kind: str = "architecture", include_failed_log: bool = False) -> Namespace:
     return Namespace(
         repo="mrAndreyIsachenko/architecture-radar",
-        workflow="architecture-radar.yml",
+        radar=radar_kind,
+        workflow=None,
         timezone="Europe/Moscow",
         now=now,
         cadence_anchor="2026-08-02",
         cadence_days=3,
         schedule_hour_utc=5,
+        schedule_minute_utc=0,
         limit=20,
         format="json",
         include_failed_log=include_failed_log,
@@ -76,6 +78,17 @@ def pr(*, title: str = "Architecture Radar 2026-08-11", head: str = "architectur
     }
 
 
+def opportunity_pr(
+    *,
+    title: str = "Opportunity Radar 2026-08-11",
+    head: str = "opportunity-radar/2026-08-11-42",
+) -> dict[str, object]:
+    item = pr(title=title, head=head)
+    item["number"] = 51
+    item["url"] = "https://github.com/example/pull/51"
+    return item
+
+
 class RadarPrReviewStatusTest(unittest.TestCase):
     def build(
         self,
@@ -97,6 +110,13 @@ class RadarPrReviewStatusTest(unittest.TestCase):
         self.assertTrue(radar.is_radar_pr(pr(title="Architecture Radar 2026-08-11", head="feature/other")))
         self.assertTrue(radar.is_radar_pr(pr(title="Maintenance", head="architecture-radar/2026-08-11-42")))
         self.assertFalse(radar.is_radar_pr(pr(title="Maintenance", head="feature/other")))
+
+    def test_opportunity_pr_detection_accepts_title_or_branch(self) -> None:
+        profile = radar.PROFILES["opportunity"]
+
+        self.assertTrue(radar.is_profile_pr(opportunity_pr(title="Opportunity Radar 2026-08-11", head="feature/other"), profile))
+        self.assertTrue(radar.is_profile_pr(opportunity_pr(title="Maintenance", head="opportunity-radar/2026-08-11-42"), profile))
+        self.assertFalse(radar.is_profile_pr(pr(title="Architecture Radar 2026-08-11"), profile))
 
     def test_fresh_pr_wins_before_schedule_waiting_logic(self) -> None:
         status = self.build("2026-08-11T06:30:00Z", runs=[], prs=[pr()])
@@ -149,6 +169,62 @@ class RadarPrReviewStatusTest(unittest.TestCase):
 
         self.assertEqual(status["status"], "no_pr")
         self.assertEqual(status["notification"], "INFO")
+
+    def test_opportunity_waits_after_due_time_when_weekly_schedule_run_is_missing(self) -> None:
+        with (
+            patch.object(radar, "list_runs", return_value=[]),
+            patch.object(radar, "list_prs", return_value=[]),
+        ):
+            status = radar.build_status(args("2026-08-11T06:30:00Z", radar_kind="opportunity"))
+
+        self.assertEqual(status["status"], "waiting")
+        self.assertEqual(status["notification"], "DONT_NOTIFY")
+        self.assertIn("has not appeared", status["message"])
+
+    def test_opportunity_does_not_wait_on_non_due_day(self) -> None:
+        with (
+            patch.object(radar, "list_runs", return_value=[]),
+            patch.object(radar, "list_prs", return_value=[]),
+        ):
+            status = radar.build_status(args("2026-08-12T06:30:00Z", radar_kind="opportunity"))
+
+        self.assertEqual(status["status"], "no_pr")
+        self.assertEqual(status["notification"], "INFO")
+
+    def test_failed_latest_opportunity_run_is_reported(self) -> None:
+        with (
+            patch.object(
+                radar,
+                "list_runs",
+                return_value=[run(database_id=50, created_at="2026-08-12T05:30:00Z", conclusion="failure")],
+            ),
+            patch.object(radar, "list_prs", return_value=[]),
+            patch.object(radar, "failed_log_excerpt", return_value=["Process completed with exit code 2."]),
+        ):
+            status = radar.build_status(args("2026-08-12T10:00:00Z", radar_kind="opportunity", include_failed_log=True))
+
+        self.assertEqual(status["status"], "failed_run")
+        self.assertEqual(status["notification"], "REPORT")
+        self.assertEqual(status["radar"], "opportunity")
+        self.assertEqual(status["failed_log_excerpt"], ["Process completed with exit code 2."])
+
+    def test_combined_default_detects_opportunity_pr(self) -> None:
+        with (
+            patch.object(
+                radar,
+                "list_runs",
+                side_effect=[
+                    [run(database_id=1, created_at="2026-08-14T05:30:00Z", conclusion="success")],
+                    [run(database_id=2, created_at="2026-08-11T05:30:00Z", conclusion="success")],
+                ],
+            ),
+            patch.object(radar, "list_prs", return_value=[opportunity_pr()]),
+        ):
+            status = radar.build_status(args("2026-08-15T08:00:00Z", radar_kind="all"))
+
+        self.assertEqual(status["status"], "fresh_pr")
+        self.assertEqual(status["notification"], "REVIEW")
+        self.assertEqual(status["fresh_prs"][0]["radar"], "opportunity")
 
 
 if __name__ == "__main__":
