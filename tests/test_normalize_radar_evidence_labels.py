@@ -52,6 +52,40 @@ class NormalizeRadarEvidenceLabelsTest(unittest.TestCase):
         self.assertEqual(0, changed)
         self.assertEqual(text, normalized)
 
+    def test_candidate_ledger_repository_url_alias_is_normalized(self) -> None:
+        text = "\n".join(
+            [
+                "## Candidate Ledger",
+                "",
+                "| Repository | Repository URL | Commit | Discovery source | Family | Stage | Decision |",
+                "|---|---|---|---|---|---|---|",
+                "| `owner/repo` | https://github.com/owner/repo | `abc` | search | `ai-llm-systems` | triaged | selected |",
+                "",
+            ]
+        )
+
+        normalized, changed = normalizer.normalize_text(text)
+
+        self.assertEqual(1, changed)
+        self.assertIn("| Repository | URL | Commit | Discovery source | Family | Stage | Decision |", normalized)
+
+    def test_candidate_ledger_without_url_like_alias_is_left_for_validation(self) -> None:
+        text = "\n".join(
+            [
+                "## Candidate Ledger",
+                "",
+                "| Repository | Commit | Discovery source | Family | Stage | Decision |",
+                "|---|---|---|---|---|---|",
+                "| `owner/repo` | `abc` | search | `ai-llm-systems` | triaged | selected |",
+                "",
+            ]
+        )
+
+        normalized, changed = normalizer.normalize_text(text)
+
+        self.assertEqual(0, changed)
+        self.assertEqual(text, normalized)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,6 +12,25 @@ E1 = "E1 source verified"
 E2 = "E2 test verified"
 E3 = "E3 maintainer stated"
 BACKTICK_RE = re.compile(r"`([^`]+)`")
+CANDIDATE_LEDGER_SECTION = "Candidate Ledger"
+CANDIDATE_LEDGER_REQUIRED_COLUMNS = {
+    "Repository",
+    "URL",
+    "Commit",
+    "Discovery source",
+    "Family",
+    "Stage",
+    "Decision",
+}
+CANDIDATE_LEDGER_URL_ALIASES = {
+    "Repository URL",
+    "Repo URL",
+    "Source URL",
+    "Project URL",
+    "GitHub URL",
+    "GitHub",
+    "Link",
+}
 
 
 def run_git(args: list[str]) -> subprocess.CompletedProcess[str]:
@@ -115,6 +134,57 @@ def normalize_text(text: str) -> tuple[str, int]:
             line = line.replace(E1, replacement)
             changed += 1
         lines.append(line)
+    normalized, ledger_changes = normalize_candidate_ledger_url_headers("".join(lines))
+    return normalized, changed + ledger_changes
+
+
+def split_table_row(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def table_row_line(cells: list[str], original_line: str) -> str:
+    newline = "\n" if original_line.endswith("\n") else ""
+    return "| " + " | ".join(cells) + " |" + newline
+
+
+def normalize_candidate_ledger_header_line(line: str) -> tuple[str, int]:
+    header = split_table_row(line)
+    if "URL" in header:
+        return line, 0
+
+    header_set = set(header)
+    required_without_url = CANDIDATE_LEDGER_REQUIRED_COLUMNS - {"URL"}
+    if not required_without_url.issubset(header_set):
+        return line, 0
+
+    alias_indexes = [index for index, column in enumerate(header) if column in CANDIDATE_LEDGER_URL_ALIASES]
+    if len(alias_indexes) != 1:
+        return line, 0
+
+    normalized = list(header)
+    normalized[alias_indexes[0]] = "URL"
+    return table_row_line(normalized, line), 1
+
+
+def normalize_candidate_ledger_url_headers(text: str) -> tuple[str, int]:
+    changed = 0
+    in_candidate_ledger = False
+    lines: list[str] = []
+
+    for line in text.splitlines(keepends=True):
+        section_match = re.match(r"^##\s+(.+?)\s*$", line.strip())
+        if section_match:
+            in_candidate_ledger = section_match.group(1) == CANDIDATE_LEDGER_SECTION
+            lines.append(line)
+            continue
+
+        if in_candidate_ledger and line.lstrip().startswith("|"):
+            line, line_changed = normalize_candidate_ledger_header_line(line)
+            changed += line_changed
+            in_candidate_ledger = False
+
+        lines.append(line)
+
     return "".join(lines), changed
 
 
@@ -132,12 +202,12 @@ def main() -> int:
         changed = normalize_file(path)
         if changed:
             total += changed
-            print(f"normalized {changed} evidence label(s) in {path.relative_to(ROOT)}")
+            print(f"normalized {changed} radar artifact issue(s) in {path.relative_to(ROOT)}")
 
     if total == 0:
-        print("no radar evidence labels needed normalization")
+        print("no radar artifact normalization needed")
     else:
-        print(f"normalized {total} radar evidence label(s)")
+        print(f"normalized {total} radar artifact issue(s)")
     return 0
 
 
