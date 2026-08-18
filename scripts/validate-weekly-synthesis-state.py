@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import json
 import re
 import subprocess
 import sys
@@ -22,6 +23,61 @@ REQUIRED_REPORT_SECTIONS = {
     "Evidence Gaps",
     "Next Week Focus",
 }
+
+ACTIVE_OPPORTUNITY_SECTIONS = {
+    "Decisions And Experiments",
+    "Next Week Focus",
+}
+
+ACTIVE_OPPORTUNITY_LANGUAGE = re.compile(
+    r"\b("
+    r"active\s+(?:next[- ]week\s+)?(?:experiment|work|next[- ]step|focus)"
+    r"|next[- ]week\s+(?:focus|experiment|work)"
+    r"|next[- ]step\s+experiment"
+    r"|selected[- ]for[- ]build"
+    r"|paid\s+(?:pilot|audit|review|experiment)"
+    r"|build(?:ing)?"
+    r"|run(?:ning)?"
+    r"|sell(?:ing)?"
+    r"|ship(?:ping)?"
+    r"|implement(?:ing)?"
+    r"|prototype"
+    r"|launch"
+    r"|test(?:ing)?"
+    r"|offer"
+    r"|prioriti[sz]e"
+    r"|execute"
+    r")\b",
+    re.IGNORECASE,
+)
+
+NON_ACTIVE_FRAMING = re.compile(
+    r"\b("
+    r"watchlisted"
+    r"|watchlist"
+    r"|deferred"
+    r"|blocked"
+    r"|not\s+selected"
+    r"|not\s+ready"
+    r"|do_not_build_until"
+    r"|do\s+not\s+build"
+    r"|do\s+not\s+recommend"
+    r"|must\s+not"
+    r"|should\s+not"
+    r"|cannot\s+(?:be\s+)?(?:select|build|run|sell|test|ship|launch)"
+    r"|can't\s+(?:be\s+)?(?:select|build|run|sell|test|ship|launch)"
+    r"|no\s+active"
+    r"|no\s+opportunit"
+    r"|requires?\s+validation"
+    r"|requiring\s+validation"
+    r"|pending\s+validation"
+    r"|before\s+build\s+work"
+    r"|evidence\s+gap"
+    r"|insufficient"
+    r"|not\s+enough\s+evidence"
+    r")\b",
+    re.IGNORECASE,
+)
 
 
 def fail(message: str) -> None:
@@ -105,6 +161,82 @@ def markdown_sections(text: str) -> dict[str, str]:
     return {name: "\n".join(lines).strip() for name, lines in sections.items()}
 
 
+def opportunity_state_path() -> Path:
+    return ROOT / "opportunities.json"
+
+
+def load_opportunity_state() -> dict[str, list[dict[str, object]]]:
+    path = opportunity_state_path()
+    if not path.is_file():
+        return {"selected": [], "deferred": [], "watchlisted": []}
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        fail(f"invalid opportunities.json: {exc}")
+
+    state: dict[str, list[dict[str, object]]] = {}
+    for bucket in ("selected", "deferred", "watchlisted"):
+        entries = data.get(bucket, [])
+        if not isinstance(entries, list):
+            fail(f"opportunities.json field must be a list: {bucket}")
+        state[bucket] = [entry for entry in entries if isinstance(entry, dict)]
+    return state
+
+
+def slugify(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def opportunity_identifiers(entry: dict[str, object]) -> set[str]:
+    identifiers: set[str] = set()
+    for key in ("id", "title", "file"):
+        value = entry.get(key)
+        if isinstance(value, str) and value.strip():
+            identifiers.add(value.lower())
+            identifiers.add(slugify(value))
+            if key == "file":
+                identifiers.add(Path(value).stem.lower())
+
+    return {identifier for identifier in identifiers if identifier}
+
+
+def line_mentions_opportunity(line: str, entry: dict[str, object]) -> bool:
+    lowered = line.lower()
+    return any(identifier in lowered for identifier in opportunity_identifiers(entry))
+
+
+def active_line_is_allowed(line: str) -> bool:
+    return bool(NON_ACTIVE_FRAMING.search(line))
+
+
+def validate_opportunity_state_alignment(path: Path, sections: dict[str, str]) -> None:
+    state = load_opportunity_state()
+    selected = state["selected"]
+    non_selected = state["deferred"] + state["watchlisted"]
+
+    for section_name in ACTIVE_OPPORTUNITY_SECTIONS:
+        section_text = sections.get(section_name, "")
+        for raw_line in section_text.splitlines():
+            line = raw_line.strip()
+            if not line or not ACTIVE_OPPORTUNITY_LANGUAGE.search(line):
+                continue
+
+            if not selected and "opportunit" in line.lower() and not active_line_is_allowed(line):
+                fail(
+                    f"{path.relative_to(ROOT)} {section_name} recommends active opportunity work "
+                    "while opportunities.json.selected is empty"
+                )
+
+            for entry in non_selected:
+                if line_mentions_opportunity(line, entry) and not active_line_is_allowed(line):
+                    title = entry.get("title") or entry.get("id") or "<unknown>"
+                    fail(
+                        f"{path.relative_to(ROOT)} {section_name} recommends non-selected opportunity "
+                        f"as active work: {title}"
+                    )
+
+
 def validate_weekly_report(path: Path) -> None:
     if not path.is_file():
         fail(f"missing weekly synthesis report: {path.relative_to(ROOT)}")
@@ -129,6 +261,8 @@ def validate_weekly_report(path: Path) -> None:
     next_focus = sections["Next Week Focus"].strip()
     if len(next_focus) < 40:
         fail(f"{path.relative_to(ROOT)} Next Week Focus is too short")
+
+    validate_opportunity_state_alignment(path, sections)
 
 
 def validate_workspace() -> None:
