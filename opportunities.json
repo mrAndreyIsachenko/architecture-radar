@@ -1,16 +1,14 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-11",
+  "generated_at": "2026-08-18",
   "discovery_mode": "mixed",
-  "selected": [],
-  "deferred": [],
-  "watchlisted": [
+  "selected": [
     {
       "id": "langgraph-checkpoint-persistence-and-cost-diagnostics",
       "family": "ai-llm-demand",
       "title": "LangGraph Checkpoint Persistence And Cost Diagnostics",
       "file": "opportunities/langgraph-checkpoint-persistence-and-cost-diagnostics.md",
-      "stage": "watchlisted",
+      "stage": "sell-before-build",
       "score": 9,
       "pain_score": 5,
       "spend_score": 3,
@@ -20,11 +18,11 @@
       "confidence": "medium-high",
       "money_signal": "medium",
       "reachability": "high",
-      "evidence_count": 6,
+      "evidence_count": 8,
       "next_test": "Offer a paid checkpoint audit to one LangGraph-heavy team and ask for a sample workflow or trace export; success is one paid pilot or three qualified review requests in 7 days.",
       "technology_shift": {
         "what_changed": "LangGraph moved from a niche framework to a production agent runtime with checkpointer libraries, LangGraph Platform, observability docs, and visible hiring demand for agentic AI roles.",
-        "when": "2025-05-14 through 2026-08-11, with the strongest public cluster in 2026.",
+        "when": "2024-05-20 through 2026-08-18, with the strongest public cluster in 2026.",
         "old_constraint": "Teams had to hand-roll durable execution, checkpoint tuning, replay debugging, and agent observability.",
         "new_capability": "LangGraph now ships persistence, checkpointers, memory, and observability primitives, so a focused audit can compare default setups against production safety and cost expectations.",
         "cost_delta": "unclear; public issues show storage bloat and duplicated execution, but no direct spend line item is visible.",
@@ -78,6 +76,16 @@
         "prototype_feasibility": 4,
         "total": 8
       },
+      "fragmented_providers": "LangGraph runtime, checkpointer packages, LangSmith observability, hosted platform paths, and storage backends create several operational provider surfaces rather than one stable workflow.",
+      "multi_provider_user": "LangGraph production teams commonly combine the LangGraph runtime, LangSmith traces, and a separate checkpoint store or deployment platform, so the audit sits across more than one provider boundary.",
+      "boundary_workflow": "Teams reconcile checkpoint records, trace exports, storage growth, replay behavior, issue evidence, and platform settings across runtime, observability, and persistence boundaries.",
+      "build_vs_buy_reason": "A narrow audit could be bought by small teams or consultants because it is repeated operational glue, but larger platform teams could build internal diagnostics themselves.",
+      "internal_build_likelihood": "medium",
+      "money_flow": "Teams already pay LangChain for LangSmith or LangGraph Platform, and they also pay cloud/storage vendors plus agent engineering labor for persistence and replay operations.",
+      "recurrence": "The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.",
+      "permissionless_validation": "A first report can be tested with public examples, synthetic checkpoint traces, and exported local workflows before asking for private customer traces.",
+      "smallest_wedge": "Checkpoint audit report for one exported workflow that compares storage growth, replay fidelity, duplicate execution risk, and saver configuration.",
+      "intermediary_maturity": "Partial: LangSmith and platform observability exist, while independent checkpoint-cost and replay-risk audit tooling remains immature.",
       "paid_wedge": "Reduce engineering time and infrastructure waste caused by checkpoint bloat, duplicate execution, and persistence failures in LangGraph production workflows.",
       "distribution_channel": "Public landing page plus manual audit booking, with the report or CLI delivered after inbound interest from teams already adopting LangGraph.",
       "private_data_barrier": "public-only",
@@ -90,18 +98,11 @@
         "M1 paid demand",
         "M3 competitor proof",
         "M4 workaround evidence"
-      ],
-      "fragmented_providers": "LangGraph runtime, checkpointer packages, LangSmith observability, hosted platform paths, and storage backends create several operational provider surfaces rather than one stable workflow.",
-      "multi_provider_user": "LangGraph-heavy teams may use runtime libraries, hosted traces, storage backends, deployment platforms, and incident tools together, but independent multi-provider buyer evidence is still not proven.",
-      "boundary_workflow": "Teams reconcile checkpoint records, trace exports, storage growth, replay behavior, issue evidence, and platform settings across runtime, observability, and persistence boundaries.",
-      "build_vs_buy_reason": "A narrow audit could be bought by small teams or consultants because it is repeated operational glue, but larger platform teams could build internal diagnostics themselves.",
-      "internal_build_likelihood": "medium",
-      "money_flow": "Budget flows through LangGraph adoption, LangSmith or platform spend, observability tooling, and agent engineering time, but direct external checkpoint-audit spend is not proven.",
-      "recurrence": "The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.",
-      "permissionless_validation": "A first report can be tested with public examples, synthetic checkpoint traces, and exported local workflows before asking for private customer traces.",
-      "smallest_wedge": "Checkpoint audit report for one exported workflow that compares storage growth, replay fidelity, duplicate execution risk, and saver configuration.",
-      "intermediary_maturity": "Partial: LangSmith and platform observability exist, while independent checkpoint-cost and replay-risk audit tooling remains immature."
-    },
+      ]
+    }
+  ],
+  "deferred": [],
+  "watchlisted": [
     {
       "id": "tailscale-split-tunnel-routing-exception-diagnostics",
       "family": "privacy-networking-demand",
@@ -117,11 +118,11 @@
       "confidence": "medium",
       "money_signal": "weak",
       "reachability": "medium",
-      "evidence_count": 6,
+      "evidence_count": 8,
       "next_test": "Ask three admins whether a routing-policy review would prevent rollout mistakes, and whether they would pay for it.",
       "technology_shift": {
         "what_changed": "Tailscale's exit-node, app-connector, and DNS docs now formalize routing choices, while pricing and enterprise plans make the product a budgeted admin tool.",
-        "when": "2025-12-05 through 2026-08-11, with pricing and documentation refreshed in 2026.",
+        "when": "2023-04-03 through 2026-08-18, with pricing and documentation refreshed in 2026.",
         "old_constraint": "Routing exceptions were debugged with ad hoc DNS changes, browser exclusions, or forum workarounds.",
         "new_capability": "Admins can now reason about exit nodes, app connectors, split DNS, and plan-level features from public docs and pricing pages.",
         "cost_delta": "unclear; public pricing proves budget attachment, but no dedicated diagnostic spend is visible.",
@@ -214,11 +215,11 @@
       "confidence": "medium-low",
       "money_signal": "none-found",
       "reachability": "medium",
-      "evidence_count": 4,
+      "evidence_count": 5,
       "next_test": "Ask three operators or integrators whether they would upload representative logs for a telemetry-integrity report.",
       "technology_shift": {
         "what_changed": "Telemetry-heavy drone operations and public automation work make log integrity and diagnosis more visible as a workflow.",
-        "when": "2026-02-27 through 2026-04-24, with new public log-diagnosis discussion in 2026.",
+        "when": "2024-12-05 through 2026-08-18, with new public log-diagnosis discussion in 2026.",
         "old_constraint": "Telemetry and failsafe debugging depended on operator-specific logs and manual log inspection.",
         "new_capability": "A log analyzer or report can classify packet loss, telemetry gaps, and reliability issues if representative logs are available.",
         "cost_delta": "unclear; no public paid operator diagnostic evidence found.",

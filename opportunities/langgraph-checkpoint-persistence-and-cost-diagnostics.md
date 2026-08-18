@@ -1,16 +1,18 @@
 # LangGraph Checkpoint Persistence And Cost Diagnostics
 
 ## Opportunity Summary
-Production LangGraph teams keep hitting checkpoint bloat, replay duplication, and persistence failures. The shortest credible path to first money is a sell-before-build checkpoint audit that measures whether a workflow is safe and affordable before more agent infrastructure is added.
+Production LangGraph teams keep hitting checkpoint bloat, replay duplication, interrupt-handling gaps, and persistence failures. The shortest credible path to first money is still a sell-before-build checkpoint audit that measures whether a workflow is safe and affordable before more agent infrastructure is added.
 
 ## Evidence
-- M2 repeated pain: `#7417` (2026-04-05) reports long tool calls being silently re-dispatched from the last checkpoint on LangGraph Cloud, creating duplicate work and cost.
-- M2 repeated pain: `#7714` (2026-05-05) reports checkpoint serialization causing 85% storage bloat and 37.8% token overhead.
-- M2 repeated pain: `#6792` (2026-02-12) says resuming after interrupt re-runs prior task outputs instead of reusing completed work.
-- M2 repeated pain: `#6956` (2026-02-26) shows `get_state().next` becoming empty after a second interrupt, which breaks the expected resume path.
-- M1 paid demand: a current GoFundMe job post asks for LangGraph and production-grade agentic AI experience, showing budgeted hiring around the stack.
-- M3 competitor proof: LangChain's own blogs and docs now position LangGraph Platform, persistence, observability, and memory as production infrastructure.
-- M4 workaround evidence: public issue threads repeatedly imply custom saver tuning, debug tooling, or third-party checkpointer packages.
+- M2 repeated pain: `#7714` (2026-05-05) reports checkpoint serialization creating major storage bloat and token overhead.
+- M2 repeated pain: `#8039` (2026-06-10) reports silent duplication of node side effects after crash recovery.
+- M2 repeated pain: `#8026` (2026-06-10) says HITL workflows still require repeated manual `interrupt()` / `Command(resume=...)` handling.
+- M2 repeated pain: `#7992` (2026-06-02) shows checkpoint container aliasing can corrupt restored state across replays.
+- M2 repeated pain: `#6792` (2026-02-12) says resuming after interrupt does not reuse prior task outputs in a subgraph.
+- M2 repeated pain: `#6956` (2026-02-26) shows `get_state().next` can become empty after a second interrupt, which breaks the expected resume path.
+- M3 competitor proof: LangChain's 2026 observability and evaluation posts frame traces as the source of truth for agent debugging, which supports the market timing for a control layer around LangGraph.
+- M1 paid demand: public job posts for production agentic AI roles ask for LangGraph or equivalent orchestration, plus evaluation, observability, and reliability work.
+- M4 workaround evidence: the issue threads imply custom saver tuning, trace review, and internal scripts rather than a dedicated external checkpoint-audit product.
 
 ## Structural Pattern
 Control and diagnostic layer for production agent runtime persistence, checkpoint replay, and duplicated execution risk.
@@ -57,7 +59,7 @@ Production LangGraph usage, platformization, and public checkpoint issues cluste
 - Total: 8
 
 ## Repeated Pain Or Demand Signal
-Teams building durable AI workflows want persistence that survives interrupts, resumes, and long tool calls without inflating storage or duplicating work.
+Teams building durable AI workflows want persistence that survives interrupts, resumes, crash recovery, and long tool calls without inflating storage or duplicating work.
 
 ## Likely User Or Buyer
 Agent platform teams, internal automation teams, and consultants shipping LangGraph-backed production workflows.
@@ -67,7 +69,7 @@ Users tune checkpointers manually, switch saver backends, rely on LangSmith-styl
 
 ## Technology Shift
 - What changed: LangGraph moved from a developer framework into a production runtime with checkpointer libraries, platform hosting, and observability messaging.
-- When: 2025-05-14 through 2026-08-11, with the strongest public signals in 2026.
+- When: 2024-05-20 through 2026-08-18, with the strongest public cluster in 2026.
 - Old constraint: teams had to assemble durable execution, memory, and replay debugging on their own.
 - New capability: LangGraph now standardizes persistence and observability primitives, which makes a focused audit possible.
 - Cost delta: unclear; the public issues show storage bloat and duplicate runs, but no line-item spend is published.
@@ -105,7 +107,7 @@ Sell a paid checkpoint audit/report to one LangGraph-heavy team. Deliver a one-p
 LangGraph runtime, checkpointer packages, LangSmith observability, hosted platform paths, and storage backends create several operational provider surfaces rather than one stable workflow.
 
 ## Multi-Provider User
-LangGraph-heavy teams may use runtime libraries, hosted traces, storage backends, deployment platforms, and incident tools together, but independent multi-provider buyer evidence is still not proven.
+LangGraph production teams commonly combine the LangGraph runtime, LangSmith traces, and a separate checkpoint store or deployment platform.
 
 ## Boundary Workflow
 Teams reconcile checkpoint records, trace exports, storage growth, replay behavior, issue evidence, and platform settings across runtime, observability, and persistence boundaries.
@@ -117,7 +119,7 @@ A narrow audit could be bought by small teams or consultants because it is repea
 medium
 
 ## Money Flow
-Budget flows through LangGraph adoption, LangSmith or platform spend, observability tooling, and agent engineering time, but direct external checkpoint-audit spend is not proven.
+Teams already pay LangChain for LangSmith or LangGraph Platform, and they also pay cloud/storage vendors plus agent engineering labor for persistence and replay operations.
 
 ## Recurrence
 The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.
@@ -167,4 +169,4 @@ No team will share a sanitized trace export, or the audit is redundant with exis
 - No proof yet that the audit should expand into a product.
 
 ## Decision
-Watchlisted. Do not sell or build until cross-company trace, storage, and observability reconciliation is proven as a recurring budgeted workflow.
+Sell-before-build. Offer the checkpoint audit first; do not build a product until the paid review path is validated.
