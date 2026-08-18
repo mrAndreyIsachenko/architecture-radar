@@ -79,6 +79,20 @@ NON_ACTIVE_FRAMING = re.compile(
     re.IGNORECASE,
 )
 
+ABSOLUTE_REPO_PATH = re.compile(
+    r"(?<!https:)(?<!http:)"
+    r"("
+    r"/home/runner/work/[^\s)]+"
+    r"|/github/workspace[^\s)]*"
+    r"|/workspace/[^\s)]+"
+    r"|/Users/[^\s)]+"
+    r"|/tmp/[^\s)]+"
+    r"|/private/tmp/[^\s)]+"
+    r"|/var/folders/[^\s)]+"
+    r"|/private/var/folders/[^\s)]+"
+    r")"
+)
+
 
 def fail(message: str) -> None:
     print(f"validation error: {message}", file=sys.stderr)
@@ -210,6 +224,15 @@ def active_line_is_allowed(line: str) -> bool:
     return bool(NON_ACTIVE_FRAMING.search(line))
 
 
+def validate_repository_relative_paths(path: Path, text: str) -> None:
+    match = ABSOLUTE_REPO_PATH.search(text)
+    if match:
+        fail(
+            f"{path.relative_to(ROOT)} contains absolute runner or local filesystem path: "
+            f"{match.group(1)}"
+        )
+
+
 def validate_opportunity_state_alignment(path: Path, sections: dict[str, str]) -> None:
     state = load_opportunity_state()
     selected = state["selected"]
@@ -262,6 +285,7 @@ def validate_weekly_report(path: Path) -> None:
     if len(next_focus) < 40:
         fail(f"{path.relative_to(ROOT)} Next Week Focus is too short")
 
+    validate_repository_relative_paths(path, text)
     validate_opportunity_state_alignment(path, sections)
 
 

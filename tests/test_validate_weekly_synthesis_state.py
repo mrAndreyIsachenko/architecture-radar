@@ -93,6 +93,41 @@ class ValidateWeeklySynthesisStateTest(unittest.TestCase):
             with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_weekly_report(report)
 
+    def test_weekly_report_rejects_absolute_runner_paths(self) -> None:
+        bad_report = complete_weekly_report(
+            next_focus=(
+                "Reconcile [`repositories/example.md`]"
+                "(/home/runner/work/architecture-radar/architecture-radar/repositories/example.md) "
+                "before the next weekly report."
+            )
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "weekly-reports" / "2026-W33.md"
+            report.parent.mkdir()
+            report.write_text(bad_report, encoding="utf-8")
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_weekly_report(report)
+
+    def test_weekly_report_allows_repository_relative_links(self) -> None:
+        report_text = complete_weekly_report(
+            next_focus=(
+                "Reconcile [`repositories/example.md`](repositories/example.md) "
+                "with [`patterns/example.md`](patterns/example.md) before the next weekly report."
+            )
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "weekly-reports" / "2026-W33.md"
+            report.parent.mkdir()
+            report.write_text(report_text, encoding="utf-8")
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_weekly_report(report)
+
     def test_weekly_report_rejects_active_watchlisted_opportunity_focus(self) -> None:
         bad_report = complete_weekly_report(
             decisions=(
