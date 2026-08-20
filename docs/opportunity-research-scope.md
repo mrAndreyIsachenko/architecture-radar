@@ -23,6 +23,10 @@ Use these families for signal accounting and selection:
 - `healthcare-infrastructure-demand`
 - `logistics-industrial-demand`
 
+Priority families come from `opportunity-interests.md`. A normal Opportunity
+Radar report must account for every priority family from that file even when
+the broader research scope also lists optional ecosystems.
+
 ## Discovery Sources
 
 Use public, inspectable sources such as:

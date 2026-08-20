@@ -32,6 +32,8 @@ REQUIRED_REPORT_SECTIONS = {
     "Selected Opportunities",
     "Executive Summary",
     "Signal Ledger",
+    "Topic Coverage",
+    "Commercial Delta",
     "Structural Candidate Ranking",
     "Structural Score Breakdown",
     "Commercial Filter",
@@ -107,6 +109,20 @@ COMMERCIAL_FILTER_REQUIRED_COLUMNS = {
     "Money flow",
     "Permissionless validation",
     "Smallest wedge",
+    "Decision",
+}
+TOPIC_COVERAGE_REQUIRED_COLUMNS = {
+    "Family",
+    "Signals reviewed",
+    "Best candidate",
+    "Decision",
+    "Reason",
+}
+COMMERCIAL_DELTA_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Previous stage",
+    "Current stage",
+    "Commercial delta",
     "Decision",
 }
 
@@ -388,6 +404,66 @@ HARDWARE_VALIDATION_MARKERS = {
     "requires hardware",
 }
 PRIVATE_DATA_BLOCKING_VALUES = {"private-code-required", "private-data-required", "unclear"}
+COMMERCIAL_DELTA_MARKERS = {
+    "paid pilot",
+    "paid audit",
+    "paid review",
+    "paid request",
+    "paid follow-up",
+    "inbound request",
+    "inbound",
+    "procurement",
+    "rfp",
+    "tender",
+    "direct buyer",
+    "buyer evidence",
+    "direct spend",
+    "spend evidence",
+    "budget",
+    "contract",
+    "invoice",
+    "revenue",
+    "customer workflow",
+    "independent company",
+    "independent customer",
+    "new company",
+    "new customer",
+}
+INSUFFICIENT_COMMERCIAL_DELTA_MARKERS = {
+    "extra github",
+    "github-only",
+    "github only",
+    "more github",
+    "new github",
+    "stars only",
+    "issues only",
+    "discussions only",
+    "releases only",
+    "no new commercial",
+    "no commercial delta",
+    "unchanged",
+}
+REPEATED_FOCUS_DECISION_MARKERS = {
+    "main focus",
+    "fresh focus",
+    "recommended next test",
+    "next test",
+    "promoted",
+    "selected",
+    "selected-for-test",
+    "sell-before-build",
+    "selected-for-build",
+}
+CARRY_FORWARD_DECISION_MARKERS = {
+    "carried-forward",
+    "carry-forward",
+    "carried forward",
+    "active-experiment",
+    "active experiment",
+    "backlog",
+    "no-new-focus",
+    "no new focus",
+}
 WATCHLIST_ALLOWED_PRIORITIES = {"high", "medium", "low"}
 WATCHLIST_ALLOWED_STATUSES = {"pending", "watch", "triaged", "reviewed", "deferred", "closed"}
 WATCHLIST_ALLOWED_SIGNAL_TYPES = {
@@ -459,6 +535,33 @@ def topic_families() -> set[str]:
 
     if not families:
         fail("docs/opportunity-research-scope.md has no topic families")
+    return families
+
+
+def priority_topic_families() -> set[str]:
+    interests = require_path("opportunity-interests.md").read_text(encoding="utf-8")
+    families: set[str] = set()
+    in_accounting_section = False
+
+    for line in interests.splitlines():
+        if line.startswith("## "):
+            if in_accounting_section:
+                break
+            continue
+        if "Use these topic families for accounting:" in line:
+            in_accounting_section = True
+            continue
+        if not in_accounting_section:
+            continue
+        match = re.match(r"- `([^`]+)`", line)
+        if match:
+            families.add(match.group(1))
+
+    if not families:
+        fail("opportunity-interests.md has no priority topic families")
+    unknown = sorted(families - topic_families())
+    if unknown:
+        fail("opportunity-interests.md references unknown topic families: " + ", ".join(unknown))
     return families
 
 
@@ -659,8 +762,89 @@ def validate_signal_note_coverage(path: Path, ledger_rows: list[dict[str, str]])
         )
 
 
+def parse_nonnegative_count(value: object, path: Path, section_name: str, row_index: str, column: str) -> int:
+    text = clean_table_cell(str(value))
+    if not re.fullmatch(r"\d+", text):
+        fail(f"{path.relative_to(ROOT)} {section_name} row {row_index} column `{column}` must be a non-negative integer")
+    return int(text)
+
+
+def validate_topic_coverage_table(
+    path: Path,
+    section_text: str,
+    ledger_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    rows = parse_markdown_table(path, "Topic Coverage", section_text, TOPIC_COVERAGE_REQUIRED_COLUMNS)
+    required_families = priority_topic_families()
+    known_families = topic_families()
+    seen_families: set[str] = set()
+
+    ledger_counts: dict[str, int] = {}
+    for ledger_row in ledger_rows:
+        family = clean_table_cell(ledger_row.get("Family", ""))
+        ledger_counts[family] = ledger_counts.get(family, 0) + 1
+
+    for row in rows:
+        row_index = row["_row_index"]
+        family = clean_table_cell(row["Family"])
+        if family not in known_families:
+            fail(f"{path.relative_to(ROOT)} Topic Coverage row {row_index} has unknown family: {family}")
+        seen_families.add(family)
+
+        reviewed = parse_nonnegative_count(row["Signals reviewed"], path, "Topic Coverage", row_index, "Signals reviewed")
+        if reviewed < ledger_counts.get(family, 0):
+            fail(
+                f"{path.relative_to(ROOT)} Topic Coverage row {row_index} Signals reviewed "
+                f"is below Signal Ledger count for {family}"
+            )
+        if not clean_table_cell(row["Best candidate"]):
+            fail(f"{path.relative_to(ROOT)} Topic Coverage row {row_index} Best candidate is empty")
+        if len(clean_table_cell(row["Decision"])) < 3:
+            fail(f"{path.relative_to(ROOT)} Topic Coverage row {row_index} Decision is too short")
+        if len(clean_table_cell(row["Reason"])) < 20:
+            fail(f"{path.relative_to(ROOT)} Topic Coverage row {row_index} Reason is too short")
+
+    missing = sorted(required_families - seen_families)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Topic Coverage missing priority families: {', '.join(missing)}")
+
+    return rows
+
+
 def clean_table_cell(value: str) -> str:
     return value.strip().strip("`").strip()
+
+
+def parse_markdown_table(
+    path: Path,
+    section_name: str,
+    section_text: str,
+    required_columns: set[str],
+) -> list[dict[str, str]]:
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} {section_name} must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = required_columns - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} {section_name} missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} {section_name} has an invalid markdown separator row")
+
+    indexes = {name: header.index(name) for name in required_columns}
+    rows: list[dict[str, str]] = []
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(f"{path.relative_to(ROOT)} {section_name} row {row_index} has {len(cells)} cells, expected {len(header)}")
+        parsed = {column: clean_table_cell(cells[index]) for column, index in indexes.items()}
+        parsed["_row_index"] = str(row_index)
+        rows.append(parsed)
+
+    return rows
 
 
 def parse_int_cell(value: object, path: Path, row_index: str, column: str) -> int:
@@ -1290,6 +1474,37 @@ def read_opportunities_state() -> dict[str, object]:
     return data
 
 
+def read_opportunities_state_from_git_ref(ref: str) -> dict[str, object] | None:
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{ref}:opportunities.json"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def read_base_opportunities_state() -> dict[str, object]:
+    base_ref = os.environ.get("OPPORTUNITY_RADAR_BASE_REF") or os.environ.get("GITHUB_BASE_REF")
+    if not base_ref:
+        return {}
+
+    refs = [f"origin/{base_ref}", base_ref]
+    for ref in refs:
+        data = read_opportunities_state_from_git_ref(ref)
+        if data is not None:
+            return data
+    return {}
+
+
 def state_stage_for_entry(array_name: str, entry: dict[str, object]) -> str:
     stage = entry.get("stage")
     if stage is not None:
@@ -1320,6 +1535,99 @@ def build_state_entry_lookup(data: dict[str, object]) -> dict[str, tuple[str, in
                     fail(f"opportunities.json has duplicate opportunity lookup key: {key}")
                 lookup[key] = (array_name, index, entry)
     return lookup
+
+
+def opportunity_entry_keys(entry: dict[str, object]) -> set[str]:
+    return {
+        key
+        for key in (
+            normalize_opportunity_key(entry.get("id", "")),
+            normalize_opportunity_key(entry.get("title", "")),
+            normalize_opportunity_key(Path(str(entry.get("file", ""))).stem),
+        )
+        if key
+    }
+
+
+def selected_state_entries(data: dict[str, object]) -> list[dict[str, object]]:
+    entries = data.get("selected", [])
+    if not isinstance(entries, list):
+        return []
+    return [entry for entry in entries if isinstance(entry, dict)]
+
+
+def parse_commercial_delta_table(path: Path, section_text: str) -> list[dict[str, str]]:
+    rows = parse_markdown_table(path, "Commercial Delta", section_text, COMMERCIAL_DELTA_REQUIRED_COLUMNS)
+    for row in rows:
+        row_index = row["_row_index"]
+        if len(clean_table_cell(row["Opportunity"])) < 3:
+            fail(f"{path.relative_to(ROOT)} Commercial Delta row {row_index} Opportunity is too short")
+        if len(clean_table_cell(row["Previous stage"])) < 2:
+            fail(f"{path.relative_to(ROOT)} Commercial Delta row {row_index} Previous stage is too short")
+        if len(clean_table_cell(row["Current stage"])) < 2:
+            fail(f"{path.relative_to(ROOT)} Commercial Delta row {row_index} Current stage is too short")
+        if len(clean_table_cell(row["Commercial delta"])) < 10:
+            fail(f"{path.relative_to(ROOT)} Commercial Delta row {row_index} Commercial delta is too short")
+        if len(clean_table_cell(row["Decision"])) < 3:
+            fail(f"{path.relative_to(ROOT)} Commercial Delta row {row_index} Decision is too short")
+    return rows
+
+
+def commercial_delta_has_sufficient_marker(value: object) -> bool:
+    text = normalize_report_text(value)
+    if any(marker in text for marker in INSUFFICIENT_COMMERCIAL_DELTA_MARKERS):
+        return False
+    return any(marker in text for marker in COMMERCIAL_DELTA_MARKERS)
+
+
+def commercial_delta_decision_requires_delta(value: object) -> bool:
+    text = normalize_report_text(value)
+    if any(marker in text for marker in CARRY_FORWARD_DECISION_MARKERS):
+        return False
+    return any(marker in text for marker in REPEATED_FOCUS_DECISION_MARKERS)
+
+
+def validate_commercial_delta_table(
+    path: Path,
+    section_text: str,
+    current_state: dict[str, object],
+    base_state: dict[str, object],
+) -> list[dict[str, str]]:
+    rows = parse_commercial_delta_table(path, section_text)
+    row_by_key: dict[str, dict[str, str]] = {}
+    for row in rows:
+        for key in (normalize_opportunity_key(row["Opportunity"]),):
+            if key:
+                row_by_key[key] = row
+
+    if not base_state:
+        return rows
+
+    current_selected_keys: set[str] = set()
+    for entry in selected_state_entries(current_state):
+        current_selected_keys.update(opportunity_entry_keys(entry))
+
+    for base_entry in selected_state_entries(base_state):
+        matching_keys = opportunity_entry_keys(base_entry) & current_selected_keys
+        if not matching_keys:
+            continue
+
+        row = None
+        for key in opportunity_entry_keys(base_entry):
+            row = row_by_key.get(key)
+            if row is not None:
+                break
+        if row is None:
+            title = str(base_entry.get("title") or base_entry.get("id") or sorted(matching_keys)[0])
+            fail(f"{path.relative_to(ROOT)} Commercial Delta missing repeated selected opportunity: {title}")
+
+        if commercial_delta_decision_requires_delta(row["Decision"]) and not commercial_delta_has_sufficient_marker(row["Commercial delta"]):
+            fail(
+                f"{path.relative_to(ROOT)} Commercial Delta row {row['_row_index']} repeats selected opportunity "
+                "as current focus without new commercial delta"
+            )
+
+    return rows
 
 
 def validate_build_readiness_state_consistency(
@@ -1609,7 +1917,9 @@ def validate_opportunity_build_readiness(path_label: str, sections: dict[str, st
 
 
 def validate_report_structure() -> None:
-    state_entries = build_state_entry_lookup(read_opportunities_state())
+    current_state = read_opportunities_state()
+    base_state = read_base_opportunities_state()
+    state_entries = build_state_entry_lookup(current_state)
     for path in report_files_to_validate():
         if not path.is_file():
             fail(f"missing opportunity report: {path.relative_to(ROOT)}")
@@ -1628,7 +1938,9 @@ def validate_report_structure() -> None:
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
         signal_ledger_rows = validate_signal_ledger(path, sections["Signal Ledger"])
+        validate_topic_coverage_table(path, sections["Topic Coverage"], signal_ledger_rows)
         validate_signal_note_coverage(path, signal_ledger_rows)
+        validate_commercial_delta_table(path, sections["Commercial Delta"], current_state, base_state)
         build_readiness_rows = validate_build_readiness_table(path, sections["Build Readiness"])
         validate_build_readiness_state_consistency(path, build_readiness_rows, state_entries)
         money_readiness_rows = validate_money_readiness_table(path, sections["Money Readiness"])
@@ -1748,7 +2060,9 @@ def validate_watchlist() -> None:
         fail("opportunity-watchlist.yml must contain at least one entry")
 
     families = topic_families()
+    required_families = priority_topic_families()
     required = {"source", "url", "family", "signal_type", "priority", "status", "reason"}
+    entry_families: set[str] = set()
 
     for index, entry in enumerate(entries, start=1):
         missing = required - set(entry)
@@ -1757,6 +2071,7 @@ def validate_watchlist() -> None:
         family = str(entry["family"])
         if family not in families:
             fail(f"opportunity-watchlist.yml entry {index} has unknown family: {family}")
+        entry_families.add(family)
         signal_type = str(entry["signal_type"])
         if signal_type not in WATCHLIST_ALLOWED_SIGNAL_TYPES:
             fail(f"opportunity-watchlist.yml entry {index} has unsupported signal_type: {signal_type}")
@@ -1769,6 +2084,10 @@ def validate_watchlist() -> None:
         reason = str(entry["reason"]).strip()
         if len(reason) < 30:
             fail(f"opportunity-watchlist.yml entry {index} reason is too short")
+
+    missing_priority_families = sorted(required_families - entry_families)
+    if missing_priority_families:
+        fail("opportunity-watchlist.yml missing priority family seeds: " + ", ".join(missing_priority_families))
 
 
 def validate_state() -> None:

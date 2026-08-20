@@ -110,6 +110,29 @@ Record the discovery mode for every run:
 
 When a run is `watchlist-directed`, do not present selected opportunities as market-wide winners. State that the run validates predefined zones.
 
+## Topic Coverage
+
+Every normal non-diagnostic run must account for every priority topic family
+listed in `opportunity-interests.md`. Priority-family accounting is not a
+selection quota: weak families can produce zero selected opportunities, but the
+report must still say what was checked and why nothing cleared the threshold.
+
+The report must include a `Topic Coverage` table:
+
+```markdown
+| Family | Signals reviewed | Best candidate | Decision | Reason |
+|---|---:|---|---|---|
+```
+
+For each priority family, record the reviewed signal count, best candidate or
+`None`, decision, and the reason. Use the reason to distinguish no fresh
+signals, weak evidence, duplicate evidence, insufficient commercial support, or
+watchlist-only evidence.
+
+`opportunity-watchlist.yml` must contain at least one discovery seed for every
+priority topic family listed in `opportunity-interests.md`. Watchlist seeds are
+discovery anchors, not automatic recommendations.
+
 ## Signal Accounting
 
 Review at least 20 public signals or raw structural candidates when a normal
@@ -142,6 +165,31 @@ Use these labels:
 - `H hypothesis`
 
 Every selected opportunity must include at least one of `M1`, `M2`, `M3`, or `M4`. If evidence is only plausible, label it `H hypothesis` and defer or reject the opportunity.
+
+## Commercial Delta
+
+Treat opportunities already present in `opportunities.json.selected` before a
+run as active experiments or backlog, not fresh discovery targets.
+
+The report must include a `Commercial Delta` table:
+
+```markdown
+| Opportunity | Previous stage | Current stage | Commercial delta | Decision |
+|---|---|---|---|---|
+```
+
+If an existing selected opportunity is carried forward without new commercial
+evidence, set the decision to `carried-forward`, `active-experiment`, or
+`backlog`. Do not present it as the run's main fresh focus, promoted result, or
+recommended new test.
+
+If an existing selected opportunity is presented again as main focus,
+recommended next test, promoted, selected, or sell-before-build for the current
+run, the `Commercial Delta` row must record new commercial evidence such as a
+paid pilot, inbound request, procurement or RFP signal, direct buyer or spend
+evidence, or a new independent company/customer workflow. More GitHub issues,
+stars, discussions, releases, or project activity are not sufficient commercial
+delta by themselves.
 
 ## Source Classes
 
@@ -347,6 +395,8 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - selected opportunities;
 - executive summary;
 - signal ledger;
+- topic coverage;
+- commercial delta;
 - structural candidate ranking;
 - structural score breakdown;
 - commercial filter;

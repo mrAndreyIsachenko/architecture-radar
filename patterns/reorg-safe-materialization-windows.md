@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-11
+- Last updated: 2026-08-20
 
 ## Problem
 
