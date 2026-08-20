@@ -73,7 +73,12 @@ SMALLEST_WEDGE = "Checkpoint and trace audit report for one failed workflow, not
 INTERMEDIARY_MATURITY = "Existing observability tools help, but a narrow cross-tool incident audit layer is still immature."
 
 
-def complete_report(selected: bool = True) -> str:
+def complete_report(
+    selected: bool = True,
+    *,
+    topic_coverage: str | None = None,
+    commercial_delta: str | None = None,
+) -> str:
     selected_text = "- Agent trace debugging for small teams, backed by `M2 repeated pain`."
     reviews = "The opportunity has repeated public issue evidence. `M2 repeated pain`."
     build_readiness = "\n".join(
@@ -111,6 +116,22 @@ def complete_report(selected: bool = True) -> str:
             f"| Agent trace debugging | {FRAGMENTED_PROVIDERS} | {MULTI_PROVIDER_USER} | {BOUNDARY_WORKFLOW} | {BUILD_VS_BUY_REASON} | `{INTERNAL_BUILD_LIKELIHOOD}` | {MONEY_FLOW} | {PERMISSIONLESS_VALIDATION} | {SMALLEST_WEDGE} | `selected-for-test` |",
         ]
     )
+    if topic_coverage is None:
+        topic_coverage = "\n".join(
+            [
+                "| Family | Signals reviewed | Best candidate | Decision | Reason |",
+                "|---|---:|---|---|---|",
+                "| `ai-llm-demand` | 1 | Agent trace debugging | selected-for-test | Repeated agent debugging pain has enough public support for a manual test. |",
+            ]
+        )
+    if commercial_delta is None:
+        commercial_delta = "\n".join(
+            [
+                "| Opportunity | Previous stage | Current stage | Commercial delta | Decision |",
+                "|---|---|---|---|---|",
+                "| Agent trace debugging | none | selected-for-test | New candidate for this run with no previous selected state. | selected-for-test |",
+            ]
+        )
     if not selected:
         selected_text = "None."
         reviews = "No selected opportunities."
@@ -132,6 +153,8 @@ def complete_report(selected: bool = True) -> str:
                 "| GitHub issue | https://example.com/issue | `ai-llm-demand` | `repeated-pain` | `M2 repeated pain` | selected | Repeated agent debugging pain. |",
             ]
         ),
+        "Topic Coverage": topic_coverage,
+        "Commercial Delta": commercial_delta,
         "Structural Candidate Ranking": structural_ranking,
         "Structural Score Breakdown": structural_scores,
         "Commercial Filter": commercial_filter,
@@ -287,17 +310,25 @@ def complete_signal_note(url: str = "https://example.com/issue") -> str:
     )
 
 
-def write_topic_scope(root: Path) -> None:
+def write_topic_scope(root: Path, families: list[str] | None = None) -> None:
+    families = families or ["ai-llm-demand"]
     docs = root / "docs"
     docs.mkdir(exist_ok=True)
     (docs / "opportunity-research-scope.md").write_text(
-        "## Topic Families\n\n- `ai-llm-demand`\n",
+        "## Topic Families\n\n" + "\n".join(f"- `{family}`" for family in families) + "\n",
+        encoding="utf-8",
+    )
+    (root / "opportunity-interests.md").write_text(
+        "# Opportunity Radar Interests\n\n"
+        "Use these topic families for accounting:\n\n"
+        + "\n".join(f"- `{family}`" for family in families)
+        + "\n",
         encoding="utf-8",
     )
 
 
-def write_signal_note(root: Path, url: str = "https://example.com/issue") -> Path:
-    write_topic_scope(root)
+def write_signal_note(root: Path, url: str = "https://example.com/issue", families: list[str] | None = None) -> Path:
+    write_topic_scope(root, families=families)
     signal = root / "signals" / "2026-08-11-agent-trace-debugging.md"
     signal.parent.mkdir(exist_ok=True)
     signal.write_text(complete_signal_note(url), encoding="utf-8")
@@ -426,6 +457,78 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             with (
                 patch.object(validator, "ROOT", root),
                 patch.object(validator, "report_files_to_validate", return_value=[report]),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_topic_coverage_family(self) -> None:
+        topic_coverage = "\n".join(
+            [
+                "| Family | Signals reviewed | Best candidate | Decision | Reason |",
+                "|---|---:|---|---|---|",
+                "| `ai-llm-demand` | 1 | Agent trace debugging | selected-for-test | Repeated agent debugging pain has enough public support for a manual test. |",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(topic_coverage=topic_coverage), encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root, families=["ai-llm-demand", "blockchain-demand"])
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_repeated_selected_focus_without_commercial_delta(self) -> None:
+        commercial_delta = "\n".join(
+            [
+                "| Opportunity | Previous stage | Current stage | Commercial delta | Decision |",
+                "|---|---|---|---|---|",
+                "| Agent trace debugging | selected-for-test | selected-for-test | Extra GitHub issues only; no new commercial delta. | main focus |",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(commercial_delta=commercial_delta), encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch.object(validator, "read_base_opportunities_state", return_value=json.loads(complete_state())),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_allows_repeated_selected_carried_forward_without_delta(self) -> None:
+        commercial_delta = "\n".join(
+            [
+                "| Opportunity | Previous stage | Current stage | Commercial delta | Decision |",
+                "|---|---|---|---|---|",
+                "| Agent trace debugging | selected-for-test | selected-for-test | No new commercial delta; carried forward as an active experiment. | carried-forward |",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report(commercial_delta=commercial_delta), encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch.object(validator, "read_base_opportunities_state", return_value=json.loads(complete_state())),
             ):
                 validator.validate_report_structure()
 
@@ -1136,12 +1239,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
     def test_watchlist_accepts_expected_shape(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
-            docs = root / "docs"
-            docs.mkdir()
-            (docs / "opportunity-research-scope.md").write_text(
-                "## Topic Families\n\n- `ai-llm-demand`\n",
-                encoding="utf-8",
-            )
+            write_topic_scope(root)
             (root / "opportunity-watchlist.yml").write_text(
                 "\n".join(
                     [
@@ -1159,6 +1257,29 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             )
 
             with patch.object(validator, "ROOT", root):
+                validator.validate_watchlist()
+
+    def test_watchlist_rejects_missing_priority_family_seed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_topic_scope(root, families=["ai-llm-demand", "blockchain-demand"])
+            (root / "opportunity-watchlist.yml").write_text(
+                "\n".join(
+                    [
+                        "entries:",
+                        "  - source: GitHub issue",
+                        "    url: https://example.com",
+                        "    family: ai-llm-demand",
+                        "    signal_type: repeated-pain",
+                        "    priority: medium",
+                        "    status: watch",
+                        "    reason: Repeated pain around debugging agent traces in public issues.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_watchlist()
 
 

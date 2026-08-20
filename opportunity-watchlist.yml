@@ -36,3 +36,27 @@ entries:
       - mission replay
       - failsafe
       - telemetry loss
+
+  - source: Blockscout explorer and indexing issues
+    url: https://github.com/blockscout/blockscout
+    family: blockchain-demand
+    signal_type: integration-gap
+    priority: medium
+    status: watch
+    reason: Watch repeated pain around explorer indexing, transaction interpretation, wallet/protocol integrations, and compliance-adjacent workflows.
+    search_terms:
+      - transaction interpretation
+      - wallet indexing
+      - contract decoding
+
+  - source: Docling document AI extraction issues
+    url: https://github.com/docling-project/docling
+    family: document-ai-demand
+    signal_type: operational-risk
+    priority: medium
+    status: watch
+    reason: Watch repeated pain around OCR extraction quality, layout recovery, provenance, multimodal document ingestion, and evidence-backed extraction.
+    search_terms:
+      - OCR extraction
+      - layout analysis
+      - document provenance
