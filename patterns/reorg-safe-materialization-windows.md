@@ -39,6 +39,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `fystack/multichain-indexer` reviewed at `90f4b3156c36bf048ec513e395f7dadef66f32e1`.
 - `DarshanKumar89/chainfoundry` reviewed at `090279cb7acb35b52803c711e353d91c85fa6bd4`.
 - `trezor/blockbook` reviewed at `6ce54d0b22cccccabf09aea3b096197195b5bb5a`.
+- `bitcoincore-dev/nakamoto-electrs` reviewed at `f9fc5ba17f38f6d45812e467a5299d194b086af8`.
 
 ## Comparison Of Implementations
 
@@ -49,6 +50,8 @@ MultiChain Indexer moves more of the recovery logic into cooperating workers. Re
 ChainFoundry keeps the boundary split across smaller primitives: `BlockTracker` owns the sliding window, `ReorgDetector` classifies the failure mode, `CheckpointManager` persists the last confirmed position, and `BackfillEngine` handles batched historical recovery. The mechanism is the same shape, but the implementation is packaged as a reusable Rust toolkit rather than a single indexer.
 
 Blockbook applies the same recovery idea from a different angle. Instead of explicit finalized/provisional windows, `SyncWorker` treats the local tip as a recoverable projection, probes the remote chain hash-by-hash, restarts on missing-block or fork mismatch, and keeps bulk/parallel sync bounded by a wall-clock stall cap. That makes it a useful comparison point for liveness-first recovery, especially when the downstream sink is a mutable RocksDB projection rather than a pure event stream.
+
+Nakamoto-electrs shows the same family on the SPV/Electrum side. `NakamotoBlockSource` turns nakamoto's connected/disconnected/synced stream into a local rollback-capable projection, and `Indexer` uses a height-indexed reverse map so a `Disconnected` event can remove every history entry recorded at that height. It is a tighter bridge than Blockbook's full-node sync loop, but it validates the same invariant: head-adjacent materialization must remain reversible.
 
 ## Failure Modes
 
@@ -95,3 +98,6 @@ Blockbook applies the same recovery idea from a different angle. Instead of expl
 - E1 source verified: Blockbook `db/sync.go:446-920` implements abort-aware worker coordination for `ParallelConnectBlocks` and `BulkConnectBlocks`, including the missing-block retry path and stall deadline.
 - E2 test verified: Blockbook `tests/sync/handlefork.go:17-220` simulates a missing block that later resolves, then verifies the index reconnects to the real chain state.
 - E2 test verified: Blockbook `tests/sync/connectblocks.go:36-220` verifies sequential connect, parallel connect, and shutdown interruption behavior.
+- E1 source verified: bitcoincore-dev/nakamoto-electrs `src/nakamoto_source.rs:1-320` converts nakamoto events into bitcoin 0.30 blocks and broadcasts connected/disconnected/synced transitions.
+- E1 source verified: bitcoincore-dev/nakamoto-electrs `src/indexer.rs:93-220` keeps a height-indexed rollback map and removes all entries at a disconnected height.
+- E2 test verified: bitcoincore-dev/nakamoto-electrs `tests/integration_tests.rs:333-407` verifies rollback-on-disconnect and reorg replacement behavior.

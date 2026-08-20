@@ -947,6 +947,180 @@
       "decision_reason": "Docs, samples, and tests show a reusable durable-agent mechanism with session entities, child orchestrations, and replay-safe human approval gates.",
       "revisit_reason": "Revisit after a material change to durable hosting, nested workflow replay, or session serialization.",
       "next_revisit_condition": "Material change to durable hosting, nested workflow replay, or session serialization."
+    },
+    {
+      "repository": "wso2/labs-agentic-engineer",
+      "URL": "https://github.com/wso2/labs-agentic-engineer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "packages/agent-stream/src/bundle.ts",
+        "packages/agent-stream/src/component-design-schema.ts",
+        "packages/agent-stream/src/sse-client.ts",
+        "packages/agent-stream/src/task-context.ts",
+        "packages/design-projection/src/project-design.ts",
+        "packages/design-projection/src/cell-diagram.ts",
+        "packages/agent-stream/test/change.test.ts",
+        "packages/design-projection/test/project-design.test.ts"
+      ],
+      "operational_blockers": [
+        "in-memory bundle state",
+        "platform-specific file conventions",
+        "buildpack rule hard-coded to docker"
+      ],
+      "first_seen": "2026-08-20",
+      "last_reviewed": "2026-08-20",
+      "commit_reviewed": "613e9ce58485f8bb5e120a62dd1994234caea9b0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "workflow recovery",
+        "execution tracing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "anchored spec bundle write gate",
+        "deterministic design projection pipeline"
+      ],
+      "decision": "track",
+      "decision_reason": "The bundle gate and deterministic projections provide a reusable mechanism for agent-authored spec workflows: invalid writes are rejected without corrupting state, and accepted writes are folded into stable machine views.",
+      "revisit_reason": "Revisit if the anchored bundle contract, schema gates, or derived projection path materially changes.",
+      "next_revisit_condition": "Revisit after a material change to write-gate semantics, bundle persistence, or projection output."
+    },
+    {
+      "repository": "xberg-io/xberg",
+      "URL": "https://github.com/xberg-io/xberg",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "crates/xberg/src/core/extract/mod.rs",
+        "crates/xberg/src/core/extractor/batch.rs",
+        "crates/xberg/src/core/batch_mode.rs",
+        "crates/xberg/src/doctor/mod.rs",
+        "crates/xberg/src/pdf/scan_detect.rs",
+        "crates/xberg-cli/src/main.rs",
+        "crates/xberg-cli/tests/extract_envelope.rs",
+        "crates/xberg/src/extractors/pdf/ocr.rs"
+      ],
+      "operational_blockers": [
+        "large backend matrix",
+        "heuristic thresholds need workload validation",
+        "some features depend on optional runtime backends"
+      ],
+      "first_seen": "2026-08-20",
+      "last_reviewed": "2026-08-20",
+      "commit_reviewed": "531e0f7895e53f083c7d4f183123dea4f866e4eb",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR fallback"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "batch-aware extraction envelope",
+        "doctor-probed backend selection",
+        "scan confidence heuristic"
+      ],
+      "decision": "track",
+      "decision_reason": "The batch executor, batch-mode scoping, doctor diagnostics, and scan-confidence gating provide a reusable document-AI control plane rather than just another OCR wrapper.",
+      "revisit_reason": "Revisit if batch-mode semantics, doctor probes, or scan detection heuristics materially change.",
+      "next_revisit_condition": "Revisit after a material change to batch execution, diagnostics, or scan scoring."
+    },
+    {
+      "repository": "bitcoincore-dev/nakamoto-electrs",
+      "URL": "https://github.com/bitcoincore-dev/nakamoto-electrs",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/block_source.rs",
+        "src/nakamoto_source.rs",
+        "src/indexer.rs",
+        "src/electrum_server.rs",
+        "tests/integration_tests.rs",
+        "tests/e2e_regtest.rs"
+      ],
+      "operational_blockers": [
+        "partial Electrum semantics without a UTXO set",
+        "transaction broadcast is not fully wired",
+        "requires live reorg validation"
+      ],
+      "first_seen": "2026-08-20",
+      "last_reviewed": "2026-08-20",
+      "commit_reviewed": "f9fc5ba17f38f6d45812e467a5299d194b086af8",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "transaction interpretation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "rollback-capable script-hash index",
+        "nakamoto event bridge"
+      ],
+      "decision": "track",
+      "decision_reason": "The nakamoto bridge and rollback-capable history index are a strong second implementation of the reorg-safe materialization mechanism already in the radar.",
+      "revisit_reason": "Revisit if the SPV bridge, rollback map, or Electrum query semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to event bridging, rollback indexing, or Electrum method semantics."
+    },
+    {
+      "repository": "originrouter/originrouter_cli",
+      "URL": "https://github.com/originrouter/originrouter_cli",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/runtime/approvalPolicyStore.js",
+        "src/runtime/aiAuditQueryPlanner.js",
+        "src/runtime/aiOperationReviewer.js",
+        "src/collaboration/planImplementVerifyCoordinator.js",
+        "src/daemon/sessionManager.js",
+        "tests/approvalPolicy.test.js",
+        "tests/collaborationRuntime.test.js",
+        "tests/aiOperationAudit.test.js"
+      ],
+      "operational_blockers": [
+        "external AI audit service dependency",
+        "product-coupled auth and relay plumbing",
+        "state machine needs backend validation"
+      ],
+      "first_seen": "2026-08-20",
+      "last_reviewed": "2026-08-20",
+      "commit_reviewed": "10fe64729a8d0f36e55d8875f8ddacc235fa20b0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "tool authorization"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "approval-revision store",
+        "plan-implement-verify state machine",
+        "detached AI audit sidecar"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository separates approval policy, collaboration state, and detached audit/review work into explicit subsystems with persistence and replay hooks, which is directly useful for durable agent governance.",
+      "revisit_reason": "Revisit if policy storage, collaboration transitions, or audit sidecar behavior materially changes.",
+      "next_revisit_condition": "Revisit after a material change to policy revisioning, collaboration persistence, or audit polling."
     }
   ]
 }
