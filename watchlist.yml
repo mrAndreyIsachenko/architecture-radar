@@ -4,6 +4,72 @@
 # focused on things that are easy for broad search queries to miss.
 
 entries:
+  - source: YC RightNow / RunInfra profile
+    url: https://www.ycombinator.com/companies/rightnow
+    family: ai-llm-systems
+    artifact_type: company
+    priority: high
+    status: watch
+    review_mode: watch-company
+    reason: Company-launch seed for RunInfra and RightNow AI; expand to linked runtime and kernel-optimization repositories before deciding whether source review is possible.
+    external_artifacts:
+      - https://runinfra.ai/
+      - https://rightnowai.co/
+      - https://github.com/RightNow-AI/autokernel
+      - https://github.com/RightNow-AI/AutoMegaKernel
+      - https://github.com/RightNow-AI/picolm
+    search_terms:
+      - RightNow RunInfra
+      - RightNow-AI
+      - model hardware co-design
+
+  - repository: RightNow-AI/autokernel
+    url: https://github.com/RightNow-AI/autokernel
+    family: ai-llm-systems
+    artifact_type: runtime
+    priority: high
+    status: pending
+    review_mode: watch-runtime
+    reason: Adjacent RunInfra runtime repository for autonomous GPU kernel optimization; inspect orchestration, benchmark, verification, and long-running agent-loop mechanisms.
+    external_artifacts:
+      - https://www.ycombinator.com/companies/rightnow
+      - https://runinfra.ai/
+    search_terms:
+      - autokernel
+      - autonomous GPU kernel optimization
+      - RunInfra
+
+  - repository: RightNow-AI/AutoMegaKernel
+    url: https://github.com/RightNow-AI/AutoMegaKernel
+    family: ai-llm-systems
+    artifact_type: runtime
+    priority: medium
+    status: pending
+    review_mode: watch-runtime
+    reason: Adjacent RightNow AI runtime repository for correctness-bearing CUDA megakernel generation; inspect IR, ABI, verification, and autonomous tuning loop if source evidence is sufficient.
+    external_artifacts:
+      - https://www.ycombinator.com/companies/rightnow
+      - https://runinfra.ai/
+    search_terms:
+      - AutoMegaKernel
+      - megakernel
+      - autonomous CUDA tuning
+
+  - repository: RightNow-AI/picolm
+    url: https://github.com/RightNow-AI/picolm
+    family: ai-llm-systems
+    artifact_type: runtime
+    priority: medium
+    status: pending
+    review_mode: watch-runtime
+    reason: Adjacent RightNow AI runtime repository for constrained local LLM inference; inspect memory mapping, quantization, grammar-constrained JSON, and tiny-device deployment trade-offs.
+    external_artifacts:
+      - https://www.ycombinator.com/companies/rightnow
+    search_terms:
+      - PicoLM
+      - tiny LLM inference
+      - constrained-device LLM runtime
+
   - repository: baidu/Unlimited-OCR
     url: https://github.com/baidu/Unlimited-OCR
     family: document-ai-ocr

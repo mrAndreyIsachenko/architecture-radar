@@ -13,6 +13,7 @@ SUPPLEMENT_REQUIRED = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REQUIRED", "
 SUPPLEMENT_REPORT = os.environ.get("ARCHITECTURE_RADAR_SUPPLEMENT_REPORT", "")
 WATCHLIST_SCALAR_FIELDS = {
     "repository",
+    "source",
     "url",
     "family",
     "artifact_type",
@@ -24,9 +25,13 @@ WATCHLIST_SCALAR_FIELDS = {
 WATCHLIST_LIST_FIELDS = {"external_artifacts", "search_terms"}
 WATCHLIST_ALLOWED_ARTIFACT_TYPES = {
     "repository",
+    "company",
+    "product",
+    "launch",
     "model",
     "dataset",
     "benchmark",
+    "runtime",
     "runtime-adapter",
     "paper",
     "recipe",
@@ -37,11 +42,16 @@ WATCHLIST_ALLOWED_REVIEW_MODES = {
     "deep-review",
     "source-inspect",
     "triage-only",
+    "watch-company",
+    "watch-product",
+    "watch-launch",
     "watch-model",
     "watch-dataset",
     "watch-benchmark",
     "watch-runtime",
 }
+WATCHLIST_NON_REPOSITORY_ARTIFACT_TYPES = {"company", "product", "launch"}
+WATCHLIST_NON_REPOSITORY_REVIEW_MODES = {"watch-company", "watch-product", "watch-launch"}
 REQUIRED_REPORT_SECTIONS = {
     "Prerequisites And State",
     "Candidate Counts",
@@ -383,14 +393,17 @@ def validate_watchlist() -> None:
         fail("watchlist.yml must contain at least one entry")
 
     families = topic_families()
-    required = {"repository", "family", "artifact_type", "priority", "status", "review_mode", "reason"}
+    required = {"family", "artifact_type", "priority", "status", "review_mode", "reason"}
 
     for index, entry in enumerate(entries, start=1):
         missing = required - set(entry)
         if missing:
             fail(f"watchlist.yml entry {index} missing required fields: {', '.join(sorted(missing))}")
-        repository = str(entry["repository"])
-        if not re.fullmatch(r"[^/\s]+/[^/\s]+", repository):
+        repository = str(entry.get("repository", "")).strip()
+        source = str(entry.get("source", "")).strip()
+        if not repository and not source:
+            fail(f"watchlist.yml entry {index} must include either repository or source")
+        if repository and not re.fullmatch(r"[^/\s]+/[^/\s]+", repository):
             fail(f"watchlist.yml entry {index} has invalid repository: {repository}")
         family = str(entry["family"])
         if family not in families:
@@ -407,6 +420,11 @@ def validate_watchlist() -> None:
         review_mode = str(entry["review_mode"])
         if review_mode not in WATCHLIST_ALLOWED_REVIEW_MODES:
             fail(f"watchlist.yml entry {index} has unsupported review_mode: {review_mode}")
+        if not repository:
+            if artifact_type not in WATCHLIST_NON_REPOSITORY_ARTIFACT_TYPES:
+                fail(f"watchlist.yml entry {index} without repository must use a company, product, or launch artifact_type")
+            if review_mode not in WATCHLIST_NON_REPOSITORY_REVIEW_MODES:
+                fail(f"watchlist.yml entry {index} without repository must use watch-company, watch-product, or watch-launch")
         reason = str(entry["reason"]).strip()
         if len(reason) < 20:
             fail(f"watchlist.yml entry {index} reason is too short")

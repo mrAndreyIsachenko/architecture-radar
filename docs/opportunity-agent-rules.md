@@ -7,7 +7,7 @@ The objective is not to produce a startup-idea newsletter. The objective is to t
 The primary question is:
 
 ```text
-Where is the shortest credible path to first money?
+Where can one developer permissionlessly find a buyer, manually solve an already-paid problem, and plausibly get the first transaction within 7 days?
 ```
 
 The structural question is:
@@ -22,9 +22,15 @@ The commercial-filter question is:
 Where does fragmented provider growth create repeated cross-company glue work that buyers use across multiple vendors and are more likely to buy than build internally?
 ```
 
-Do not rank opportunities by technical pain alone. Rank them by buyer, spend,
-reachability, timing, and buildability. Technology is a catalyst: explain what
-changed economically before recommending what to test or build.
+Do not rank opportunities by technical pain alone. Rank them by direct workflow
+spend, buyer reachability, time to transaction, manual deliverability, pain
+frequency, pain urgency, input accessibility, distribution access, recurrence,
+and buildability. Technology is a catalyst: explain what changed economically
+before recommending what to test or build.
+
+Start from existing money flow, paid manual work, explicit spend, or a workflow
+that is already bought from people, agencies, contractors, SaaS vendors, or
+service providers. Technology comes later.
 
 Do not generate generic startup ideas. Prefer non-obvious market structures
 that resemble early aggregation/control-layer opportunities: many primitives or
@@ -37,6 +43,11 @@ or organizations. Core technology inside one well-funded buyer is weaker because
 the natural buyer can often build it once and keep it proprietary. Cross-company
 glue is stronger because every participant repeatedly solves the same
 non-differentiating integration problem.
+
+Do not treat budget adjacency as willingness to pay. Money spent on a platform,
+engineer salary, infrastructure, or a neighboring enterprise product is only
+`budget_adjacency` unless there is public evidence that buyers pay for the exact
+workflow, outcome, or a close equivalent.
 
 ## Required Workspace
 
@@ -61,11 +72,21 @@ If prerequisites are missing, create a diagnostic report under `opportunity-repo
 Use public, inspectable sources only:
 
 - GitHub issues, discussions, releases, and project roadmaps;
+- accelerator, demo-day, portfolio, batch, Launch YC, and company launch pages;
+- Upwork, Fiverr, freelancer marketplaces, and public service marketplaces;
+- agency service pages, outsourcing providers, consultant listings, and public
+  service offers;
+- SaaS pricing pages and paid service pages for the same workflow or outcome;
+- public procurement, RFPs, tenders, grants, and vendor requirements;
+- Shopify, app, plugin, extension, and integration marketplaces;
 - public launch discussions and comments;
 - Hacker News, Reddit, forums, mailing lists, and public support threads;
 - product docs, pricing pages, changelogs, marketplace listings, and app reviews;
-- job posts and role descriptions;
+- job posts and role descriptions, but only as money evidence when the job
+  directly describes a recurring manual workflow;
 - benchmark, model, dataset, protocol, and hardware-release discussions.
+- public examples of spreadsheets, exports, reconciliation, reporting,
+  conversion, migration, and repetitive operations.
 
 Do not contact people, send messages, scrape private/authenticated sources, or automate outbound sales.
 
@@ -100,6 +121,92 @@ Keyword matches are only discovery signals. A candidate must still be validated
 with independent evidence for fragmentation, manual workflow, objective
 function, execution potential, economic pain, multi-provider usage, money flow,
 and build-vs-buy attractiveness.
+
+Company launch signals are discovery seeds, not demand proof. A YC profile,
+accelerator page, demo-day listing, portfolio page, launch page, or company
+homepage may put a company into the ledger, but it cannot by itself satisfy paid
+demand, repeated pain, competitor proof, selected-for-test, sell-before-build,
+or selected-for-build criteria. Keep it watchlisted or deferred until
+independent public evidence supports buyer, paid wedge, recurrence,
+permissionless validation, and build-vs-buy attractiveness.
+
+## Cashflow-First Decision Logic
+
+The strongest opportunity shape is:
+
+```text
+existing paid manual workflow -> narrow sellable outcome -> manual first delivery -> repeatable product wedge
+```
+
+Technical pain can enter discovery, but it cannot dominate ranking without
+commercial evidence. Boring paid workflows rank above exciting technical
+problems when they have clearer buyers, direct spend, and faster transaction
+paths.
+
+Classify money evidence explicitly:
+
+- `direct_workflow_spend`: money is already paid for this workflow or an
+  equivalent outcome.
+- `manual_labor_spend`: paid employees, contractors, agencies, or consultants
+  perform the workflow manually.
+- `competitor_revenue_signal`: products or services sell the same outcome or a
+  close substitute.
+- `procurement_or_job_signal`: public procurement, RFP, tender, grant, or job
+  evidence explicitly describes the workflow.
+- `budget_adjacency`: money exists in the ecosystem, but there is no evidence
+  buyers pay for the proposed wedge or equivalent outcome.
+- `no_money_evidence`: no public money evidence was found.
+
+`budget_adjacency` and `no_money_evidence` are not sufficient for
+`sell-before-build`.
+
+Use these cashflow-first score dimensions as primary ranking inputs:
+
+- `direct_spend_score`;
+- `buyer_reachability_score`;
+- `time_to_transaction_score`;
+- `manual_deliverability_score`;
+- `pain_frequency_score`;
+- `pain_urgency_score`;
+- `input_accessibility_score`;
+- `distribution_access_score`;
+- `recurrence_score`;
+- `buildability_score`.
+
+Technology shift, fragmentation, observability potential, and engineering
+elegance are secondary factors. They explain timing and productization, not
+selection by themselves.
+
+For every opportunity, answer the time-to-transaction gate:
+
+- Can we identify at least 20-50 plausible buyers now?
+- Can we contact or reach them without a partnership?
+- Can the buyer understand the offer in one sentence?
+- Can they provide the required input easily?
+- Can we deliver the first result manually?
+- Can they buy without long procurement or security approval?
+- Is the buyer themselves experiencing the pain?
+- Is there evidence that this exact outcome is already paid for?
+
+Record `time_to_transaction_score` from 1 to 5 and
+`time_to_transaction_reason`. If the score is 2 or lower, the opportunity must
+not be a top `sell-before-build` path unless direct workflow spend is
+exceptionally strong and the exception is explained.
+
+## Anti-Bias Rules
+
+- Do not propose diagnostic, audit, report, linter, or CLI products
+  automatically because technical complexity exists.
+- If the outcome can be delivered as consulting, explain the path from service
+  to repeatable product before recommending it.
+- Do not count engineer salary as evidence that buyers will pay for a separate
+  developer tool.
+- Do not count SaaS pricing for an adjacent platform as direct workflow spend.
+- Do not count GitHub complaints as proof of a standalone market.
+- Do not let AI, LLM, blockchain, networking, or drones dominate only because
+  technical evidence is easy to find.
+- Prefer boring but paid workflows over exciting technical pain without direct
+  money evidence.
 
 Record the discovery mode for every run:
 
@@ -191,11 +298,17 @@ evidence, or a new independent company/customer workflow. More GitHub issues,
 stars, discussions, releases, or project activity are not sufficient commercial
 delta by themselves.
 
+Existing opportunities must be re-evaluated under the current cashflow-first
+model. Do not preserve `sell-before-build`, `selected-for-test`, or
+`selected-for-build` stages merely because a previous run assigned them.
+
 ## Source Classes
 
 Classify the public source class for every opportunity:
 
 - `github` - GitHub issues, discussions, releases, roadmaps, pull requests, or repository metadata.
+- `freelance-marketplace` - Upwork, Fiverr, public contractor listings, or other freelance/service marketplaces.
+- `agency` - agency, outsourcing, consultancy, or public service provider pages.
 - `forum` - public forums, mailing lists, Q&A sites, and community boards.
 - `social` - public social posts and public launch comments.
 - `product` - product docs, changelogs, support pages, or public feature pages.
@@ -205,12 +318,19 @@ Classify the public source class for every opportunity:
 - `marketplace` - app marketplaces, reviews, integrations, paid extensions, or service listings.
 - `docs` - public SOPs, tutorials, templates, playbooks, or "how I do X" workflow descriptions.
 - `benchmark` - benchmarks, datasets, model-release evaluations, or hardware-release evaluations.
+- `launch` - accelerator, demo-day, portfolio, batch, Launch YC, company profile,
+  or product-launch pages.
 - `news` - public reporting, analyst notes, or launch coverage.
 - `other` - public inspectable evidence that does not fit another class.
 
 GitHub is good evidence for pain. GitHub alone is not evidence that someone
 will pay. If an opportunity only has `github` source-class evidence, keep it
 in `watchlisted`.
+
+Freelance-marketplace, agency, procurement, pricing, and marketplace sources are
+stronger only when they sell or request the same workflow or outcome. If they
+only prove adjacent ecosystem spend, classify the money evidence as
+`budget_adjacency`.
 
 ## Build-Readiness Fields
 
@@ -239,6 +359,33 @@ Every opportunity record and every comparable `opportunities.json` entry must al
 - `existing_spend`: current spend, hiring, procurement, labor, consultant, tool, or workaround evidence.
 - `paid_experiment`: the smallest paid or manually sellable test, including buyer, offer, channel, and success/failure threshold.
 - `source_classes`: public source classes supporting the opportunity.
+- `money_evidence_type`: one of `direct_workflow_spend`,
+  `manual_labor_spend`, `competitor_revenue_signal`,
+  `procurement_or_job_signal`, `budget_adjacency`, or `no_money_evidence`.
+- `money_evidence`: concrete source-backed explanation for the money evidence
+  classification.
+- `existing_paid_workflow`: the workflow or outcome that is already paid for.
+- `current_workaround`: how buyers solve the workflow now.
+- `current_cost`: money or paid time cost when publicly estimable, otherwise
+  `unclear`.
+- `why_buy_from_us`: why the proposed wedge is better or easier to buy than the
+  current workaround.
+- `smallest_sellable_outcome`: one narrow paid outcome that can be delivered
+  before product build-out.
+- `manual_first_delivery`: how to fulfill the first order manually.
+- `one_sentence_offer`: a buyer-understandable offer, such as "Send me X and I
+  will return Y within 24 hours for $Z."
+- `price_hypothesis`: a concrete starting price when evidence allows, or
+  `unclear` when not selected.
+- `buyer_acquisition_path`: where and how to find the first 20 plausible
+  buyers without partnerships.
+- `time_to_transaction_score`: integer from 1 to 5.
+- `time_to_transaction_reason`: why the first transaction is or is not plausible
+  within 7 days.
+- `productization_path`: how manual service delivery could become a small
+  repeatable software product.
+- `cashflow_falsification_test`: what would disprove the opportunity within 7
+  days.
 
 Use this rough score interpretation:
 
@@ -354,8 +501,11 @@ disagreements, migrating config, or producing one cross-vendor audit trail.
 `selected`, `selected-for-test`, and `sell-before-build` are only allowed when:
 
 - `paid_wedge` names a concrete budget or painful cost;
+- `money_evidence_type` is `direct_workflow_spend`, `manual_labor_spend`,
+  `competitor_revenue_signal`, or `procurement_or_job_signal`;
 - `spend_score` is at least 2;
 - `reachability_score` is at least 2;
+- `time_to_transaction_score` is at least 3 for `sell-before-build`;
 - structural `manual_pain`, `economic_value`, `objective_measurability`,
   `execution_potential`, and `timing` scores are each at least 2;
 - `internal_build_likelihood` is `low` or `medium`;
@@ -365,6 +515,8 @@ disagreements, migrating config, or producing one cross-vendor audit trail.
 - `private_data_barrier` is `none` or `public-only`;
 - `source_classes` contains at least two distinct classes and is not GitHub-only;
 - `paid_experiment` names a concrete buyer, offer, channel, and success/failure threshold.
+- `one_sentence_offer`, `buyer_acquisition_path`, `manual_first_delivery`, and
+  `smallest_sellable_outcome` are concrete.
 
 `selected-for-build` is only allowed when:
 
@@ -391,6 +543,7 @@ disagreements, migrating config, or producing one cross-vendor audit trail.
 Create `opportunity-reports/YYYY-MM-DD.md` containing:
 
 - prerequisites and state;
+- best paths to first transaction;
 - signal counts;
 - selected opportunities;
 - executive summary;
@@ -406,6 +559,21 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - recommended next test;
 - rejected or deferred signals;
 - evidence gaps.
+
+The `Best Paths To First Transaction` section must contain at most five rows:
+
+```markdown
+| Opportunity | Buyer | Already paying for | Current workaround | One-sentence offer | Price hypothesis | Where to find first buyers | Time-to-transaction | Why now | Biggest uncertainty |
+|---|---|---|---|---|---|---|---|---|---|
+```
+
+Every row must correspond to a `selected`, `selected-for-test`, or
+`sell-before-build` entry in `opportunities.json`, and the offer, price,
+acquisition path, and time-to-transaction score must match the state entry.
+
+The report must also include `Interesting But Not Yet Commercial` for
+LangGraph/Tailscale-style cases where technical pain exists but direct
+willingness to pay for a standalone wedge is not proven.
 
 The `Build Readiness` section must contain this table:
 
@@ -464,15 +632,30 @@ For each selected opportunity, create or update one file under `opportunities/`.
 
 Store raw or normalized signal notes under `signals/` for every URL used in the Signal Ledger. Do not copy large copyrighted content; store short summaries, URLs, dates, and evidence labels.
 
+The `Signal Ledger` section must contain this table:
+
+```markdown
+| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |
+|---|---|---|---|---|---|---|---|
+```
+
+Use `launch` as the source class for accelerator, demo-day, portfolio, batch,
+Launch YC, company profile, and product-launch pages. Use `company-launch` as
+the signal type when the signal is only the presence or positioning of a new
+company/product, not independently evidenced pain or spend.
+
 Prefer one signal note per source. When grouping multiple related sources into one signal note, include every source URL and the source dates or date range in that file.
 
-Each signal note must include source URLs, source date or date range, topic family, signal type, market evidence labels, and concise notes. For a report `opportunity-reports/YYYY-MM-DD.md`, every Signal Ledger URL must appear in `signals/YYYY-MM-DD-*.md`.
+Each signal note must include source URLs, source date or date range, topic
+family, signal type, source class, market evidence labels, and concise notes.
+For a report `opportunity-reports/YYYY-MM-DD.md`, every Signal Ledger URL must
+appear in `signals/YYYY-MM-DD-*.md`.
 
 Update `opportunities.json` with stable structured metadata using this schema:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generated_at": "YYYY-MM-DD",
   "discovery_mode": "broad-discovery|watchlist-directed|mixed|diagnostic",
   "selected": [
@@ -509,6 +692,21 @@ Update `opportunities.json` with stable structured metadata using this schema:
       "existing_spend": "Existing spend, labor, hiring, procurement, consultant, tool, or workaround evidence.",
       "paid_experiment": "Smallest paid/manual validation offer.",
       "source_classes": ["github", "pricing"],
+      "money_evidence_type": "direct_workflow_spend|manual_labor_spend|competitor_revenue_signal|procurement_or_job_signal|budget_adjacency|no_money_evidence",
+      "money_evidence": "Concrete money evidence or reason it is only adjacent.",
+      "existing_paid_workflow": "What exact workflow or outcome is already paid for.",
+      "current_workaround": "How buyers solve it now.",
+      "current_cost": "Current money or paid labor cost, or `unclear`.",
+      "why_buy_from_us": "Why this wedge is better than the current workaround.",
+      "smallest_sellable_outcome": "One narrow paid deliverable.",
+      "manual_first_delivery": "How to deliver the first paid result manually.",
+      "one_sentence_offer": "Send me X and I will return Y within 24 hours for $Z.",
+      "price_hypothesis": "$99 per report",
+      "buyer_acquisition_path": "Where to find the first 20 buyers.",
+      "time_to_transaction_score": 3,
+      "time_to_transaction_reason": "Why the first payment is plausible in seven days.",
+      "productization_path": "How the manual workflow becomes software.",
+      "cashflow_falsification_test": "What result in 7 days proves the opportunity weak.",
       "structural_pattern": "Aggregation, routing, optimization, execution, reconciliation, procurement, or control plane thesis.",
       "primitive_growth": "Recent primitive/provider/tool growth with dates or explicit uncertainty.",
       "fragmentation_summary": "What is fragmented and why users face a choice.",

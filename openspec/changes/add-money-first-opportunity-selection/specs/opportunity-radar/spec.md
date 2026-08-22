@@ -69,7 +69,7 @@ Opportunity Radar SHALL keep build-readiness and money-readiness metadata compar
 
 Opportunity Radar SHALL NOT mark opportunities as selected for test, sell-before-build, or selected for build when the paid wedge, spend evidence, reachability, source diversity, or private data boundary is insufficient.
 
-#### Scenario: Paid wedge or spend evidence is weak
+#### Scenario: Paid wedge is unclear
 
 - **WHEN** an opportunity does not identify what a buyer concretely pays for
 - **OR** spend score is below 2

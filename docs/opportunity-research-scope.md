@@ -32,10 +32,20 @@ the broader research scope also lists optional ecosystems.
 Use public, inspectable sources such as:
 
 - GitHub issues, discussions, releases, dependency links, and project roadmaps;
+- accelerator, demo-day, portfolio, batch, Launch YC, and company launch pages;
+- Upwork, Fiverr, freelancer marketplaces, agency pages, outsourcing providers,
+  consultant listings, and public service offers;
+- SaaS pricing pages and paid service pages that sell the same workflow or
+  outcome;
+- public procurement, RFPs, tenders, grants, and vendor requirements;
+- Shopify, app, plugin, extension, integration, and service marketplaces;
 - Hacker News, Reddit, public forums, mailing lists, and public launch comments;
 - product docs, pricing pages, public changelogs, and public support pages;
-- job posts and role descriptions that reveal workflow pain or budget;
+- job posts and role descriptions when they directly describe recurring manual
+  workflow labor or budget;
 - benchmark, dataset, model-release, and hardware-release discussions;
+- public spreadsheets, exports, reconciliation templates, reporting examples,
+  conversion workflows, migration guides, and repetitive operations;
 - app reviews or marketplace listings when they are public and attributable.
 
 Do not use private communities, authenticated exports, personal data, or outbound outreach in the first implementation.
@@ -56,6 +66,21 @@ The target is an aggregation, optimization, routing, execution, procurement,
 reconciliation, or control layer. A directory, newsletter, or comparison page is
 not enough unless it can plausibly evolve toward choosing or executing the
 workflow.
+
+Cashflow-first discovery takes precedence over technical elegance. Prefer:
+
+```text
+existing paid manual workflow
+-> narrow sellable outcome
+-> manual delivery by one developer
+-> repeatable product wedge
+```
+
+Do not restrict discovery to developer tools. Boring workflows in ecommerce,
+accounting, marketing, operations, logistics, healthcare administration,
+marketplaces, data cleanup, reporting, reconciliation, migration, and conversion
+can outrank more sophisticated engineering problems when first-transaction
+evidence is stronger.
 
 ## Commercial Opportunity Filter
 
@@ -126,6 +151,11 @@ Use these as discovery signals only:
 Do not select a candidate from keywords alone. Require multiple public signals
 and state whether each claim is evidence-backed or interpretation.
 
+Do not select a candidate from technical pain alone. GitHub issues, OSS
+popularity, adjacent enterprise pricing, adjacent infrastructure spend, or
+engineer hiring are weak commercial signals unless they show spend for the exact
+workflow or equivalent outcome.
+
 ## Technology Shifts
 
 For every selected or watchlisted opportunity, identify the technology,
@@ -147,6 +177,11 @@ Record:
 Use `unclear` explicitly when a delta is not evidenced. Do not treat a model
 launch, repository release, or viral announcement as demand by itself; connect
 the shift to an expensive workflow and a reachable buyer.
+
+Do not treat company launch, accelerator, batch, demo-day, or portfolio presence
+as demand proof by itself. It is a discovery seed and timing signal. Keep it
+watchlisted or deferred until buyer, paid wedge, recurring workflow, and
+permissionless validation path are supported by independent public evidence.
 
 For structural opportunities, distinguish old known pain from pain caused by a
 recent increase in ecosystem complexity. Where public evidence allows, estimate:
@@ -175,6 +210,9 @@ Classify each reviewed signal:
 - `execution-gap` - users can identify the right choice but still need software to perform the action.
 - `commercial-glue` - independent providers create repeated non-core integration work that buyers plausibly buy.
 - `internal-build-risk` - pain is real, but the natural buyer likely builds the layer internally as core IP.
+- `company-launch` - a public company, product, accelerator, batch, demo-day,
+  or portfolio page indicates a relevant new actor or primitive but does not by
+  itself prove demand.
 
 ## Required Analysis
 
@@ -218,6 +256,15 @@ For each selected opportunity, explain:
 34. Whether validation can happen without incumbent permission, private
     code/data, or hardware deployment.
 35. The smallest wedge that is not a platform.
+36. What exact workflow or outcome is already paid for.
+37. Whether money evidence is direct workflow spend, manual labor spend,
+    competitor revenue, procurement/job demand, budget adjacency, or absent.
+38. What one-sentence offer could be sold without building software.
+39. Where to find 20-50 plausible buyers without partnerships.
+40. Why a first paid transaction is plausible or not plausible within 7 days.
+41. How the first delivery would be performed manually.
+42. How the manual service could become a repeatable software product.
+43. What 7-day falsification test would prove the opportunity weak.
 
 Score every selected, deferred, and watchlisted opportunity from 0 to 5:
 

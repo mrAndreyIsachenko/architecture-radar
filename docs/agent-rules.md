@@ -48,6 +48,8 @@ Use this state to avoid duplicate reviews, duplicate pattern names, and repeated
 Discover repositories through a mix of:
 
 - required watchlist entries from `watchlist.yml`
+- company-to-repository expansion from company, product, launch, runtime, paper,
+  model, or benchmark watchlist entries
 - GitHub code and repository search
 - topic pages
 - recently updated repositories
@@ -58,6 +60,21 @@ Discover repositories through a mix of:
 - references in issues, ADRs, papers, and documentation
 - repositories cited by previously reviewed projects
 - alternative implementations of existing patterns
+
+For company, product, launch, or runtime seeds, perform company-to-repository
+expansion before deciding that Architecture Radar has no work:
+
+1. inspect the public company, product, launch, docs, paper, model-card, or
+   runtime page;
+2. identify linked GitHub organizations, repositories, SDKs, runtimes, evals,
+   benchmarks, recipes, or papers;
+3. search by company name, product name, project name, and linked domain when
+   the public page does not expose code directly;
+4. record the mapping path in the candidate ledger or rejection reason.
+
+Launch, accelerator, batch, demo-day, portfolio, and company pages are discovery
+evidence only. They are not source-verified architecture evidence and do not
+justify a repository review without inspectable source code.
 
 Do not rank candidates primarily by stars.
 
@@ -122,7 +139,10 @@ For watchlist candidates, also record:
 - `artifact_type`
 - `review_mode`
 - linked external artifacts when relevant
-- whether the entry was satisfied by `selected`, `watch-model`, `deferred-model-release`, `deferred-cooldown`, or `inaccessible`
+- whether the entry was satisfied by `selected`, `watch-model`, `watch-dataset`,
+  `watch-benchmark`, `watch-runtime`, `watch-company`, `watch-product`,
+  `watch-launch`, `deferred-model-release`, `deferred-cooldown`,
+  `deferred-no-source`, or `inaccessible`
 
 Do not state candidate totals that are not represented in this ledger.
 
@@ -139,7 +159,10 @@ Handle these explicitly instead of letting them disappear between discovery and 
 - When a model release exposes important failure modes through issues or pull requests, record those as `E3 maintainer stated` unless verified in source or tests.
 - Prefer inspecting companion runtime, container, eval, or adapter repositories when the primary model repository has too little implementation code.
 
-Watchlist entries with `review_mode: watch-model`, `watch-dataset`, `watch-benchmark`, or `watch-runtime` do not have to become deep reviews. They do have to become explicit ledger rows with a concrete decision and evidence-backed reason.
+Watchlist entries with `review_mode: watch-model`, `watch-dataset`,
+`watch-benchmark`, `watch-runtime`, `watch-company`, `watch-product`, or
+`watch-launch` do not have to become deep reviews. They do have to become
+explicit ledger rows with a concrete decision and evidence-backed reason.
 
 ## Selection
 

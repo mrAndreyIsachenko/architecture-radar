@@ -93,5 +93,11 @@ Watchlist entries are not automatic recommendations. They force accounting:
 
 - inspect or explicitly defer the entry;
 - record the exact decision in the candidate ledger;
-- use `watch-model`, `watch-dataset`, `watch-benchmark`, or `watch-runtime` when source-level deep review is not the right unit;
-- prefer companion runtime/eval/adapter repositories when the primary repository is model-heavy.
+- use `watch-model`, `watch-dataset`, `watch-benchmark`, `watch-runtime`,
+  `watch-company`, `watch-product`, or `watch-launch` when source-level deep
+  review is not the right unit;
+- perform company-to-repository expansion for company, product, launch, or
+  runtime seeds before deciding that there is no inspectable source;
+- prefer companion runtime/eval/adapter repositories when the primary
+  repository is model-heavy or the company launch points to adjacent code under
+  a different organization or product name.
