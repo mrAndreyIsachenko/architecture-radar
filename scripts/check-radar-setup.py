@@ -312,10 +312,10 @@ def check_opportunities_json(root: Path) -> list[Check]:
         checks.append(make_check("opportunities-json:shape", "fail", "opportunities.json must be an object; restore the expected schema"))
         return checks
 
-    if data.get("schema_version") == 1:
-        checks.append(make_check("opportunities-json:schema-version", "pass", "opportunities.json has schema_version 1"))
+    if data.get("schema_version") == 2:
+        checks.append(make_check("opportunities-json:schema-version", "pass", "opportunities.json has schema_version 2"))
     else:
-        checks.append(make_check("opportunities-json:schema-version", "fail", "opportunities.json schema_version must be 1"))
+        checks.append(make_check("opportunities-json:schema-version", "fail", "opportunities.json schema_version must be 2"))
 
     for field in ("selected", "deferred", "watchlisted"):
         if isinstance(data.get(field), list):

@@ -42,7 +42,7 @@ class SetupDoctorTest(unittest.TestCase):
 
         content_by_path = {
             "radar.json": json.dumps({"schema_version": 1, "repositories": []}),
-            "opportunities.json": json.dumps({"schema_version": 1, "selected": [], "deferred": [], "watchlisted": []}),
+            "opportunities.json": json.dumps({"schema_version": 2, "selected": [], "deferred": [], "watchlisted": []}),
             "scripts/publish-radar-run.sh": "\n".join(
                 [
                     "#!/usr/bin/env bash",
