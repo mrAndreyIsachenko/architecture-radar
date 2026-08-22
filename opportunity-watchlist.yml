@@ -1,6 +1,32 @@
 # Public sources the Opportunity Radar should account for during manual runs.
 
 entries:
+  - source: YC Degla Inc profile
+    url: https://www.ycombinator.com/companies/degla-inc
+    family: drones-robotics-demand
+    signal_type: company-launch
+    source_class: launch
+    priority: high
+    status: watch
+    reason: Company-launch seed for natural-language multi-drone mission execution; account for autonomy workflow signals without treating YC presence as demand proof.
+    search_terms:
+      - Degla Inc drones
+      - multi-drone mission execution
+      - natural language drone autonomy
+
+  - source: YC RightNow / RunInfra profile
+    url: https://www.ycombinator.com/companies/rightnow
+    family: ai-llm-demand
+    signal_type: company-launch
+    source_class: launch
+    priority: high
+    status: watch
+    reason: Company-launch seed for GPU inference infrastructure and model-hardware co-design; check buyer, paid wedge, and runtime repository signals separately.
+    search_terms:
+      - RightNow RunInfra
+      - model hardware co-design
+      - serverless inference optimized kernels
+
   - source: GitHub LangGraph issues and discussions
     url: https://github.com/langchain-ai/langgraph
     family: ai-llm-demand

@@ -67,6 +67,51 @@ Agent platform teams, internal automation teams, and consultants shipping LangGr
 ## Current Workaround Or Money Signal
 Users tune checkpointers manually, switch saver backends, rely on LangSmith-style tracing, and hire for production agent work.
 
+## Money Evidence Type
+budget_adjacency
+
+## Money Evidence
+GitHub issues, public hiring, and LangChain paid products show pain and adjacent budget, but no direct paid checkpoint-audit request.
+
+## Existing Paid Workflow
+Teams pay for agent engineering, observability, and platform work; a paid checkpoint audit workflow is still unproven.
+
+## Current Workaround
+Engineers manually inspect issues, traces, checkpoint records, storage growth, saver settings, and replay behavior.
+
+## Current Cost
+Engineering time and possible storage waste; direct dollar spend for an audit is not public.
+
+## Why Buyer Would Buy From Us
+A buyer would only buy if a narrow manual audit saves incident debugging time beyond existing tracing and documentation.
+
+## Smallest Sellable Outcome
+Manual checkpoint risk report for one exported LangGraph workflow.
+
+## Manual First Delivery
+Review a public demo or sanitized trace export by hand and send a short checkpoint and replay-risk memo.
+
+## One-Sentence Offer
+Manual review of one LangGraph checkpoint setup with replay-risk and storage-bloat findings within 48 hours.
+
+## Price Hypothesis
+unclear until one buyer agrees to pay for a manual checkpoint audit.
+
+## Buyer Acquisition Path
+Reach LangGraph-heavy teams visible through public jobs, GitHub issues, and agent-runtime community posts.
+
+## Time To Transaction
+2
+
+## Time To Transaction Reason
+Low: the buyer is reachable, but current evidence is adjacent budget rather than a buyer seeking a paid audit.
+
+## Productization Path
+Only after paid audits repeat, turn recurring checks into a small local report generator or CI check.
+
+## Cashflow Falsification Test
+If three reachable LangGraph teams decline a paid manual audit, keep this as technical watchlist research.
+
 ## Technology Shift
 - What changed: LangGraph moved from a developer framework into a production runtime with checkpointer libraries, platform hosting, and observability messaging.
 - When: 2024-05-20 through 2026-08-18, with the strongest public cluster in 2026.
@@ -85,16 +130,16 @@ Agent platform teams, internal automation teams, and consultants shipping produc
 Engineers spend time debugging checkpoint bloat, replay drift, duplicate execution, and persistence failures in production LangGraph workflows.
 
 ## Existing Spend
-Public hiring shows companies staffing LangGraph and agentic AI roles, and LangChain's own product and documentation footprint shows active investment in the ecosystem.
+Public hiring and LangChain paid products show adjacent budget for agent infrastructure, but not direct spend on checkpoint audit reports.
 
 ## Paid Experiment
-Sell a paid checkpoint audit/report to one LangGraph-heavy team. Deliver a one-page risk summary plus a CLI run against a public demo or sanitized export. Success is one paid pilot or three serious requests for sample output within 7 days.
+Do not sell a product yet; first ask reachable LangGraph teams for a paid manual checkpoint audit and require one paid request before promotion.
 
 ## Money-First Scores
 - Pain: 5
-- Spend: 3
-- Reachability: 4
-- Timing: 4
+- Spend: 1
+- Reachability: 3
+- Timing: 3
 - Buildability: 4
 
 ## Source Classes
@@ -119,7 +164,7 @@ A narrow audit could be bought by small teams or consultants because it is repea
 medium
 
 ## Money Flow
-Teams already pay LangChain for LangSmith or LangGraph Platform, and they also pay cloud/storage vendors plus agent engineering labor for persistence and replay operations.
+Money flows through LangChain products, cloud storage, and agent engineering labor, but direct external checkpoint-audit spend remains unproven.
 
 ## Recurrence
 The workflow recurs when teams ship new workflows, change checkpoint savers, tune persistence, or investigate production replay and storage incidents.
@@ -134,10 +179,10 @@ Checkpoint audit report for one exported workflow that compares storage growth, 
 Partial: LangSmith and platform observability exist, while independent checkpoint-cost and replay-risk audit tooling remains immature.
 
 ## Paid Wedge
-Reduce engineering time and infrastructure waste caused by checkpoint bloat, duplicate execution, and persistence failures in LangGraph production workflows.
+Potentially reduce engineering time and infrastructure waste from checkpoint bloat and replay failures, but the paid workflow is not yet proven.
 
 ## Distribution Channel
-Public landing page plus manual audit booking, with the report or CLI delivered after inbound interest from teams already adopting LangGraph.
+Public LangGraph community channels, hiring pages, and direct outreach to agent teams; no validated buying channel yet.
 
 ## Private Data Barrier
 public-only
@@ -149,10 +194,10 @@ medium
 report
 
 ## Pricing Hypothesis
-team
+unclear
 
 ## Do Not Build Until
-At least one team pays for a checkpoint audit, or three teams prove cross-company trace, storage, and observability reconciliation is a recurring budgeted workflow.
+A buyer pays for one manual checkpoint audit, or three reachable teams confirm this is a recurring paid workflow rather than adjacent platform spend.
 
 ## Proposed Offer
 A paid checkpoint audit that measures storage growth, query count, replay fidelity, and duplicate-run risk.
@@ -169,4 +214,4 @@ No team will share a sanitized trace export, or the audit is redundant with exis
 - No proof yet that the audit should expand into a product.
 
 ## Decision
-Sell-before-build. Offer the checkpoint audit first; do not build a product until the paid review path is validated.
+Watchlisted. The technical pain is real, but the current evidence is budget adjacency rather than a direct paid workflow.

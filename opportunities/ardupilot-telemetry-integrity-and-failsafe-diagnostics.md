@@ -64,6 +64,51 @@ UAV operators, robotics labs, integrators, and flight-test engineers using ArduP
 ## Current Workaround Or Money Signal
 Manual log review, Mission Planner stats windows, firmware updates, and repeated bench tests are used to isolate telemetry faults.
 
+## Money Evidence Type
+no_money_evidence
+
+## Money Evidence
+Public issues and forum threads show technical pain and manual diagnosis, but no direct public spend for external telemetry diagnostics.
+
+## Existing Paid Workflow
+Drone operations and integrator work are budgeted, but paid third-party telemetry-integrity review is not proven.
+
+## Current Workaround
+Operators inspect flight logs, Mission Planner output, telemetry counters, hardware behavior, and forum advice manually.
+
+## Current Cost
+Operator or integrator time plus mission risk; external diagnostic spend is not visible.
+
+## Why Buyer Would Buy From Us
+A buyer would only buy if the report earns trust on real logs and reduces safety-review time.
+
+## Smallest Sellable Outcome
+Manual telemetry-integrity report for one uploaded flight-log set.
+
+## Manual First Delivery
+Review a representative log set by hand, classify telemetry gaps, and send a short integrity and failsafe report.
+
+## One-Sentence Offer
+Manual review of one ArduPilot log set with telemetry-integrity and failsafe-risk findings within 72 hours.
+
+## Price Hypothesis
+unclear until an operator asks for or pays for log review.
+
+## Buyer Acquisition Path
+Reach ArduPilot operators and integrators through forum posts, operator communities, and public robotics contacts.
+
+## Time To Transaction
+1
+
+## Time To Transaction Reason
+Very low: useful validation likely requires private logs and trust before a buyer can pay.
+
+## Productization Path
+Only after repeated paid log reviews, productize recurring checks into a local report generator.
+
+## Cashflow Falsification Test
+If operators will not share logs or pay for manual review, do not build beyond research notes.
+
 ## Technology Shift
 - What changed: telemetry-heavy drone operations and public automation work make log integrity and diagnosis more visible as a workflow.
 - When: 2026-02-27 through 2026-04-24, with new public log-diagnosis discussion in 2026.
@@ -85,7 +130,7 @@ Operators need to reconstruct telemetry integrity and failsafe causes from repre
 Public forum work shows manual diagnosis effort, and a 2026 ArduPilot log-diagnosis project suggests interest in automated review, but no direct public spend is visible.
 
 ## Paid Experiment
-Ask one integrator or three operators to upload logs for a paid telemetry-integrity review; success is one paid review request or three sample-log submissions.
+Ask for representative logs and willingness to pay only after finding direct operator demand or manual log-analysis spend.
 
 ## Money-First Scores
 - Pain: 4

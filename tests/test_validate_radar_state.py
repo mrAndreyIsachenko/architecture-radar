@@ -44,6 +44,16 @@ def complete_report() -> str:
     return "\n".join(body)
 
 
+def write_research_scope(root: Path, families: list[str] | None = None) -> None:
+    families = families or ["ai-llm-systems"]
+    docs = root / "docs"
+    docs.mkdir(exist_ok=True)
+    (docs / "research-scope.md").write_text(
+        "## Topic Families\n\n" + "\n".join(f"- `{family}`" for family in families) + "\n",
+        encoding="utf-8",
+    )
+
+
 class ValidateRadarStateTest(unittest.TestCase):
     def test_markdown_sections_extracts_h2_sections(self) -> None:
         sections = validator.markdown_sections("intro\n\n## First\n\nalpha\n\n## Second\n\nbeta\n")
@@ -101,6 +111,54 @@ class ValidateRadarStateTest(unittest.TestCase):
                 self.assertRaises(SystemExit),
             ):
                 validator.validate_report_structure()
+
+    def test_watchlist_accepts_company_seed_without_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_research_scope(root)
+            (root / "watchlist.yml").write_text(
+                "\n".join(
+                    [
+                        "entries:",
+                        "  - source: YC RightNow / RunInfra profile",
+                        "    url: https://www.ycombinator.com/companies/rightnow",
+                        "    family: ai-llm-systems",
+                        "    artifact_type: company",
+                        "    priority: high",
+                        "    status: watch",
+                        "    review_mode: watch-company",
+                        "    reason: Company-launch seed for expanding to related runtime repositories without treating the launch as source evidence.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_watchlist()
+
+    def test_watchlist_rejects_non_repository_seed_with_source_review_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_research_scope(root)
+            (root / "watchlist.yml").write_text(
+                "\n".join(
+                    [
+                        "entries:",
+                        "  - source: YC RightNow / RunInfra profile",
+                        "    url: https://www.ycombinator.com/companies/rightnow",
+                        "    family: ai-llm-systems",
+                        "    artifact_type: company",
+                        "    priority: high",
+                        "    status: watch",
+                        "    review_mode: deep-review",
+                        "    reason: Company-launch seed for expanding to related runtime repositories without treating the launch as source evidence.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_watchlist()
 
 
 if __name__ == "__main__":

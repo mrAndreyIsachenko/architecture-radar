@@ -65,6 +65,51 @@ IT admins, security-conscious teams, and power users managing laptops, phones, a
 ## Current Workaround Or Money Signal
 People disable MagicDNS, use App Connectors, exclude the browser, or switch to other VPN products when Tailscale routing does not fit the workflow.
 
+## Money Evidence Type
+budget_adjacency
+
+## Money Evidence
+Pricing pages and admin issue threads show adjacent budget and operational pain, not a direct paid diagnostic workflow.
+
+## Existing Paid Workflow
+Teams pay for VPN or network administration, but public evidence does not show payment for external split-tunnel diagnostics.
+
+## Current Workaround
+Admins read docs, compare route state, toggle DNS or app connector settings, and manually test excluded apps.
+
+## Current Cost
+Admin time, rollout delay, and productivity loss; direct diagnostic spend is not public.
+
+## Why Buyer Would Buy From Us
+A buyer would buy only if a pre-rollout report prevents support tickets or security bypasses better than internal admin work.
+
+## Smallest Sellable Outcome
+Manual routing-policy review for one exit-node, split-DNS, or app-connector scenario.
+
+## Manual First Delivery
+Collect a public or synthetic policy description, review expected routes and DNS behavior, and send an exception-risk report.
+
+## One-Sentence Offer
+Manual review of one Tailscale routing setup with likely split-tunnel and DNS failure points within 48 hours.
+
+## Price Hypothesis
+unclear until an admin confirms paid review demand.
+
+## Buyer Acquisition Path
+Find admins in Tailscale-adjacent communities, paid network-admin tasks, and small-team security forums.
+
+## Time To Transaction
+2
+
+## Time To Transaction Reason
+Low: the pain is reachable, but a standalone buyer and purchase path are not yet proven.
+
+## Productization Path
+Only after paid reviews repeat, encode common route and DNS checks into a local CLI or report template.
+
+## Cashflow Falsification Test
+If three admins reject a paid review or cannot name a budget owner, keep it in watchlist.
+
 ## Technology Shift
 - What changed: Tailscale's exit-node, app-connector, and DNS docs now formalize routing choices, while pricing and enterprise plans make the product a budgeted admin tool.
 - When: 2025-12-05 through 2026-08-11, with pricing and documentation refreshed in 2026.
@@ -83,15 +128,15 @@ IT admins, security-conscious teams, and power users managing laptops, phones, a
 Admins lose rollout time diagnosing split-tunnel routing exceptions, DNS behavior, and mixed-VPN conflicts.
 
 ## Existing Spend
-Tailscale has public paid plans and enterprise features, and users already rely on app connectors, DNS overrides, or other VPNs when routing does not match the workflow.
+Tailscale paid plans and admin labor prove adjacent networking budget, but direct external routing-diagnostic spend is not visible.
 
 ## Paid Experiment
-Offer a paid routing-policy review to three admins and ask whether the output would prevent rollout mistakes; success is one paid review or three clear requests for a sample report.
+Ask admins for a paid manual routing review only after finding direct evidence that teams buy this kind of pre-rollout diagnostic.
 
 ## Money-First Scores
 - Pain: 4
-- Spend: 2
-- Reachability: 3
+- Spend: 1
+- Reachability: 2
 - Timing: 3
 - Buildability: 3
 

@@ -28,10 +28,12 @@ REQUIRED_DIRS = [
 
 REQUIRED_REPORT_SECTIONS = {
     "Prerequisites And State",
+    "Best Paths To First Transaction",
     "Signal Counts",
     "Selected Opportunities",
     "Executive Summary",
     "Signal Ledger",
+    "Interesting But Not Yet Commercial",
     "Topic Coverage",
     "Commercial Delta",
     "Structural Candidate Ranking",
@@ -50,6 +52,7 @@ LEDGER_REQUIRED_COLUMNS = {
     "URL",
     "Family",
     "Signal type",
+    "Source class",
     "Evidence label",
     "Decision",
     "Reason",
@@ -125,6 +128,18 @@ COMMERCIAL_DELTA_REQUIRED_COLUMNS = {
     "Commercial delta",
     "Decision",
 }
+FIRST_TRANSACTION_REQUIRED_COLUMNS = {
+    "Opportunity",
+    "Buyer",
+    "Already paying for",
+    "Current workaround",
+    "One-sentence offer",
+    "Price hypothesis",
+    "Where to find first buyers",
+    "Time-to-transaction",
+    "Why now",
+    "Biggest uncertainty",
+}
 
 SELECTED_OPPORTUNITY_SECTIONS = {
     "Opportunity Summary",
@@ -142,6 +157,21 @@ SELECTED_OPPORTUNITY_SECTIONS = {
     "Repeated Pain Or Demand Signal",
     "Likely User Or Buyer",
     "Current Workaround Or Money Signal",
+    "Money Evidence Type",
+    "Money Evidence",
+    "Existing Paid Workflow",
+    "Current Workaround",
+    "Current Cost",
+    "Why Buyer Would Buy From Us",
+    "Smallest Sellable Outcome",
+    "Manual First Delivery",
+    "One-Sentence Offer",
+    "Price Hypothesis",
+    "Buyer Acquisition Path",
+    "Time To Transaction",
+    "Time To Transaction Reason",
+    "Productization Path",
+    "Cashflow Falsification Test",
     "Technology Shift",
     "Buyer",
     "Expensive Workflow",
@@ -208,6 +238,8 @@ STATE_PRODUCT_SHAPE_VALUES = {
 STATE_PRICING_HYPOTHESIS_VALUES = {"free", "team", "pro", "unclear"}
 STATE_SOURCE_CLASS_VALUES = {
     "github",
+    "freelance-marketplace",
+    "agency",
     "forum",
     "social",
     "product",
@@ -217,8 +249,38 @@ STATE_SOURCE_CLASS_VALUES = {
     "marketplace",
     "docs",
     "benchmark",
+    "launch",
     "news",
     "other",
+}
+STATE_MONEY_EVIDENCE_TYPES = {
+    "direct_workflow_spend",
+    "manual_labor_spend",
+    "competitor_revenue_signal",
+    "procurement_or_job_signal",
+    "budget_adjacency",
+    "no_money_evidence",
+}
+SELL_BEFORE_BUILD_MONEY_EVIDENCE_TYPES = {
+    "direct_workflow_spend",
+    "manual_labor_spend",
+    "competitor_revenue_signal",
+    "procurement_or_job_signal",
+}
+STATE_CASHFLOW_TEXT_FIELDS = {
+    "money_evidence",
+    "existing_paid_workflow",
+    "current_workaround",
+    "current_cost",
+    "why_buy_from_us",
+    "smallest_sellable_outcome",
+    "manual_first_delivery",
+    "one_sentence_offer",
+    "price_hypothesis",
+    "buyer_acquisition_path",
+    "time_to_transaction_reason",
+    "productization_path",
+    "cashflow_falsification_test",
 }
 TECHNOLOGY_SHIFT_REQUIRED_FIELDS = {
     "what_changed",
@@ -237,6 +299,17 @@ MONEY_SCORE_FIELDS = {
     "reachability_score",
     "timing_score",
     "buildability_score",
+}
+CASHFLOW_SCORE_FIELDS = {
+    "direct_spend_score",
+    "buyer_reachability_score",
+    "time_to_transaction_score",
+    "manual_deliverability_score",
+    "pain_frequency_score",
+    "pain_urgency_score",
+    "input_accessibility_score",
+    "distribution_access_score",
+    "recurrence_score",
 }
 STRUCTURAL_SCORE_FIELDS = {
     "fragmentation",
@@ -308,6 +381,29 @@ STATE_REQUIRED_COMPARISON_FIELDS = {
     "existing_spend",
     "paid_experiment",
     "source_classes",
+    "money_evidence_type",
+    "money_evidence",
+    "existing_paid_workflow",
+    "current_workaround",
+    "current_cost",
+    "why_buy_from_us",
+    "smallest_sellable_outcome",
+    "manual_first_delivery",
+    "one_sentence_offer",
+    "price_hypothesis",
+    "buyer_acquisition_path",
+    "time_to_transaction_score",
+    "time_to_transaction_reason",
+    "productization_path",
+    "cashflow_falsification_test",
+    "direct_spend_score",
+    "buyer_reachability_score",
+    "manual_deliverability_score",
+    "pain_frequency_score",
+    "pain_urgency_score",
+    "input_accessibility_score",
+    "distribution_access_score",
+    "recurrence_score",
     "structural_pattern",
     "primitive_growth",
     "fragmentation_summary",
@@ -371,6 +467,15 @@ COMMERCIAL_FILTER_STATE_FIELDS = {
     "Money flow": "money_flow",
     "Permissionless validation": "permissionless_validation",
     "Smallest wedge": "smallest_wedge",
+}
+FIRST_TRANSACTION_STATE_FIELDS = {
+    "Buyer": "buyer",
+    "Already paying for": "existing_paid_workflow",
+    "Current workaround": "current_workaround",
+    "One-sentence offer": "one_sentence_offer",
+    "Price hypothesis": "price_hypothesis",
+    "Where to find first buyers": "buyer_acquisition_path",
+    "Why now": "timing_reason",
 }
 UNCLEAR_TEXT_MARKERS = {
     "unclear",
@@ -481,8 +586,9 @@ WATCHLIST_ALLOWED_SIGNAL_TYPES = {
     "execution-gap",
     "commercial-glue",
     "internal-build-risk",
+    "company-launch",
 }
-WATCHLIST_SCALAR_FIELDS = {"source", "url", "family", "signal_type", "priority", "status", "reason"}
+WATCHLIST_SCALAR_FIELDS = {"source", "url", "family", "signal_type", "source_class", "priority", "status", "reason"}
 WATCHLIST_LIST_FIELDS = {"search_terms"}
 URL_RE = re.compile(r"https?://[^\s\]\)>]+")
 
@@ -677,12 +783,20 @@ def validate_signal_ledger(path: Path, section_text: str) -> list[dict[str, str]
     if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
         fail(f"{path.relative_to(ROOT)} Signal Ledger has an invalid markdown separator row")
 
+    signal_type_index = header.index("Signal type")
+    source_class_index = header.index("Source class")
     label_index = header.index("Evidence label")
     rows: list[dict[str, str]] = []
     for row_index, row in enumerate(lines[2:], start=1):
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) != len(header):
             fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has {len(cells)} cells, expected {len(header)}")
+        signal_type = cells[signal_type_index].strip("`")
+        if signal_type not in WATCHLIST_ALLOWED_SIGNAL_TYPES:
+            fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported signal type: {signal_type}")
+        source_class = cells[source_class_index].strip("`")
+        if source_class not in STATE_SOURCE_CLASS_VALUES:
+            fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported source class: {source_class}")
         label = cells[label_index].strip("`")
         if label not in ALLOWED_LABELS:
             fail(f"{path.relative_to(ROOT)} Signal Ledger row {row_index} has unsupported evidence label: {label}")
@@ -720,6 +834,11 @@ def validate_signal_note_file(path: Path) -> set[str]:
         fail(f"{path.relative_to(ROOT)} signal note must include Signal type")
     if signal_type not in WATCHLIST_ALLOWED_SIGNAL_TYPES:
         fail(f"{path.relative_to(ROOT)} signal note has unsupported Signal type: {signal_type}")
+    source_class = field_value(text, "Source class")
+    if not source_class:
+        fail(f"{path.relative_to(ROOT)} signal note must include Source class")
+    if source_class not in STATE_SOURCE_CLASS_VALUES:
+        fail(f"{path.relative_to(ROOT)} signal note has unsupported Source class: {source_class}")
 
     labels = field_value(text, "Labels")
     if not labels:
@@ -857,9 +976,58 @@ def parse_int_cell(value: object, path: Path, row_index: str, column: str) -> in
     return score
 
 
+def parse_first_transaction_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    if "None" in section_text or "No selected" in section_text:
+        return []
+
+    rows = parse_markdown_table(
+        path,
+        "Best Paths To First Transaction",
+        section_text,
+        FIRST_TRANSACTION_REQUIRED_COLUMNS,
+    )
+    if len(rows) > 5:
+        fail(f"{path.relative_to(ROOT)} Best Paths To First Transaction must contain at most 5 rows")
+
+    parsed_rows: list[dict[str, object]] = []
+    for row in rows:
+        row_index = str(row["_row_index"])
+        for column in (
+            "Buyer",
+            "Already paying for",
+            "Current workaround",
+            "One-sentence offer",
+            "Price hypothesis",
+            "Where to find first buyers",
+            "Why now",
+            "Biggest uncertainty",
+        ):
+            if len(clean_table_cell(row[column])) < 10:
+                fail(f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} column `{column}` is too short")
+
+        score = parse_int_cell(row["Time-to-transaction"], path, row_index, "Time-to-transaction")
+        if score < 1:
+            fail(f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} time-to-transaction must be from 1 to 5")
+        parsed = dict(row)
+        parsed["Time-to-transaction"] = score
+        parsed_rows.append(parsed)
+
+    return parsed_rows
+
+
+def validate_first_transaction_table(path: Path, section_text: str) -> list[dict[str, object]]:
+    return parse_first_transaction_table(path, section_text)
+
+
 def validate_money_score(value: object, context: str, field: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 5:
         fail(f"{context} {field} must be an integer from 0 to 5")
+    return value
+
+
+def validate_cashflow_score(value: object, context: str, field: str, *, min_value: int = 0) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or not min_value <= value <= 5:
+        fail(f"{context} {field} must be an integer from {min_value} to 5")
     return value
 
 
@@ -1704,6 +1872,48 @@ def validate_money_readiness_state_consistency(
                 )
 
 
+def validate_first_transaction_state_consistency(
+    path: Path,
+    rows: list[dict[str, object]],
+    state_entries: dict[str, tuple[str, int, dict[str, object]]],
+) -> None:
+    for row in rows:
+        row_index = str(row["_row_index"])
+        opportunity = row["Opportunity"]
+        key = normalize_opportunity_key(opportunity)
+        match = state_entries.get(key)
+        if match is None:
+            fail(
+                f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} "
+                f"opportunity is missing from opportunities.json: {opportunity}"
+            )
+
+        array_name, state_index, entry = match
+        stage = state_stage_for_entry(array_name, entry)
+        if stage not in {"selected", "selected-for-test", "sell-before-build"}:
+            fail(
+                f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} "
+                f"cannot reference opportunities.json {array_name}[{state_index}] stage `{stage}`"
+            )
+
+        for column, state_field in FIRST_TRANSACTION_STATE_FIELDS.items():
+            actual_value = normalize_report_text(row[column])
+            expected_value = normalize_report_text(entry.get(state_field, ""))
+            if actual_value != expected_value:
+                fail(
+                    f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} column `{column}` "
+                    f"does not match opportunities.json {array_name}[{state_index}].{state_field}"
+                )
+
+        actual_score = int(row["Time-to-transaction"])
+        expected_score = entry.get("time_to_transaction_score")
+        if actual_score != expected_score:
+            fail(
+                f"{path.relative_to(ROOT)} Best Paths To First Transaction row {row_index} time-to-transaction "
+                f"does not match opportunities.json {array_name}[{state_index}].time_to_transaction_score"
+            )
+
+
 def validate_commercial_filter_state_consistency(
     path: Path,
     rows: list[dict[str, str]],
@@ -1937,6 +2147,8 @@ def validate_report_structure() -> None:
             if not sections[section].strip():
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
+        first_transaction_rows = validate_first_transaction_table(path, sections["Best Paths To First Transaction"])
+        validate_first_transaction_state_consistency(path, first_transaction_rows, state_entries)
         signal_ledger_rows = validate_signal_ledger(path, sections["Signal Ledger"])
         validate_topic_coverage_table(path, sections["Topic Coverage"], signal_ledger_rows)
         validate_signal_note_coverage(path, signal_ledger_rows)
@@ -2075,6 +2287,12 @@ def validate_watchlist() -> None:
         signal_type = str(entry["signal_type"])
         if signal_type not in WATCHLIST_ALLOWED_SIGNAL_TYPES:
             fail(f"opportunity-watchlist.yml entry {index} has unsupported signal_type: {signal_type}")
+        source_class = str(entry.get("source_class", "")).strip()
+        if source_class:
+            if source_class not in STATE_SOURCE_CLASS_VALUES:
+                fail(f"opportunity-watchlist.yml entry {index} has unsupported source_class: {source_class}")
+        elif signal_type == "company-launch":
+            fail(f"opportunity-watchlist.yml entry {index} with company-launch signal_type must include source_class")
         priority = str(entry["priority"])
         if priority not in WATCHLIST_ALLOWED_PRIORITIES:
             fail(f"opportunity-watchlist.yml entry {index} has unsupported priority: {priority}")
@@ -2093,8 +2311,8 @@ def validate_watchlist() -> None:
 def validate_state() -> None:
     data = read_opportunities_state()
 
-    if data.get("schema_version") != 1:
-        fail("opportunities.json schema_version must be 1")
+    if data.get("schema_version") != 2:
+        fail("opportunities.json schema_version must be 2")
 
     has_entries = any(data.get(field) for field in STATE_ARRAY_FIELDS)
     discovery_mode = data.get("discovery_mode")
@@ -2121,6 +2339,15 @@ def validate_state() -> None:
                 fail(f"opportunities.json {field}[{index}] score must be an integer from 0 to 10")
             context = f"opportunities.json {field}[{index}]"
             money_scores = {score_field: validate_money_score(entry[score_field], context, score_field) for score_field in MONEY_SCORE_FIELDS}
+            cashflow_scores = {
+                score_field: validate_cashflow_score(
+                    entry[score_field],
+                    context,
+                    score_field,
+                    min_value=1 if score_field == "time_to_transaction_score" else 0,
+                )
+                for score_field in CASHFLOW_SCORE_FIELDS
+            }
             structural_scores = validate_structural_state_fields(entry, context)
             internal_build_likelihood = validate_commercial_state_fields(entry, context)
             confidence = entry["confidence"]
@@ -2152,6 +2379,17 @@ def validate_state() -> None:
             if len(paid_experiment) < 30:
                 fail(f"opportunities.json {field}[{index}] paid_experiment is too short")
             source_classes = validate_source_classes(entry["source_classes"], context)
+            money_evidence_type = str(entry["money_evidence_type"]).strip()
+            if money_evidence_type not in STATE_MONEY_EVIDENCE_TYPES:
+                fail(
+                    f"opportunities.json {field}[{index}] money_evidence_type must be one of: "
+                    + ", ".join(sorted(STATE_MONEY_EVIDENCE_TYPES))
+                )
+            for cashflow_field in sorted(STATE_CASHFLOW_TEXT_FIELDS):
+                text = str(entry.get(cashflow_field, "")).strip()
+                min_len = 5 if cashflow_field in {"current_cost", "price_hypothesis"} else 20
+                if len(text) < min_len:
+                    fail(f"opportunities.json {field}[{index}] {cashflow_field} is too short")
             paid_wedge = str(entry["paid_wedge"]).strip()
             if len(paid_wedge) < 30:
                 fail(f"opportunities.json {field}[{index}] paid_wedge is too short")
@@ -2195,6 +2433,11 @@ def validate_state() -> None:
             if field == "selected":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json selected[{index}] has unclear paid_wedge; keep it in watchlisted")
+                if money_evidence_type in {"budget_adjacency", "no_money_evidence"}:
+                    fail(
+                        f"opportunities.json selected[{index}] has {money_evidence_type}; "
+                        "keep it in watchlisted until direct or near-direct money evidence exists"
+                    )
                 if private_data_barrier in PRIVATE_DATA_BLOCKING_VALUES:
                     fail(f"opportunities.json selected[{index}] requires private data/code or has unclear barrier; keep it in watchlisted")
                 if money_scores["spend_score"] < 2:
@@ -2205,6 +2448,14 @@ def validate_state() -> None:
                     fail(f"opportunities.json selected[{index}] has GitHub-only or single-class evidence; keep it in watchlisted")
                 if is_unclear_text(paid_experiment):
                     fail(f"opportunities.json selected[{index}] paid_experiment is unclear; keep it in watchlisted")
+                for cashflow_field in (
+                    "one_sentence_offer",
+                    "buyer_acquisition_path",
+                    "manual_first_delivery",
+                    "smallest_sellable_outcome",
+                ):
+                    if is_unclear_text(entry.get(cashflow_field, "")):
+                        fail(f"opportunities.json selected[{index}] has unclear {cashflow_field}; keep it in watchlisted")
                 for structural_field in (
                     "structural_pattern",
                     "fragmentation_summary",
@@ -2224,6 +2475,13 @@ def validate_state() -> None:
                     internal_build_likelihood=internal_build_likelihood,
                     entry=entry,
                 )
+                if normalize_stage(stage) == "sell-before-build":
+                    if cashflow_scores["time_to_transaction_score"] < 3:
+                        fail(f"opportunities.json selected[{index}] cannot be sell-before-build with time_to_transaction_score below 3")
+                    if money_evidence_type not in SELL_BEFORE_BUILD_MONEY_EVIDENCE_TYPES:
+                        fail(
+                            f"opportunities.json selected[{index}] cannot be sell-before-build with money_evidence_type `{money_evidence_type}`"
+                        )
             if normalize_stage(stage) == "selected-for-build":
                 if is_unclear_text(paid_wedge):
                     fail(f"opportunities.json {field}[{index}] cannot be selected-for-build with an unclear paid_wedge")

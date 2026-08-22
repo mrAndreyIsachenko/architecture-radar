@@ -24,6 +24,7 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '- Do not read, print, persist, or exfiltrate CI secrets, environment tokens, Codex credentials, or GitHub credentials.\n'
   printf -- '- Put temporary external repository clones and scratch files under `/tmp/architecture-radar-candidates`.\n'
   printf -- '- Use live web/GitHub discovery for current repository state.\n'
+  printf -- '- For company, product, launch, or runtime watchlist entries, perform company-to-repository expansion before deciding there is no inspectable source. Launch/company pages are discovery evidence only, not source-verified architecture evidence.\n'
   printf -- '- If a required prerequisite is missing, create `reports/%s.md` as a diagnostic report and stop without synthetic reviews, patterns, or radar entries.\n' "$run_date"
   printf -- '- If `Supplement required` is `true`, do not stop merely because `reports/%s.md` already exists. Create the supplement report at the provided supplement path and focus on changed or under-covered topic families.\n' "$run_date"
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'

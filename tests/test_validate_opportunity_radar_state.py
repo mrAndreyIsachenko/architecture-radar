@@ -24,6 +24,20 @@ DO_NOT_BUILD_UNTIL = "Three teams agree to run the audit on real traces or one t
 BUYER = "Engineering managers responsible for production agent reliability."
 EXISTING_SPEND = "Teams already spend engineering hours manually reading traces and reconstructing failed runs."
 PAID_EXPERIMENT = "Offer a $49 manual trace audit to three agent teams and treat one paid request as validation."
+MONEY_EVIDENCE_TYPE = "manual_labor_spend"
+MONEY_EVIDENCE = "Public service listings and repeated manual trace review workflows show paid labor can be sold before tooling."
+EXISTING_PAID_WORKFLOW = "Teams already pay engineers or consultants to manually inspect traces and reconstruct failed runs."
+CURRENT_WORKAROUND = "Engineers export traces, read logs, compare issue threads, and assemble a manual incident summary."
+CURRENT_COST = "$49 manual audit hypothesis; real customer spend still needs validation."
+WHY_BUY_FROM_US = "A buyer can get a narrow incident report faster than assigning an engineer to rebuild the analysis workflow."
+SMALLEST_SELLABLE_OUTCOME = "One manually prepared trace audit report for a single failed workflow."
+MANUAL_FIRST_DELIVERY = "Collect a public or sanitized trace export, inspect it manually, and send a written report."
+ONE_SENTENCE_OFFER = "Manual audit of one failed agent trace with a prioritized replay-risk report within 48 hours."
+PRICE_HYPOTHESIS = "$49 first audit, then team pricing if three teams repeat the workflow."
+BUYER_ACQUISITION_PATH = "Contact teams posting agent reliability questions in public forums and freelance marketplaces."
+TIME_TO_TRANSACTION_REASON = "A manual audit can be sold from public examples or sanitized exports without building a product first."
+PRODUCTIZATION_PATH = "Turn repeated manual audit checks into a local CLI only after paid reports repeat."
+CASHFLOW_FALSIFICATION_TEST = "If three reachable teams refuse a paid manual audit, keep this as watchlist research only."
 SOURCE_CLASSES = ["github", "forum"]
 TECHNOLOGY_SHIFT = {
     "what_changed": "Agent traces became common enough that small teams need repeatable debugging workflows.",
@@ -95,6 +109,13 @@ def complete_report(
             f"| Agent trace debugging | 5 | 2 | 3 | 3 | 4 | {BUYER} | {EXISTING_SPEND} | {PAID_EXPERIMENT} | github, forum | `selected-for-test` |",
         ]
     )
+    first_transaction = "\n".join(
+        [
+            "| Opportunity | Buyer | Already paying for | Current workaround | One-sentence offer | Price hypothesis | Where to find first buyers | Time-to-transaction | Why now | Biggest uncertainty |",
+            "|---|---|---|---|---|---|---|---:|---|---|",
+            f"| Agent trace debugging | {BUYER} | {EXISTING_PAID_WORKFLOW} | {CURRENT_WORKAROUND} | {ONE_SENTENCE_OFFER} | {PRICE_HYPOTHESIS} | {BUYER_ACQUISITION_PATH} | 3 | {TIMING_REASON} | Buyers may prefer existing observability tools over an external manual report. |",
+        ]
+    )
     structural_ranking = "\n".join(
         [
             "| Rank | Opportunity | Ecosystem | Score | Why now | Manual workflow | Wedge |",
@@ -137,22 +158,25 @@ def complete_report(
         reviews = "No selected opportunities."
         build_readiness = "None."
         money_readiness = "None."
+        first_transaction = "None."
         structural_ranking = "None."
         structural_scores = "None."
         commercial_filter = "None."
 
     sections = {
         "Prerequisites And State": "- workspace verified",
+        "Best Paths To First Transaction": first_transaction,
         "Signal Counts": "- `triaged`: 1",
         "Selected Opportunities": selected_text,
         "Executive Summary": "One demand signal was reviewed.",
         "Signal Ledger": "\n".join(
             [
-                "| Source | URL | Family | Signal type | Evidence label | Decision | Reason |",
-                "|---|---|---|---|---|---|---|",
-                "| GitHub issue | https://example.com/issue | `ai-llm-demand` | `repeated-pain` | `M2 repeated pain` | selected | Repeated agent debugging pain. |",
+                "| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |",
+                "|---|---|---|---|---|---|---|---|",
+                "| GitHub issue | https://example.com/issue | `ai-llm-demand` | `repeated-pain` | `github` | `M2 repeated pain` | selected | Repeated agent debugging pain. |",
             ]
         ),
+        "Interesting But Not Yet Commercial": "- None.",
         "Topic Coverage": topic_coverage,
         "Commercial Delta": commercial_delta,
         "Structural Candidate Ranking": structural_ranking,
@@ -176,11 +200,30 @@ def complete_state(
     *,
     array_name: str = "selected",
     stage: str = "selected-for-test",
+    entry_id: str = "agent-trace-debugging",
+    title: str = "Agent trace debugging",
     paid_wedge: str = PAID_WEDGE,
     spend_score: int = 2,
     reachability_score: int = 3,
+    direct_spend_score: int = 3,
+    buyer_reachability_score: int = 3,
+    time_to_transaction_score: int = 3,
     source_classes: list[str] | None = None,
     paid_experiment: str = PAID_EXPERIMENT,
+    money_evidence_type: str = MONEY_EVIDENCE_TYPE,
+    money_evidence: str = MONEY_EVIDENCE,
+    existing_paid_workflow: str = EXISTING_PAID_WORKFLOW,
+    current_workaround: str = CURRENT_WORKAROUND,
+    current_cost: str = CURRENT_COST,
+    why_buy_from_us: str = WHY_BUY_FROM_US,
+    smallest_sellable_outcome: str = SMALLEST_SELLABLE_OUTCOME,
+    manual_first_delivery: str = MANUAL_FIRST_DELIVERY,
+    one_sentence_offer: str = ONE_SENTENCE_OFFER,
+    price_hypothesis: str = PRICE_HYPOTHESIS,
+    buyer_acquisition_path: str = BUYER_ACQUISITION_PATH,
+    time_to_transaction_reason: str = TIME_TO_TRANSACTION_REASON,
+    productization_path: str = PRODUCTIZATION_PATH,
+    cashflow_falsification_test: str = CASHFLOW_FALSIFICATION_TEST,
     structural_scores: dict[str, int] | None = None,
     manual_workflow: str = MANUAL_WORKFLOW,
     internal_build_likelihood: str = INTERNAL_BUILD_LIKELIHOOD,
@@ -190,16 +233,16 @@ def complete_state(
     smallest_wedge: str = SMALLEST_WEDGE,
 ) -> str:
     data: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "discovery_mode": "watchlist-directed",
         "selected": [],
         "deferred": [],
         "watchlisted": [],
     }
     entry = {
-        "id": "agent-trace-debugging",
+        "id": entry_id,
         "family": "ai-llm-demand",
-        "title": "Agent trace debugging",
+        "title": title,
         "file": "opportunities/agent-trace-debugging.md",
         "stage": stage,
         "score": 7,
@@ -208,6 +251,15 @@ def complete_state(
         "reachability_score": reachability_score,
         "timing_score": 3,
         "buildability_score": 4,
+        "direct_spend_score": direct_spend_score,
+        "buyer_reachability_score": buyer_reachability_score,
+        "time_to_transaction_score": time_to_transaction_score,
+        "manual_deliverability_score": 4,
+        "pain_frequency_score": 4,
+        "pain_urgency_score": 3,
+        "input_accessibility_score": 3,
+        "distribution_access_score": 3,
+        "recurrence_score": 3,
         "confidence": "medium",
         "money_signal": "weak",
         "reachability": "high",
@@ -219,6 +271,20 @@ def complete_state(
         "existing_spend": EXISTING_SPEND,
         "paid_experiment": paid_experiment,
         "source_classes": source_classes or SOURCE_CLASSES,
+        "money_evidence_type": money_evidence_type,
+        "money_evidence": money_evidence,
+        "existing_paid_workflow": existing_paid_workflow,
+        "current_workaround": current_workaround,
+        "current_cost": current_cost,
+        "why_buy_from_us": why_buy_from_us,
+        "smallest_sellable_outcome": smallest_sellable_outcome,
+        "manual_first_delivery": manual_first_delivery,
+        "one_sentence_offer": one_sentence_offer,
+        "price_hypothesis": price_hypothesis,
+        "buyer_acquisition_path": buyer_acquisition_path,
+        "time_to_transaction_reason": time_to_transaction_reason,
+        "productization_path": productization_path,
+        "cashflow_falsification_test": cashflow_falsification_test,
         "structural_pattern": STRUCTURAL_PATTERN,
         "primitive_growth": PRIMITIVE_GROWTH,
         "fragmentation_summary": FRAGMENTATION_SUMMARY,
@@ -259,11 +325,30 @@ def write_complete_state(
     *,
     array_name: str = "selected",
     stage: str = "selected-for-test",
+    entry_id: str = "agent-trace-debugging",
+    title: str = "Agent trace debugging",
     paid_wedge: str = PAID_WEDGE,
     spend_score: int = 2,
     reachability_score: int = 3,
+    direct_spend_score: int = 3,
+    buyer_reachability_score: int = 3,
+    time_to_transaction_score: int = 3,
     source_classes: list[str] | None = None,
     paid_experiment: str = PAID_EXPERIMENT,
+    money_evidence_type: str = MONEY_EVIDENCE_TYPE,
+    money_evidence: str = MONEY_EVIDENCE,
+    existing_paid_workflow: str = EXISTING_PAID_WORKFLOW,
+    current_workaround: str = CURRENT_WORKAROUND,
+    current_cost: str = CURRENT_COST,
+    why_buy_from_us: str = WHY_BUY_FROM_US,
+    smallest_sellable_outcome: str = SMALLEST_SELLABLE_OUTCOME,
+    manual_first_delivery: str = MANUAL_FIRST_DELIVERY,
+    one_sentence_offer: str = ONE_SENTENCE_OFFER,
+    price_hypothesis: str = PRICE_HYPOTHESIS,
+    buyer_acquisition_path: str = BUYER_ACQUISITION_PATH,
+    time_to_transaction_reason: str = TIME_TO_TRANSACTION_REASON,
+    productization_path: str = PRODUCTIZATION_PATH,
+    cashflow_falsification_test: str = CASHFLOW_FALSIFICATION_TEST,
     structural_scores: dict[str, int] | None = None,
     manual_workflow: str = MANUAL_WORKFLOW,
     internal_build_likelihood: str = INTERNAL_BUILD_LIKELIHOOD,
@@ -276,11 +361,30 @@ def write_complete_state(
         complete_state(
             array_name=array_name,
             stage=stage,
+            entry_id=entry_id,
+            title=title,
             paid_wedge=paid_wedge,
             spend_score=spend_score,
             reachability_score=reachability_score,
+            direct_spend_score=direct_spend_score,
+            buyer_reachability_score=buyer_reachability_score,
+            time_to_transaction_score=time_to_transaction_score,
             source_classes=source_classes,
             paid_experiment=paid_experiment,
+            money_evidence_type=money_evidence_type,
+            money_evidence=money_evidence,
+            existing_paid_workflow=existing_paid_workflow,
+            current_workaround=current_workaround,
+            current_cost=current_cost,
+            why_buy_from_us=why_buy_from_us,
+            smallest_sellable_outcome=smallest_sellable_outcome,
+            manual_first_delivery=manual_first_delivery,
+            one_sentence_offer=one_sentence_offer,
+            price_hypothesis=price_hypothesis,
+            buyer_acquisition_path=buyer_acquisition_path,
+            time_to_transaction_reason=time_to_transaction_reason,
+            productization_path=productization_path,
+            cashflow_falsification_test=cashflow_falsification_test,
             structural_scores=structural_scores,
             manual_workflow=manual_workflow,
             internal_build_likelihood=internal_build_likelihood,
@@ -303,6 +407,7 @@ def complete_signal_note(url: str = "https://example.com/issue") -> str:
             "- Date range: 2026-08-10 to 2026-08-11",
             "- Family: ai-llm-demand",
             "- Signal type: repeated-pain",
+            "- Source class: github",
             "- Labels: M2 repeated pain, M4 workaround evidence",
             "- Notes: Repeated public issue comments show agent debugging pain that should be revisited later.",
             "",
@@ -371,6 +476,21 @@ def complete_opportunity() -> str:
         "Repeated Pain Or Demand Signal": "Teams repeatedly ask how to inspect failed agent runs.",
         "Likely User Or Buyer": "Engineering teams deploying multi-step LLM agents.",
         "Current Workaround Or Money Signal": "Teams use ad hoc logs and manual trace reading.",
+        "Money Evidence Type": MONEY_EVIDENCE_TYPE,
+        "Money Evidence": MONEY_EVIDENCE,
+        "Existing Paid Workflow": EXISTING_PAID_WORKFLOW,
+        "Current Workaround": CURRENT_WORKAROUND,
+        "Current Cost": CURRENT_COST,
+        "Why Buyer Would Buy From Us": WHY_BUY_FROM_US,
+        "Smallest Sellable Outcome": SMALLEST_SELLABLE_OUTCOME,
+        "Manual First Delivery": MANUAL_FIRST_DELIVERY,
+        "One-Sentence Offer": ONE_SENTENCE_OFFER,
+        "Price Hypothesis": PRICE_HYPOTHESIS,
+        "Buyer Acquisition Path": BUYER_ACQUISITION_PATH,
+        "Time To Transaction": "3",
+        "Time To Transaction Reason": TIME_TO_TRANSACTION_REASON,
+        "Productization Path": PRODUCTIZATION_PATH,
+        "Cashflow Falsification Test": CASHFLOW_FALSIFICATION_TEST,
         "Technology Shift": "Agent traces are common enough that lightweight incident audit workflows are now testable.",
         "Buyer": BUYER,
         "Expensive Workflow": "Engineers spend incident response time manually reconstructing failed agent runs.",
@@ -425,9 +545,20 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
     def test_signal_ledger_accepts_required_columns_and_labels(self) -> None:
         ledger = "\n".join(
             [
-                "| Source | URL | Family | Signal type | Evidence label | Decision | Reason |",
-                "|---|---|---|---|---|---|---|",
-                "| GitHub issue | https://example.com | `ai-llm-demand` | `repeated-pain` | `M2 repeated pain` | selected | Repeated pain. |",
+                "| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |",
+                "|---|---|---|---|---|---|---|---|",
+                "| GitHub issue | https://example.com | `ai-llm-demand` | `repeated-pain` | `github` | `M2 repeated pain` | selected | Repeated pain. |",
+            ]
+        )
+
+        validator.validate_signal_ledger(ROOT / "opportunity-reports" / "test.md", ledger)
+
+    def test_signal_ledger_accepts_company_launch_source_class(self) -> None:
+        ledger = "\n".join(
+            [
+                "| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |",
+                "|---|---|---|---|---|---|---|---|",
+                "| YC Degla profile | https://example.com/degla | `drones-robotics-demand` | `company-launch` | `launch` | `H hypothesis` | watchlisted | Launch seed only; demand proof still missing. |",
             ]
         )
 
@@ -436,9 +567,9 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
     def test_signal_ledger_rejects_unsupported_label(self) -> None:
         ledger = "\n".join(
             [
-                "| Source | URL | Family | Signal type | Evidence label | Decision | Reason |",
-                "|---|---|---|---|---|---|---|",
-                "| GitHub issue | https://example.com | `ai-llm-demand` | `repeated-pain` | `E3 maintainer stated` | selected | Wrong label. |",
+                "| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |",
+                "|---|---|---|---|---|---|---|---|",
+                "| GitHub issue | https://example.com | `ai-llm-demand` | `repeated-pain` | `github` | `E3 maintainer stated` | selected | Wrong label. |",
             ]
         )
 
@@ -902,7 +1033,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
                 encoding="utf-8",
             )
             (root / "opportunities.json").write_text(
-                json.dumps({"schema_version": 1, "selected": [], "deferred": [], "watchlisted": []}),
+                json.dumps({"schema_version": 2, "selected": [], "deferred": [], "watchlisted": []}),
                 encoding="utf-8",
             )
 
@@ -1112,6 +1243,155 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             with patch.object(validator, "ROOT", root):
                 validator.validate_state()
 
+    def test_state_schema_allows_paid_manual_workflow_for_sell_before_build(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    stage="sell-before-build",
+                    money_evidence_type="manual_labor_spend",
+                    spend_score=3,
+                    reachability_score=4,
+                    direct_spend_score=4,
+                    buyer_reachability_score=4,
+                    time_to_transaction_score=4,
+                    source_classes=["freelance-marketplace", "agency"],
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_github_and_adjacent_pricing_as_sell_before_build(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    stage="sell-before-build",
+                    money_evidence_type="budget_adjacency",
+                    spend_score=3,
+                    reachability_score=4,
+                    direct_spend_score=1,
+                    buyer_reachability_score=4,
+                    time_to_transaction_score=4,
+                    source_classes=["github", "pricing"],
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_allows_budget_adjacency_only_on_watchlist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    array_name="watchlisted",
+                    stage="watchlist",
+                    money_evidence_type="budget_adjacency",
+                    spend_score=1,
+                    reachability_score=2,
+                    direct_spend_score=1,
+                    time_to_transaction_score=2,
+                    source_classes=["github", "pricing"],
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_state()
+
+    def test_state_schema_rejects_sell_before_build_with_low_time_to_transaction(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    stage="sell-before-build",
+                    spend_score=3,
+                    reachability_score=4,
+                    money_evidence_type="direct_workflow_spend",
+                    time_to_transaction_score=2,
+                    source_classes=["freelance-marketplace", "agency"],
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_selected_without_offer_or_acquisition_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    one_sentence_offer="unclear",
+                    buyer_acquisition_path="unclear",
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
+    def test_state_schema_rejects_langgraph_style_budget_adjacency_without_special_case(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "opportunity-research-scope.md").write_text(
+                "## Topic Families\n\n- `ai-llm-demand`\n",
+                encoding="utf-8",
+            )
+            (root / "opportunities.json").write_text(
+                complete_state(
+                    stage="sell-before-build",
+                    entry_id="langgraph-checkpoint-persistence-and-cost-diagnostics",
+                    title="LangGraph Checkpoint Persistence And Cost Diagnostics",
+                    money_evidence_type="budget_adjacency",
+                    source_classes=["github", "pricing", "job"],
+                    spend_score=3,
+                    reachability_score=4,
+                    direct_spend_score=1,
+                    time_to_transaction_score=4,
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
+                validator.validate_state()
+
     def test_state_schema_rejects_selected_with_low_spend_score(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1216,7 +1496,7 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             (root / "opportunities.json").write_text(
                 json.dumps(
                     {
-                        "schema_version": 1,
+                        "schema_version": 2,
                         "discovery_mode": "watchlist-directed",
                         "selected": [
                             {
@@ -1257,6 +1537,53 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             )
 
             with patch.object(validator, "ROOT", root):
+                validator.validate_watchlist()
+
+    def test_watchlist_accepts_company_launch_seed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_topic_scope(root, families=["drones-robotics-demand"])
+            (root / "opportunity-watchlist.yml").write_text(
+                "\n".join(
+                    [
+                        "entries:",
+                        "  - source: YC Degla Inc profile",
+                        "    url: https://www.ycombinator.com/companies/degla-inc",
+                        "    family: drones-robotics-demand",
+                        "    signal_type: company-launch",
+                        "    source_class: launch",
+                        "    priority: high",
+                        "    status: watch",
+                        "    reason: Company-launch seed for natural-language multi-drone mission execution without treating YC presence as demand proof.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root):
+                validator.validate_watchlist()
+
+    def test_watchlist_rejects_company_launch_without_source_class(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            write_topic_scope(root, families=["drones-robotics-demand"])
+            (root / "opportunity-watchlist.yml").write_text(
+                "\n".join(
+                    [
+                        "entries:",
+                        "  - source: YC Degla Inc profile",
+                        "    url: https://www.ycombinator.com/companies/degla-inc",
+                        "    family: drones-robotics-demand",
+                        "    signal_type: company-launch",
+                        "    priority: high",
+                        "    status: watch",
+                        "    reason: Company-launch seed for natural-language multi-drone mission execution without treating YC presence as demand proof.",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with patch.object(validator, "ROOT", root), patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit):
                 validator.validate_watchlist()
 
     def test_watchlist_rejects_missing_priority_family_seed(self) -> None:
