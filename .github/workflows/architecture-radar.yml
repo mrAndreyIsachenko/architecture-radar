@@ -100,6 +100,10 @@ jobs:
         if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
         run: python3 scripts/normalize-radar-evidence-labels.py
 
+      - name: Repair report structure
+        if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
+        run: python3 scripts/repair-radar-report-structure.py
+
       - name: Validate radar artifacts
         if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
         run: scripts/validate-radar-state.py

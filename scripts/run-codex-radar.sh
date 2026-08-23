@@ -27,6 +27,19 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '- For company, product, launch, or runtime watchlist entries, perform company-to-repository expansion before deciding there is no inspectable source. Launch/company pages are discovery evidence only, not source-verified architecture evidence.\n'
   printf -- '- If a required prerequisite is missing, create `reports/%s.md` as a diagnostic report and stop without synthetic reviews, patterns, or radar entries.\n' "$run_date"
   printf -- '- If `Supplement required` is `true`, do not stop merely because `reports/%s.md` already exists. Create the supplement report at the provided supplement path and focus on changed or under-covered topic families.\n' "$run_date"
+  printf -- '- The report must use these exact H2 headings, each as `## <heading>`:\n'
+  printf -- '  - Prerequisites And State\n'
+  printf -- '  - Candidate Counts\n'
+  printf -- '  - Selected Repositories\n'
+  printf -- '  - Executive Summary\n'
+  printf -- '  - Detailed Reviews\n'
+  printf -- '  - Extracted Or Updated Patterns\n'
+  printf -- '  - Relevance To Explicit Problems In `interests.md`\n'
+  printf -- '  - Candidate Ledger\n'
+  printf -- '  - Recommended Next Action\n'
+  printf -- '  - Notable Rejected Or Deferred Candidates\n'
+  printf -- '  - Unresolved Evidence Gaps\n'
+  printf -- '- The `Candidate Ledger` section must contain a markdown table with these exact columns: `Repository`, `URL`, `Commit`, `Discovery source`, `Family`, `Stage`, `Decision`.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
   cat docs/research-scope.md
   printf '\n\n---\n\n'
@@ -42,3 +55,5 @@ codex --search --dangerously-bypass-approvals-and-sandbox exec \
 
 echo "Codex final message:"
 sed -n '1,160p' "$last_message"
+
+python3 scripts/repair-radar-report-structure.py

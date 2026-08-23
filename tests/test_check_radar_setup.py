@@ -86,6 +86,7 @@ class SetupDoctorTest(unittest.TestCase):
                     "  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}",
                     "steps:",
                     "  - run: python3 scripts/normalize-radar-evidence-labels.py",
+                    "  - run: python3 scripts/repair-radar-report-structure.py",
                 ]
             ),
             ".github/workflows/radar-validation.yml": "\n".join(
