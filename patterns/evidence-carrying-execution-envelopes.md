@@ -3,7 +3,7 @@
 - Canonical name: Evidence-Carrying Execution Envelopes
 - Aliases: evidence envelope, provenance envelope, lineage event envelope, checkpoint envelope, episode evidence envelope
 - Avoided duplicate names: execution graph events, trace wrappers, provenance records, lineage packets
-- Last updated: 2026-08-14
+- Last updated: 2026-08-23
 
 ## Problem
 
@@ -40,6 +40,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Episode evidence envelope: Graphiti stores source episodes with source type, source description, valid time, raw content policy, entity edges, and derived relationship fact links.
 - Run checkpoint envelope: ClearIdeas Agent Runtime stores manifest hash, contract version, runtime version, cursor, state, step results, transcript, artifacts, optional continuation, and budget in each checkpoint, while the run store fences attempts and checkpoint sequence numbers.
 - Durable agent session envelope: Microsoft Agent Framework durable agents persist conversation state in durable entities, and the extension composes nested workflows into child orchestrations with session-scoped execution state.
+- Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 
 ## Known Repositories
 
@@ -48,6 +49,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `getzep/graphiti` reviewed at `7cf0cab4b43f55d768b64584ffa9829bbeec1e9d`.
 - `clearideas/agent-runtime` reviewed at `c8a4856863405c817315bbd8ff89a07fea6b24a5`.
 - `microsoft/agent-framework-durable-extension` reviewed at `ad941eff53617840c0a046498be36d0b3871329b`.
+- `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 
 ## Comparison Of Implementations
 
@@ -60,6 +62,8 @@ Graphiti is strongest for temporal memory around relationship facts. Its episode
 ClearIdeas Agent Runtime is strongest for manifest-first workflow replay. Its checkpoint envelope keeps the execution cursor, attempt fencing, and durable budget/transcript state together, so resume can validate against the exact manifest hash instead of replaying from an ambiguous log stream.
 
 Microsoft Agent Framework durable extension is strongest for session-scoped orchestration durability. It couples durable agent entities to workflow composition and child orchestrations, which makes human-in-the-loop and nested workflow recovery explicit, but it is narrower than a generic provenance graph and still depends on the host's durable backend.
+
+`mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
 
 ## Failure Modes
 
@@ -118,3 +122,7 @@ Microsoft Agent Framework durable extension is strongest for session-scoped orch
 - E1 source verified: Microsoft Agent Framework durable extension `python/samples/11_subworkflow/worker.py:126-189` composes a nested workflow and auto-registers durable child orchestrations.
 - E1 source verified: Microsoft Agent Framework durable extension `dotnet/samples/DurableAgents/ConsoleApps/05_AgentOrchestration_HITL/Program.cs:47-117` uses a durable agent session, waits for external approval, and reruns on rejection.
 - E2 test verified: Microsoft Agent Framework durable extension `dotnet/tests/Microsoft.Agents.AI.DurableTask.UnitTests/State/DurableAgentStateMessageTests.cs:11-46` round-trips durable agent state messages through JSON serialization.
+- E1 source verified: `mavsdk_drone_show/gcs-server/command_journal.py:1-206` persists the immutable command lifecycle, per-target state, and append-only event stream in SQLite WAL.
+- E1 source verified: `mavsdk_drone_show/gcs-server/command_submission_pipeline.py:46-97` and `:199-220` separate SITL endpoint validation from readiness evidence.
+- E1 source verified: `mavsdk_drone_show/gcs-server/agent_runtime/evidence.py:23-198` builds compact read-only evidence bundles and items with hashes, source refs, and confidence.
+- E2 test verified: `mavsdk_drone_show/tests/test_command_journal.py:83-185` and `:188-220` verify restart-queryability, replay idempotency, and mid-fanout recovery.
