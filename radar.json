@@ -1121,6 +1121,218 @@
       "decision_reason": "The repository separates approval policy, collaboration state, and detached audit/review work into explicit subsystems with persistence and replay hooks, which is directly useful for durable agent governance.",
       "revisit_reason": "Revisit if policy storage, collaboration transitions, or audit sidecar behavior materially changes.",
       "next_revisit_condition": "Revisit after a material change to policy revisioning, collaboration persistence, or audit polling."
+    },
+    {
+      "repository": "RightNow-AI/autokernel",
+      "URL": "https://github.com/RightNow-AI/autokernel",
+      "artifact_type": "runtime",
+      "external_artifacts": [
+        "https://www.ycombinator.com/companies/rightnow",
+        "https://runinfra.ai/"
+      ],
+      "runtime_paths": [
+        "orchestrate.py",
+        "prepare.py",
+        "bench.py",
+        "verify.py",
+        "kernelbench/bench_kb.py",
+        "kernelbench/scorer.py",
+        "kernelbench/bridge.py"
+      ],
+      "operational_blockers": [
+        "CUDA/GPU-only execution",
+        "workspace-centric persistence",
+        "benchmark validity depends on workload"
+      ],
+      "first_seen": "2026-08-23",
+      "last_reviewed": "2026-08-23",
+      "commit_reviewed": "78435821cc3d5756ba6ee1785c397f6d8fa8c90d",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "benchmark harness",
+        "durable workflows"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "benchmark-gated optimization loop",
+        "workspace-backed experiment ledger"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository turns kernel optimization into a persisted state machine with deterministic setup, fixed correctness gates, and end-to-end verification. The loop is reusable as a long-running agent pattern even though the concrete workload is GPU-specific.",
+      "revisit_reason": "Revisit if the orchestration state model, benchmark harness, or end-to-end verification flow materially changes.",
+      "next_revisit_condition": "Revisit after a material change to workspace state persistence, benchmark criteria, or verification output."
+    },
+    {
+      "repository": "run-llama/liteparse",
+      "URL": "https://github.com/run-llama/liteparse",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "crates/liteparse/src/config.rs",
+        "crates/liteparse/src/parser.rs",
+        "crates/liteparse/src/layout.rs",
+        "crates/liteparse/src/extract.rs",
+        "crates/liteparse/tests/integration_test.rs",
+        "packages/python/tests/test_parse_e2e.py"
+      ],
+      "operational_blockers": [
+        "optional OCR/backend dependencies",
+        "large config surface",
+        "workload-specific thresholds"
+      ],
+      "first_seen": "2026-08-23",
+      "last_reviewed": "2026-08-23",
+      "commit_reviewed": "59b63ede9b3d7cde037b3e81e8b8d905691783c8",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR fallback"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "layout-preserving structural parse"
+      ],
+      "decision": "track",
+      "decision_reason": "The parser keeps structural extraction authoritative, exposes a shared layout shape, and promotes screenshots or blocks only when requested. That is a clean, reusable document-AI mechanism.",
+      "revisit_reason": "Revisit if the structural parse, screenshot promotion, or public layout shape changes materially.",
+      "next_revisit_condition": "Revisit after a material change to parse promotion, OCR hedging, or cross-language layout serialization."
+    },
+    {
+      "repository": "chaindexing/chaindexing-rs",
+      "URL": "https://github.com/chaindexing/chaindexing-rs",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "chaindexing/src/chain_reorg.rs",
+        "chaindexing/src/repos/postgres_repo.rs",
+        "chaindexing/src/outbox.rs",
+        "chaindexing/src/handlers.rs",
+        "chaindexing-tests/src/tests/integration.rs"
+      ],
+      "operational_blockers": [
+        "requires live chain backend and Postgres",
+        "finality settings need environment validation",
+        "outbox correctness depends on downstream dispatcher"
+      ],
+      "first_seen": "2026-08-23",
+      "last_reviewed": "2026-08-23",
+      "commit_reviewed": "90caa25f5e1f6abf68455e685956b69401d9bfb3",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "transaction interpretation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "finality-split blockchain ingestion",
+        "fork-point canonical repair with durable outbox"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository separates indexing finality from side-effect finality and repairs canonical Postgres state at the fork point before dispatching durable downstream work. That is a strong second implementation of the reorg-safe materialization pattern.",
+      "revisit_reason": "Revisit if the finality posture, checkpoint semantics, or outbox dispatch flow materially changes.",
+      "next_revisit_condition": "Revisit after a material change to chain reorg handling, checkpointing, or outbox dispatch semantics."
+    },
+    {
+      "repository": "openziti/ziti",
+      "URL": "https://github.com/openziti/ziti",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "router/link/link_registry.go",
+        "router/link/link_registry_test.go",
+        "common/router_data_model.go",
+        "controller/db/service_policy_store_test.go",
+        "controller/db/router_store_test.go"
+      ],
+      "operational_blockers": [
+        "large control-plane surface",
+        "wire-delivery semantics need live validation",
+        "controller load can delay reconciliation"
+      ],
+      "first_seen": "2026-08-23",
+      "last_reviewed": "2026-08-23",
+      "commit_reviewed": "804f55abb3694c4fc1fd46a685df3a7775ee2414",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN",
+        "policy control",
+        "secure tunnels"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "full-refresh reconnect reconciliation",
+        "wire-confirmed control-plane announcement"
+      ],
+      "decision": "track",
+      "decision_reason": "The reconnect path resends full link state with wire-level confirmation so the controller can prune stale topology safely. That is directly reusable for zero-trust control planes.",
+      "revisit_reason": "Revisit if reconnect delivery, controller pruning, or data-model semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to reconnect retries, wire-confirmed delivery, or controller reconciliation semantics."
+    },
+    {
+      "repository": "alireza787b/mavsdk_drone_show",
+      "URL": "https://github.com/alireza787b/mavsdk_drone_show",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "gcs-server/command_execution_policy.py",
+        "gcs-server/command_submission_pipeline.py",
+        "gcs-server/command_journal.py",
+        "gcs-server/agent_runtime/evidence.py",
+        "tests/test_command_journal.py",
+        "tests/test_command_submission_coordinator.py"
+      ],
+      "operational_blockers": [
+        "single command-owning GCS process",
+        "external SITL/fleet dependencies",
+        "domain-specific mission semantics"
+      ],
+      "first_seen": "2026-08-23",
+      "last_reviewed": "2026-08-23",
+      "commit_reviewed": "39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission admission",
+        "durable workflows",
+        "telemetry observability"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "secured callback-capability journal",
+        "read-only evidence bundle for operator follow-up"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository splits mission admission, dispatch, durable journaling, and read-only evidence into separate subsystems, which is a reusable pattern for high-risk autonomy and restart recovery.",
+      "revisit_reason": "Revisit if the journal schema, callback capability handling, or submission pipeline materially changes.",
+      "next_revisit_condition": "Revisit after a material change to journal durability, callback security, or restart safety."
     }
   ]
 }

@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-20
+- Last updated: 2026-08-23
 
 ## Problem
 
@@ -32,6 +32,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Worker-ring indexer: MultiChain Indexer uses regular, catchup, manual, and rescanner workers with KV/Redis state and explicit retry queues.
 - Layered chain toolkit: ChainFoundry combines a sliding block tracker, explicit reorg classification, configurable checkpoint persistence, and segmented backfill workers so rollback, recovery, and live indexing stay separate.
 - Liveness-capped sync worker: Blockbook keeps a resync loop around `SyncWorker`, separates `ResyncIndex`, `connectBlocks`, `BulkConnectBlocks`, and `ParallelConnectBlocks`, and restarts when a block hash disappears or the local tip forks.
+- Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
 
 ## Known Repositories
 
@@ -40,6 +41,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `DarshanKumar89/chainfoundry` reviewed at `090279cb7acb35b52803c711e353d91c85fa6bd4`.
 - `trezor/blockbook` reviewed at `6ce54d0b22cccccabf09aea3b096197195b5bb5a`.
 - `bitcoincore-dev/nakamoto-electrs` reviewed at `f9fc5ba17f38f6d45812e467a5299d194b086af8`.
+- `chaindexing/chaindexing-rs` reviewed at `90caa25f5e1f6abf68455e685956b69401d9bfb3`.
 
 ## Comparison Of Implementations
 
@@ -52,6 +54,8 @@ ChainFoundry keeps the boundary split across smaller primitives: `BlockTracker` 
 Blockbook applies the same recovery idea from a different angle. Instead of explicit finalized/provisional windows, `SyncWorker` treats the local tip as a recoverable projection, probes the remote chain hash-by-hash, restarts on missing-block or fork mismatch, and keeps bulk/parallel sync bounded by a wall-clock stall cap. That makes it a useful comparison point for liveness-first recovery, especially when the downstream sink is a mutable RocksDB projection rather than a pure event stream.
 
 Nakamoto-electrs shows the same family on the SPV/Electrum side. `NakamotoBlockSource` turns nakamoto's connected/disconnected/synced stream into a local rollback-capable projection, and `Indexer` uses a height-indexed reverse map so a `Disconnected` event can remove every history entry recorded at that height. It is a tighter bridge than Blockbook's full-node sync loop, but it validates the same invariant: head-adjacent materialization must remain reversible.
+
+Chaindexing demonstrates the same boundary from a Postgres-first indexing stack. `ReorgMode` maps operational posture to indexing and side-effect finality, `sync_blocks` repairs canonical block and event tables at the fork point, and the outbox only dispatches once the finality posture allows it. That makes the invariant explicit for both the canonical chain view and its durable downstream effects.
 
 ## Failure Modes
 
@@ -101,3 +105,6 @@ Nakamoto-electrs shows the same family on the SPV/Electrum side. `NakamotoBlockS
 - E1 source verified: bitcoincore-dev/nakamoto-electrs `src/nakamoto_source.rs:1-320` converts nakamoto events into bitcoin 0.30 blocks and broadcasts connected/disconnected/synced transitions.
 - E1 source verified: bitcoincore-dev/nakamoto-electrs `src/indexer.rs:93-220` keeps a height-indexed rollback map and removes all entries at a disconnected height.
 - E2 test verified: bitcoincore-dev/nakamoto-electrs `tests/integration_tests.rs:333-407` verifies rollback-on-disconnect and reorg replacement behavior.
+- E1 source verified: chaindexing/chaindexing-rs `chaindexing/src/chain_reorg.rs:49-98` defines reorg posture and finality mapping.
+- E1 source verified: chaindexing/chaindexing-rs `chaindexing/src/repos/postgres_repo.rs:81-156` repairs canonical Postgres state at the fork point and rewrites derived rows.
+- E2 test verified: chaindexing/chaindexing-rs `chaindexing-tests/src/tests/integration.rs:39-309` verifies tables, checkpoints, idempotency, and outbox dispatch.
