@@ -1333,6 +1333,139 @@
       "decision_reason": "The repository splits mission admission, dispatch, durable journaling, and read-only evidence into separate subsystems, which is a reusable pattern for high-risk autonomy and restart recovery.",
       "revisit_reason": "Revisit if the journal schema, callback capability handling, or submission pipeline materially changes.",
       "next_revisit_condition": "Revisit after a material change to journal durability, callback security, or restart safety."
+    },
+    {
+      "repository": "google/ax",
+      "URL": "https://github.com/google/ax",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "cmd/ax/main.go",
+        "cmd/ax/harness.go",
+        "internal/controller/controller.go",
+        "internal/controller/eventlog/sql.go",
+        "internal/harness/substrate/substrate.go",
+        "internal/pythonsidecar/sidecar.go",
+        "cmd/ax/doctor_test.go",
+        "internal/controller/controller_test.go",
+        "internal/harness/substrate/substrate_test.go"
+      ],
+      "operational_blockers": [
+        "early-development runtime",
+        "external SubstrATE/Python sidecar dependency",
+        "file-backed state still needs crash/restart validation"
+      ],
+      "first_seen": "2026-08-26",
+      "last_reviewed": "2026-08-26",
+      "commit_reviewed": "b77731302075b3630b200af5e2cf63ac93b5f315",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "execution tracing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "single-writer conversational event log",
+        "readiness-gated sidecar runtime"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show controller-owned conversation resumption, ordered event-log persistence, and a sidecar harness that gates execution on readiness and PID state. The current code still carries early-development caveats, so adoption should wait for stronger crash/restart validation.",
+      "revisit_reason": "Review if resume semantics, remote harness support, or the sidecar/event-log persistence model materially changes.",
+      "next_revisit_condition": "Revisit after a material change to conversation resumption, sidecar readiness, or durable event-log storage."
+    },
+    {
+      "repository": "peterbussch/pageledger",
+      "URL": "https://github.com/peterbussch/pageledger",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "pageledger/runner.py",
+        "pageledger/artifacts.py",
+        "pageledger/policy.py",
+        "pageledger/verify.py",
+        "tests/pageledger/test_quality.py",
+        "tests/pageledger/test_verify.py",
+        "tests/pageledger/test_rerun.py"
+      ],
+      "operational_blockers": [
+        "python test runner unavailable in this CI image",
+        "external OCR/adapters required for workload validation",
+        "broad adapter surface increases validation burden"
+      ],
+      "first_seen": "2026-08-26",
+      "last_reviewed": "2026-08-26",
+      "commit_reviewed": "fd1c1da0fbdc366222170f24fb22890f8a19f8a0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document provenance",
+        "rerun manifests",
+        "audit queues"
+      ],
+      "maturity": "adopt-mechanism",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "page-granular rerun manifest",
+        "filesystem-native audit ledger"
+      ],
+      "decision": "track",
+      "decision_reason": "Source shows a filesystem-native run ledger with page-level provenance, rerun depth, source checksums, audit queues, and verification gates. The review could not execute the Python tests in this image, so production adoption still needs workload validation.",
+      "revisit_reason": "Review if adapter protocol, alignment semantics, or rerun lineage changes materially.",
+      "next_revisit_condition": "Revisit after a material change to adapter protocol, alignment, or rerun lineage."
+    },
+    {
+      "repository": "84hero/evm-scanner",
+      "URL": "https://github.com/84hero/evm-scanner",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "cmd/scanner-cli/main.go",
+        "pkg/scanner/scanner.go",
+        "pkg/rpc/client.go",
+        "pkg/storage/memory.go",
+        "pkg/storage/postgres.go",
+        "pkg/scanner/scanner_test.go",
+        "pkg/storage/store_test.go",
+        "pkg/rpc/client_test.go"
+      ],
+      "operational_blockers": [
+        "confirmation-window scanner does not repair orphan branches",
+        "needs live RPC/backend validation",
+        "memory cursor store is not durable"
+      ],
+      "first_seen": "2026-08-26",
+      "last_reviewed": "2026-08-26",
+      "commit_reviewed": "2fccb37c9f888a9f288f7b9acee01541379e217b",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "transaction interpretation",
+        "incremental indexing",
+        "reorg recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "confirmation-capped event scanner",
+        "multi-RPC cursor scanner"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show confirmation-based scanning, cursor rewind/persistence, multi-RPC failover, and sink-separated delivery. It is useful as an event-scanning mechanism, but it stops short of full state reconstruction or orphan-branch repair.",
+      "revisit_reason": "Review if the scanner adds full reorg repair or state-projection semantics materially.",
+      "next_revisit_condition": "Revisit after a material change to reorg handling, cursor persistence, or RPC node selection."
     }
   ]
 }
