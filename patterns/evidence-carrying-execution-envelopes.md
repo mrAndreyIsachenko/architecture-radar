@@ -3,7 +3,7 @@
 - Canonical name: Evidence-Carrying Execution Envelopes
 - Aliases: evidence envelope, provenance envelope, lineage event envelope, checkpoint envelope, episode evidence envelope
 - Avoided duplicate names: execution graph events, trace wrappers, provenance records, lineage packets
-- Last updated: 2026-08-23
+- Last updated: 2026-08-26
 
 ## Problem
 
@@ -40,6 +40,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Episode evidence envelope: Graphiti stores source episodes with source type, source description, valid time, raw content policy, entity edges, and derived relationship fact links.
 - Run checkpoint envelope: ClearIdeas Agent Runtime stores manifest hash, contract version, runtime version, cursor, state, step results, transcript, artifacts, optional continuation, and budget in each checkpoint, while the run store fences attempts and checkpoint sequence numbers.
 - Durable agent session envelope: Microsoft Agent Framework durable agents persist conversation state in durable entities, and the extension composes nested workflows into child orchestrations with session-scoped execution state.
+- Sidecar-backed agent envelope: Google AX persists conversation events in a controller-owned event log, preserves the recorded harness identity across resumes, and gates local or remote harness execution on explicit readiness checks.
+- Filesystem-native run ledger: PageLedger persists page-level provenance, quality, rerun, and verification evidence as plain files so rerun planning and audit checks can be replayed without a database.
 - Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 
 ## Known Repositories
@@ -49,6 +51,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `getzep/graphiti` reviewed at `7cf0cab4b43f55d768b64584ffa9829bbeec1e9d`.
 - `clearideas/agent-runtime` reviewed at `c8a4856863405c817315bbd8ff89a07fea6b24a5`.
 - `microsoft/agent-framework-durable-extension` reviewed at `ad941eff53617840c0a046498be36d0b3871329b`.
+- `google/ax` reviewed at `b77731302075b3630b200af5e2cf63ac93b5f315`.
+- `peterbussch/pageledger` reviewed at `fd1c1da0fbdc366222170f24fb22890f8a19f8a0`.
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 
 ## Comparison Of Implementations
@@ -62,6 +66,10 @@ Graphiti is strongest for temporal memory around relationship facts. Its episode
 ClearIdeas Agent Runtime is strongest for manifest-first workflow replay. Its checkpoint envelope keeps the execution cursor, attempt fencing, and durable budget/transcript state together, so resume can validate against the exact manifest hash instead of replaying from an ambiguous log stream.
 
 Microsoft Agent Framework durable extension is strongest for session-scoped orchestration durability. It couples durable agent entities to workflow composition and child orchestrations, which makes human-in-the-loop and nested workflow recovery explicit, but it is narrower than a generic provenance graph and still depends on the host's durable backend.
+
+Google AX is strongest for sidecar-backed conversational execution. Its controller keeps resumption anchored to recorded conversation events and harness identity, while the sidecar wrapper adds explicit readiness and PID management. That makes it useful as a recoverable agent harness pattern, but it still depends on a file-backed event log and an external runtime substrate.
+
+PageLedger is strongest for filesystem-native rerun evidence. Its manifests, route maps, quality queues, and rerun manifests remain plain files, so the run directory itself becomes the ledger. That is a good fit for replayable document-extraction workflows, but it also means the verification contract is only as strong as the caller's discipline around the run directory.
 
 `mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
 
@@ -77,6 +85,8 @@ Microsoft Agent Framework durable extension is strongest for session-scoped orch
 - Sensitive source content can leak if raw evidence retention is not governed.
 - Manifest drift can invalidate a resumed checkpoint if the runtime does not hash and compare the manifest before resuming.
 - Session-scoped durable entities can still lose observability if the durable backend is unavailable or if the orchestration host cannot rehydrate the exact continuation state.
+- Sidecar-backed runtimes can wedge on PID-file mismatches, readiness probes, or host-level process restarts.
+- Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
 
 ## Trade-Offs
 
@@ -122,6 +132,14 @@ Microsoft Agent Framework durable extension is strongest for session-scoped orch
 - E1 source verified: Microsoft Agent Framework durable extension `python/samples/11_subworkflow/worker.py:126-189` composes a nested workflow and auto-registers durable child orchestrations.
 - E1 source verified: Microsoft Agent Framework durable extension `dotnet/samples/DurableAgents/ConsoleApps/05_AgentOrchestration_HITL/Program.cs:47-117` uses a durable agent session, waits for external approval, and reruns on rejection.
 - E2 test verified: Microsoft Agent Framework durable extension `dotnet/tests/Microsoft.Agents.AI.DurableTask.UnitTests/State/DurableAgentStateMessageTests.cs:11-46` round-trips durable agent state messages through JSON serialization.
+- E1 source verified: Google AX `internal/controller/controller.go:Exec` ties conversation resumption to logged events and recorded harness identity, while `internal/controller/eventlog/sql.go:Append` and `Events` persist ordered step events.
+- E1 source verified: Google AX `cmd/ax/harness.go:runAntigravityHarness`, `runAntigravityInteractionsHarness`, and `serveReadyz` couple sidecar startup, readiness gating, and signal forwarding to the harness lifecycle.
+- E1 source verified: Google AX `internal/pythonsidecar/sidecar.go:Start` writes a PID file, attaches to existing working processes, and waits for readiness before returning.
+- E2 test verified: Google AX `cmd/ax/doctor_test.go`, `internal/controller/controller_test.go`, and `internal/harness/substrate/substrate_test.go` verify doctor registration, controller resume behavior, and substrate health/stream wiring.
+- E1 source verified: PageLedger `pageledger/runner.py:run` and `rerun` preserve page-level lineage, parent run identity, and source checksums across reruns.
+- E1 source verified: PageLedger `pageledger/artifacts.py:build_manifest`, `build_audit`, and `build_rerun_manifest` keep run evidence in plain files, including page ids, rerun depth, and previous grades.
+- E1 source verified: PageLedger `pageledger/verify.py:verify_run` enforces artifact presence, hash coherence, and symlink-safe paths before the rerun manifest is trusted.
+- E2 test verified: PageLedger `tests/pageledger/test_quality.py`, `tests/pageledger/test_verify.py`, and `tests/pageledger/test_rerun.py` cover quality queues, run verification, and rerun lineage semantics.
 - E1 source verified: `mavsdk_drone_show/gcs-server/command_journal.py:1-206` persists the immutable command lifecycle, per-target state, and append-only event stream in SQLite WAL.
 - E1 source verified: `mavsdk_drone_show/gcs-server/command_submission_pipeline.py:46-97` and `:199-220` separate SITL endpoint validation from readiness evidence.
 - E1 source verified: `mavsdk_drone_show/gcs-server/agent_runtime/evidence.py:23-198` builds compact read-only evidence bundles and items with hashes, source refs, and confidence.
