@@ -3,7 +3,7 @@
 - Canonical name: Deferred Image Materialization
 - Aliases: lazy high-res page promotion, lowres-first page promotion, page-image promotion after structural parse, page crop promotion
 - Avoided duplicate names: eager rasterization, always-highres OCR, full-page first pass, blanket page rendering
-- Last updated: 2026-08-23
+- Last updated: 2026-08-29
 
 ## Problem
 
@@ -27,6 +27,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - Docling: `StandardPdfPipeline._assemble_document` delays page and element image generation until after structural assembly, then crops only `PictureItem` and `TableItem` regions using `prov` metadata; failed pages are backfilled to keep numbering stable.
 - HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 - LiteParse: keeps structural parsing authoritative, then renders screenshots or emits classified blocks only when the caller asks for them; page numbering, geometry, and OCR merge stay stable whether the promoted artifacts are enabled or not.
+- Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
 
 ## Known Repositories
 
@@ -34,6 +35,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - `docling-project/docling` reviewed at `8050c42be2b179504445cb8f3c75655e27cbb662`.
 - `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
+- `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
 
 ## Comparison Of Implementations
 
@@ -43,6 +45,8 @@ HURIDOCS sits closer to a document-conversion service than a library pipeline. I
 
 LiteParse sits between library and service. It keeps a shared structural decomposition, exposes the same block shape across Rust and the foreign bindings, and treats screenshots as an opt-in projection rather than the parse's primary output. Its promotion boundary is less about page-image caching than about preserving layout and page order across multiple output modes.
 
+Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps the gate pixel-free, uses the decision to decide whether layout and OCR can share work, and makes the reason for each page's promotion or skip auditable in metadata. The trade-off is that the gate thresholds still need corpus-specific tuning.
+
 ## Failure Modes
 
 - Misclassifying a page as lowres-only can hide math, tables, or diagrams.
@@ -51,6 +55,7 @@ LiteParse sits between library and service. It keeps a shared structural decompo
 - Promotion based on heuristics can drift when model thresholds change.
 - If failed pages are not retained, page numbering breaks downstream.
 - Rendering picture segments only when they exist can still miss image-heavy tables if upstream segmentation under-classifies them.
+- OCR/layout reuse can become unsafe if gate metadata or page rotations drift from the rendered page set.
 
 ## Trade-Offs
 
@@ -71,6 +76,7 @@ LiteParse sits between library and service. It keeps a shared structural decompo
 - Set explicit memory and promotion thresholds.
 - Verify that fallback OCR or crop extraction does not re-render already accepted content.
 - Verify that temporary input files are cleaned up on the default path and that a keep-file flag is the only way to retain them.
+- Verify that layout reuse is disabled when page rotations or gate metadata make the OCR path incompatible.
 
 ## Evidence References
 
@@ -92,3 +98,6 @@ LiteParse sits between library and service. It keeps a shared structural decompo
 - E1 source verified: LiteParse `crates/liteparse/src/parser.rs:21-280` and `:953-1010` define the parse result, shared layout application, and screenshot-only promotion path.
 - E1 source verified: LiteParse `crates/liteparse/src/layout.rs:1-176` exposes a flat, serializable block decomposition across Rust and the foreign bindings.
 - E2 test verified: LiteParse `crates/liteparse/tests/integration_test.rs:12-79` and `:349-389` verify screenshot rendering, text-file rejection, block geometry, and markdown stability.
+- E1 source verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:1-17,185-209,432-438` performs the pixel-free page gate and exports the per-page decision record.
+- E1 source verified: Xberg `crates/xberg/src/extractors/pdf/mod.rs:706-742,763-860` reuses or bypasses the layout path for OCR and writes gate decisions into metadata.
+- E2 test verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:475-670` covers the skip/promote boundary across prose, sparse pages, columns, tables, rules, graphics, and forms.

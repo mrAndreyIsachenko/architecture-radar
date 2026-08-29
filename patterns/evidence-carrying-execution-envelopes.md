@@ -3,7 +3,7 @@
 - Canonical name: Evidence-Carrying Execution Envelopes
 - Aliases: evidence envelope, provenance envelope, lineage event envelope, checkpoint envelope, episode evidence envelope
 - Avoided duplicate names: execution graph events, trace wrappers, provenance records, lineage packets
-- Last updated: 2026-08-26
+- Last updated: 2026-08-29
 
 ## Problem
 
@@ -41,6 +41,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Run checkpoint envelope: ClearIdeas Agent Runtime stores manifest hash, contract version, runtime version, cursor, state, step results, transcript, artifacts, optional continuation, and budget in each checkpoint, while the run store fences attempts and checkpoint sequence numbers.
 - Durable agent session envelope: Microsoft Agent Framework durable agents persist conversation state in durable entities, and the extension composes nested workflows into child orchestrations with session-scoped execution state.
 - Sidecar-backed agent envelope: Google AX persists conversation events in a controller-owned event log, preserves the recorded harness identity across resumes, and gates local or remote harness execution on explicit readiness checks.
+- File-first session envelope: Duragent persists an append-only `events.jsonl` plus atomic `state.json`, serializes session mutations through a dedicated actor, and keeps malformed replay lines from breaking recovery.
+- Governed graph checkpoint envelope: AgentFlow4J stores checkpoints, run logs, approval gates, budgets, and state-policy decisions together so a paused graph can resume from the exact next node rather than replaying from scratch.
 - Filesystem-native run ledger: PageLedger persists page-level provenance, quality, rerun, and verification evidence as plain files so rerun planning and audit checks can be replayed without a database.
 - Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 
@@ -52,6 +54,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `clearideas/agent-runtime` reviewed at `c8a4856863405c817315bbd8ff89a07fea6b24a5`.
 - `microsoft/agent-framework-durable-extension` reviewed at `ad941eff53617840c0a046498be36d0b3871329b`.
 - `google/ax` reviewed at `b77731302075b3630b200af5e2cf63ac93b5f315`.
+- `giosakti/duragent` reviewed at `c39a858fa75de93b9d76bdf62b681b378b7882d9`.
+- `datallmhub/agentflow4j` reviewed at `f11300c039a385889e10ed7c1bf1f8aa0d3c12d0`.
 - `peterbussch/pageledger` reviewed at `fd1c1da0fbdc366222170f24fb22890f8a19f8a0`.
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 
@@ -69,6 +73,10 @@ Microsoft Agent Framework durable extension is strongest for session-scoped orch
 
 Google AX is strongest for sidecar-backed conversational execution. Its controller keeps resumption anchored to recorded conversation events and harness identity, while the sidecar wrapper adds explicit readiness and PID management. That makes it useful as a recoverable agent harness pattern, but it still depends on a file-backed event log and an external runtime substrate.
 
+Duragent is strongest for file-first session persistence. The dedicated session actor serializes mutations, while the file store keeps append-only history and atomic snapshots together. That makes replay and crash recovery easy to reason about, but it also means correctness still depends on filesystem durability and the replay discipline around malformed lines.
+
+AgentFlow4J is strongest for governed checkpoint resumes. Its graph runtime treats approval gates, budgets, state writes, and checkpoint persistence as policy-aware state transitions, so a paused run can resume from the exact next node. The trade-off is stronger Spring/backend coupling and more policy interaction to validate.
+
 PageLedger is strongest for filesystem-native rerun evidence. Its manifests, route maps, quality queues, and rerun manifests remain plain files, so the run directory itself becomes the ledger. That is a good fit for replayable document-extraction workflows, but it also means the verification contract is only as strong as the caller's discipline around the run directory.
 
 `mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
@@ -84,6 +92,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - User-visible streamed state can diverge from persisted checkpoint state unless cancellation and disconnect paths flush or record partial state.
 - Sensitive source content can leak if raw evidence retention is not governed.
 - Manifest drift can invalidate a resumed checkpoint if the runtime does not hash and compare the manifest before resuming.
+- File-based replay can hide upstream corruption if malformed lines are silently skipped without alerting operators.
 - Session-scoped durable entities can still lose observability if the durable backend is unavailable or if the orchestration host cannot rehydrate the exact continuation state.
 - Sidecar-backed runtimes can wedge on PID-file mismatches, readiness probes, or host-level process restarts.
 - Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
@@ -113,6 +122,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Add policy for sensitive raw evidence retention and redaction.
 - For checkpointed runtimes, require manifest hashing and attempt fencing before resume, plus tests for suspend, cancel, and failed-checkpoint paths.
 - For durable agent entities, require recovery tests that cover nested workflows, external event waits, and backend rehydration.
+- For file-first session stores, require crash/restart tests that verify malformed replay lines are handled intentionally and not silently ignored in a way that hides corruption.
 
 ## Evidence References
 
@@ -136,6 +146,12 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E1 source verified: Google AX `cmd/ax/harness.go:runAntigravityHarness`, `runAntigravityInteractionsHarness`, and `serveReadyz` couple sidecar startup, readiness gating, and signal forwarding to the harness lifecycle.
 - E1 source verified: Google AX `internal/pythonsidecar/sidecar.go:Start` writes a PID file, attaches to existing working processes, and waits for readiness before returning.
 - E2 test verified: Google AX `cmd/ax/doctor_test.go`, `internal/controller/controller_test.go`, and `internal/harness/substrate/substrate_test.go` verify doctor registration, controller resume behavior, and substrate health/stream wiring.
+- E1 source verified: Duragent `crates/duragent/src/session/actor.rs:41-223` owns session mutation, writes `SessionStart` before commands, and records recovered versus fresh startup paths.
+- E1 source verified: Duragent `crates/duragent/src/store/file/session.rs:25-192` stores append-only JSONL events plus atomic snapshots, serializes writes through a keyed lock, and skips malformed replay lines during recovery.
+- E2 test verified: Duragent `crates/duragent/tests/session_persistence_test.rs` covers event ordering, snapshot restoration, and crash-recovery replay behavior.
+- E1 source verified: AgentFlow4J `agentflow4j-graph/src/main/java/io/github/datallmhub/agentflow4j/graph/AgentGraph.java:24-259` persists checkpoints at entry, approval, interrupt, and next-node boundaries.
+- E1 source verified: AgentFlow4J `agentflow4j-checkpoint/src/main/java/io/github/datallmhub/agentflow4j/checkpoint/JdbcCheckpointStore.java:18-94` upserts checkpoints transactionally with validated table names.
+- E2 test verified: AgentFlow4J `agentflow4j-checkpoint/src/test/java/io/github/datallmhub/agentflow4j/checkpoint/CheckpointResumeE2ETests.java` verifies JDBC and Redis resume paths.
 - E1 source verified: PageLedger `pageledger/runner.py:run` and `rerun` preserve page-level lineage, parent run identity, and source checksums across reruns.
 - E1 source verified: PageLedger `pageledger/artifacts.py:build_manifest`, `build_audit`, and `build_rerun_manifest` keep run evidence in plain files, including page ids, rerun depth, and previous grades.
 - E1 source verified: PageLedger `pageledger/verify.py:verify_run` enforces artifact presence, hash coherence, and symlink-safe paths before the rerun manifest is trusted.
