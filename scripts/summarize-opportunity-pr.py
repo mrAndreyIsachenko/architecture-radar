@@ -204,7 +204,10 @@ def review_recommendation(summary: dict[str, object]) -> dict[str, str]:
     return {
         "decision": "looks_mergeable",
         "reason": "required validation passed and changed opportunity reports were summarized",
-        "next_action": "manually read the opportunity evidence and merge if the demand test clears the quality bar",
+        "next_action": (
+            "merge the PR; if the summarized paid wedge is too weak, "
+            "request a targeted fix or close/watchlist the opportunity"
+        ),
     }
 
 

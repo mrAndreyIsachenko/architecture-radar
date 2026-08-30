@@ -69,7 +69,7 @@ Use the local helper to decide whether a review notification is warranted:
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. On an Architecture cadence day, or on the Opportunity Radar Tuesday schedule, if the due scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and a `looks_mergeable` or `needs_manual_review` recommendation. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
+The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. On an Architecture cadence day, or on the Opportunity Radar Tuesday schedule, if the due scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and an actionable `looks_mergeable` or `needs_manual_review` recommendation. `looks_mergeable` means the helper found no automated blocker and should recommend merging the PR; full manual reading is optional unless the helper reports `needs_manual_review`. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
 
 For failed runs, `--include-failed-log` includes a short actionable excerpt from `gh run view --log-failed`.
 
