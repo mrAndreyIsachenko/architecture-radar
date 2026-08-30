@@ -250,7 +250,7 @@ The local PR-review heartbeat should use the repository helper before deciding w
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-By default it checks both `Architecture Radar YYYY-MM-DD` and `Opportunity Radar YYYY-MM-DD` pull requests before reporting no work. It mirrors the Architecture Radar 3-day cadence, waits through the Opportunity Radar Tuesday schedule delay, includes failed-run excerpts, summarizes fresh PRs from GitHub metadata plus changed report files, and emits a `looks_mergeable` or `needs_manual_review` recommendation. Use `--radar architecture` or `--radar opportunity` to limit the check.
+By default it checks both `Architecture Radar YYYY-MM-DD` and `Opportunity Radar YYYY-MM-DD` pull requests before reporting no work. It mirrors the Architecture Radar 3-day cadence, waits through the Opportunity Radar Tuesday schedule delay, includes failed-run excerpts, summarizes fresh PRs from GitHub metadata plus changed report files, and emits an actionable `looks_mergeable` or `needs_manual_review` recommendation. `looks_mergeable` means the helper found no automated blocker and should recommend merging the PR; full manual reading is optional unless the helper reports `needs_manual_review`. Use `--radar architecture` or `--radar opportunity` to limit the check.
 
 Lower-level helpers are still available when needed. After checking out a radar PR branch, summarize the generated report without hand-parsing Markdown:
 

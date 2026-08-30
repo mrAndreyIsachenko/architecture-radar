@@ -103,6 +103,8 @@ class SummarizeRadarPrTest(unittest.TestCase):
         self.assertEqual(summary["reports"][0]["candidate_count"], 20)
         self.assertEqual(summary["reports"][0]["selected_repositories"], ["`owner/repo` at `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`"])
         self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
+        self.assertNotIn("manually read", summary["review_recommendation"]["next_action"])
+        self.assertIn("merge the PR", summary["review_recommendation"]["next_action"])
 
     def test_newest_open_radar_pr_selects_first_matching_pr(self) -> None:
         prs = [

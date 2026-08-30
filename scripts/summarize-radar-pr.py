@@ -204,7 +204,10 @@ def review_recommendation(summary: dict[str, object]) -> dict[str, str]:
     return {
         "decision": "looks_mergeable",
         "reason": "required validation passed and changed reports were summarized",
-        "next_action": "manually read the report evidence and merge if the findings clear the quality bar",
+        "next_action": (
+            "merge the PR; if the summarized evidence gaps are unacceptable, "
+            "request a targeted fix for those gaps"
+        ),
     }
 
 

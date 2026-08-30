@@ -101,6 +101,8 @@ class SummarizeOpportunityPrTest(unittest.TestCase):
         self.assertEqual(summary["radar"], "opportunity")
         self.assertEqual(summary["reports"][0]["reviewed_signals"], 16)
         self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
+        self.assertNotIn("manually read", summary["review_recommendation"]["next_action"])
+        self.assertIn("merge the PR", summary["review_recommendation"]["next_action"])
 
     def test_newest_open_opportunity_pr_selects_first_matching_pr(self) -> None:
         prs = [
