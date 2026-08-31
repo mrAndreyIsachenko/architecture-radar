@@ -997,14 +997,14 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "crates/xberg/src/core/extract/mod.rs",
-        "crates/xberg/src/core/extractor/batch.rs",
-        "crates/xberg/src/core/batch_mode.rs",
+        "crates/xberg/src/lib.rs",
+        "crates/xberg/src/pdf/layout_gate.rs",
+        "crates/xberg/src/extractors/pdf/mod.rs",
         "crates/xberg/src/doctor/mod.rs",
-        "crates/xberg/src/pdf/scan_detect.rs",
-        "crates/xberg-cli/src/main.rs",
-        "crates/xberg-cli/tests/extract_envelope.rs",
-        "crates/xberg/src/extractors/pdf/ocr.rs"
+        "crates/xberg/src/core/batch_mode.rs",
+        "crates/xberg/tests/reading_order.rs",
+        "crates/xberg/tests/pipeline_integration.rs",
+        "crates/xberg/tests/pdf_table_detection.rs"
       ],
       "operational_blockers": [
         "large backend matrix",
@@ -1012,9 +1012,9 @@
         "some features depend on optional runtime backends"
       ],
       "first_seen": "2026-08-20",
-      "last_reviewed": "2026-08-20",
-      "commit_reviewed": "531e0f7895e53f083c7d4f183123dea4f866e4eb",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-08-29",
+      "commit_reviewed": "3025e8cbb22bd653443428a4ac352489a7f9b831",
+      "previous_commit_reviewed": "531e0f7895e53f083c7d4f183123dea4f866e4eb",
       "categories": [
         "document parsing",
         "layout-aware extraction",
@@ -1024,16 +1024,188 @@
       "novelty_score": 4,
       "relevance_score": 5,
       "evidence_quality": "high",
-      "extracted_patterns": [],
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
       "candidate_patterns": [
-        "batch-aware extraction envelope",
         "doctor-probed backend selection",
-        "scan confidence heuristic"
+        "layout-gated page pre-screen",
+        "gate-reason metadata projection"
       ],
       "decision": "track",
-      "decision_reason": "The batch executor, batch-mode scoping, doctor diagnostics, and scan-confidence gating provide a reusable document-AI control plane rather than just another OCR wrapper.",
-      "revisit_reason": "Revisit if batch-mode semantics, doctor probes, or scan detection heuristics materially change.",
-      "next_revisit_condition": "Revisit after a material change to batch execution, diagnostics, or scan scoring."
+      "decision_reason": "The reviewed commit adds a reusable page-gating mechanism on top of the existing extraction core. Xberg now makes layout promotion, OCR reuse, and gate metadata explicit instead of burying them inside the OCR path.",
+      "revisit_reason": "Revisit if the layout gate, gate metadata, or OCR reuse contract materially changes.",
+      "next_revisit_condition": "Revisit after a material change to layout gating, OCR reuse, or page-level gate metadata."
+    },
+    {
+      "repository": "giosakti/duragent",
+      "URL": "https://github.com/giosakti/duragent",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "crates/duragent/src/session/actor.rs",
+        "crates/duragent/src/store/file/session.rs",
+        "crates/duragent/src/store/session.rs",
+        "crates/duragent/tests/session_persistence_test.rs",
+        "crates/duragent/src/session/registry.rs"
+      ],
+      "operational_blockers": [
+        "file-backed state still needs crash/restart validation under real workloads",
+        "session deletion and compaction remain operationally narrow",
+        "filesystem durability is the persistence boundary"
+      ],
+      "first_seen": "2026-08-29",
+      "last_reviewed": "2026-08-29",
+      "commit_reviewed": "c39a858fa75de93b9d76bdf62b681b378b7882d9",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "execution tracing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "single-writer session actor",
+        "append-only session ledger",
+        "atomic snapshot after session start"
+      ],
+      "decision": "track",
+      "decision_reason": "The session actor serializes all mutations and the file store keeps append-only history plus atomic snapshots, which is a clear reusable recovery mechanism for long-running agent sessions.",
+      "revisit_reason": "Revisit if compaction, deletion, or recovery semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to session replay, snapshot handling, or compaction semantics."
+    },
+    {
+      "repository": "datallmhub/agentflow4j",
+      "URL": "https://github.com/datallmhub/agentflow4j",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "agentflow4j-graph/src/main/java/io/github/datallmhub/agentflow4j/graph/AgentGraph.java",
+        "agentflow4j-checkpoint/src/main/java/io/github/datallmhub/agentflow4j/checkpoint/JdbcCheckpointStore.java",
+        "agentflow4j-graph/src/test/java/io/github/datallmhub/agentflow4j/graph/CheckpointTests.java",
+        "agentflow4j-graph/src/test/java/io/github/datallmhub/agentflow4j/graph/RunLogTests.java",
+        "agentflow4j-checkpoint/src/test/java/io/github/datallmhub/agentflow4j/checkpoint/CheckpointResumeE2ETests.java"
+      ],
+      "operational_blockers": [
+        "checkpoint resume still needs backend validation outside the test harness",
+        "policy interactions increase the validation burden",
+        "Spring/JDBC coupling narrows the integration surface"
+      ],
+      "first_seen": "2026-08-29",
+      "last_reviewed": "2026-08-29",
+      "commit_reviewed": "f11300c039a385889e10ed7c1bf1f8aa0d3c12d0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "policy enforcement"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "governed checkpointed execution graph",
+        "approval-gated resume point",
+        "policy-layered node execution"
+      ],
+      "decision": "track",
+      "decision_reason": "The graph runtime makes checkpointing, approval, budgets, and state policy part of the execution contract, which is reusable wherever paused runs need to resume at a known boundary.",
+      "revisit_reason": "Revisit if checkpoint backends or policy ordering changes materially.",
+      "next_revisit_condition": "Revisit after a material change to checkpoint persistence, policy semantics, or resume behavior."
+    },
+    {
+      "repository": "bit2swaz/shadow-index",
+      "URL": "https://github.com/bit2swaz/shadow-index",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/exex/mod.rs",
+        "src/db/writer.rs",
+        "src/utils/cursor.rs",
+        "src/api/handlers.rs",
+        "tests/benchmark.rs"
+      ],
+      "operational_blockers": [
+        "requires live ClickHouse and reorg validation",
+        "cursor advancement must remain coupled to durable flushes",
+        "sink retries can trip the circuit breaker under sustained outage"
+      ],
+      "first_seen": "2026-08-29",
+      "last_reviewed": "2026-08-29",
+      "commit_reviewed": "2757f31da1e4a6eb9acb6f2b69b924cb9b4cf729",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "transaction interpretation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "reorg-safe exex materialization",
+        "atomic cursor checkpoint",
+        "retry-bounded columnar sink"
+      ],
+      "decision": "track",
+      "decision_reason": "The ExEx processes committed, reverted, and reorged ranges explicitly, and it only advances durable progress after a successful sink flush. That is a clean reusable reorg-safe indexing mechanism.",
+      "revisit_reason": "Revisit if sink semantics, cursor behavior, or notification handling materially changes.",
+      "next_revisit_condition": "Revisit after a material change to reorg handling, cursor persistence, or ClickHouse sink behavior."
+    },
+    {
+      "repository": "altnautica/ADOSMissionControl",
+      "URL": "https://github.com/altnautica/ADOSMissionControl",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "convex/cmdDroneCommands.ts",
+        "convex/cmdSigningKeys.ts",
+        "tools/mavlink-bridge/src/udp-ws.ts",
+        "tests/lib/agent/status-mapper-transforms.test.ts",
+        "tests/unit/lan-pair-config-route.test.ts"
+      ],
+      "operational_blockers": [
+        "cloud signing-key uploads are disabled in source",
+        "large UI/product surface couples the transport mechanism to app flows",
+        "lease expiry and attempt caps need real flight validation"
+      ],
+      "first_seen": "2026-08-29",
+      "last_reviewed": "2026-08-29",
+      "commit_reviewed": "f367a7b4ca1b6c549df79d123dc18bc59daadf09",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission planning",
+        "telemetry",
+        "command relay"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "lease-bounded command relay",
+        "ownership-scoped signing-key registry",
+        "udp/websocket peer-learning bridge"
+      ],
+      "decision": "track",
+      "decision_reason": "The queue, signing-key ownership model, and UDP/WebSocket relay give a reusable command-delivery and transport-control mechanism for drone ground-control systems, even though the product surface is broad.",
+      "revisit_reason": "Revisit if the cloud-sync signing path is enabled or if the queue/bridge contract changes materially.",
+      "next_revisit_condition": "Revisit after a material change to command leasing, signing-key ownership, or bridge failover semantics."
     },
     {
       "repository": "bitcoincore-dev/nakamoto-electrs",

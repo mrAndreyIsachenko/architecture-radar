@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-23
+- Last updated: 2026-08-29
 
 ## Problem
 
@@ -33,6 +33,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Layered chain toolkit: ChainFoundry combines a sliding block tracker, explicit reorg classification, configurable checkpoint persistence, and segmented backfill workers so rollback, recovery, and live indexing stay separate.
 - Liveness-capped sync worker: Blockbook keeps a resync loop around `SyncWorker`, separates `ResyncIndex`, `connectBlocks`, `BulkConnectBlocks`, and `ParallelConnectBlocks`, and restarts when a block hash disappears or the local tip forks.
 - Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
+- ExEx batcher: Shadow-index consumes reth `ChainCommitted`, `ChainReverted`, and `ChainReorged` notifications, transforms reverted and committed ranges with signed rows, and advances the cursor only after a successful ClickHouse flush.
 
 ## Known Repositories
 
@@ -42,6 +43,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `trezor/blockbook` reviewed at `6ce54d0b22cccccabf09aea3b096197195b5bb5a`.
 - `bitcoincore-dev/nakamoto-electrs` reviewed at `f9fc5ba17f38f6d45812e467a5299d194b086af8`.
 - `chaindexing/chaindexing-rs` reviewed at `90caa25f5e1f6abf68455e685956b69401d9bfb3`.
+- `bit2swaz/shadow-index` reviewed at `2757f31da1e4a6eb9acb6f2b69b924cb9b4cf729`.
 
 ## Comparison Of Implementations
 
@@ -57,6 +59,8 @@ Nakamoto-electrs shows the same family on the SPV/Electrum side. `NakamotoBlockS
 
 Chaindexing demonstrates the same boundary from a Postgres-first indexing stack. `ReorgMode` maps operational posture to indexing and side-effect finality, `sync_blocks` repairs canonical block and event tables at the fork point, and the outbox only dispatches once the finality posture allows it. That makes the invariant explicit for both the canonical chain view and its durable downstream effects.
 
+Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays historical blocks from the cursor, handles reverted and reorged ranges explicitly, and only advances the cursor after the batch is durably flushed. The trade-off is a tighter coupling to reth notifications and the ClickHouse sink model.
+
 ## Failure Modes
 
 - Misconfigured thresholds can push provisional data into the finalized path too early.
@@ -66,12 +70,14 @@ Chaindexing demonstrates the same boundary from a Postgres-first indexing stack.
 - Operational tuning can become difficult when reorg depth, catchup range sizing, and retry limits all interact.
 - Liveness caps can hide a backend that is too slow to catch up if operators only look for hard failures.
 - Hash-probe retries can over-disconnect on load-balanced or lagging backends when the probe target is not the canonical node.
+- A cursor that advances before a sink flush can corrupt replay after restart.
 
 ## Trade-Offs
 
 - Lower latency near the chain head costs more rollback risk.
 - More explicit recovery workers improve correctness but increase operational complexity.
 - Persisting extra checkpoints and retry state reduces reprocessing ambiguity but increases storage and coordination overhead.
+- ExEx sinks can triple-write around unstable heads if revert and commit batches are both large.
 
 ## Applicability To Interests
 
@@ -85,6 +91,7 @@ Chaindexing demonstrates the same boundary from a Postgres-first indexing stack.
 - Persist block hashes, latest processed block, and retry state separately from sink side effects.
 - Add reorg-injection tests and restart tests that prove replay does not corrupt downstream state.
 - Require idempotent or deduplicated downstream writes.
+- Require that cursor advancement happens only after the sink batch is confirmed durable.
 
 ## Evidence References
 
@@ -108,3 +115,7 @@ Chaindexing demonstrates the same boundary from a Postgres-first indexing stack.
 - E1 source verified: chaindexing/chaindexing-rs `chaindexing/src/chain_reorg.rs:49-98` defines reorg posture and finality mapping.
 - E1 source verified: chaindexing/chaindexing-rs `chaindexing/src/repos/postgres_repo.rs:81-156` repairs canonical Postgres state at the fork point and rewrites derived rows.
 - E2 test verified: chaindexing/chaindexing-rs `chaindexing-tests/src/tests/integration.rs:39-309` verifies tables, checkpoints, idempotency, and outbox dispatch.
+- E1 source verified: bit2swaz/shadow-index `src/exex/mod.rs:24-311` processes committed, reverted, and reorged chains through a batcher and advances the cursor after a flush.
+- E1 source verified: bit2swaz/shadow-index `src/db/writer.rs:15-198` retries ClickHouse writes, separates retryable from permanent errors, and trips a circuit breaker after bounded attempts.
+- E1 source verified: bit2swaz/shadow-index `src/utils/cursor.rs:11-65` persists the cursor with temp-rename updates and restartable load logic.
+- E2 test verified: bit2swaz/shadow-index `src/utils/cursor.rs:73-164` covers update/reload persistence and atomic cursor writes.
