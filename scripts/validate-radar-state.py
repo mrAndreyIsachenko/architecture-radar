@@ -65,6 +65,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Recommended Next Action",
     "Notable Rejected Or Deferred Candidates",
     "Unresolved Evidence Gaps",
+    "Validation Backlog Updates",
 }
 LEDGER_REQUIRED_COLUMNS = {
     "Repository",
@@ -98,6 +99,68 @@ REVIEW_VALUE_LOW_VERDICTS = {
     "needs-targeted-fix",
 }
 REVIEW_VALUE_ACTIONS = {"merge", "request-fix", "close", "watchlist"}
+FAMILY_PLAYBOOKS = {
+    "privacy-networking-vpn": "docs/family-playbooks/privacy-networking-vpn.md",
+    "drones-robotics-autonomy": "docs/family-playbooks/drones-robotics-autonomy.md",
+    "satellites-space-systems": "docs/family-playbooks/satellites-space-systems.md",
+}
+FAMILY_PLAYBOOK_REQUIRED_HEADINGS = {
+    "Family",
+    "Mechanisms To Search",
+    "Evidence Bar",
+    "Selection Bias",
+    "Rejection Triggers",
+    "Validation Evidence",
+    "Useful Search Seeds",
+}
+BACKLOG_PATH = "experiments/failure-injection-backlog.yml"
+BACKLOG_REQUIRED_FIELDS = {
+    "id",
+    "family",
+    "source_report",
+    "source_repository",
+    "mechanism",
+    "evidence_gap",
+    "validation_type",
+    "proposed_validation",
+    "success_condition",
+    "priority",
+    "status",
+    "created",
+    "last_updated",
+}
+BACKLOG_VALIDATION_TYPES = {
+    "runtime",
+    "failure-injection",
+    "restart-recovery",
+    "reconnect-recovery",
+    "replay",
+    "sitl",
+    "fleet",
+    "operational",
+}
+BACKLOG_PRIORITIES = {"high", "medium", "low"}
+BACKLOG_STATUSES = {"open", "planned", "running", "passed", "failed", "deferred", "closed"}
+VALIDATION_BACKLOG_REQUIRED_COLUMNS = {
+    "Backlog item",
+    "Repository",
+    "Family",
+    "Validation type",
+    "Reason",
+    "Status",
+}
+NO_BACKLOG_UPDATE_RE = re.compile(r"\bno (?:validation )?backlog update (?:was )?required\b", re.IGNORECASE)
+RUNTIME_VALIDATION_KEYWORDS = (
+    "runtime validation",
+    "failure-injection",
+    "failure injection",
+    "restart",
+    "reconnect",
+    "replay",
+    "sitl",
+    "fleet",
+    "operational validation",
+)
 
 
 def fail(message: str) -> None:
@@ -271,7 +334,7 @@ def markdown_sections(text: str) -> dict[str, str]:
     return {name: "\n".join(lines).strip() for name, lines in sections.items()}
 
 
-def validate_candidate_ledger(path: Path, section_text: str) -> None:
+def validate_candidate_ledger(path: Path, section_text: str) -> list[dict[str, str]]:
     lines = [line for line in section_text.splitlines() if line.startswith("|")]
     if len(lines) < 3:
         fail(f"{path.relative_to(ROOT)} Candidate Ledger must contain a markdown table with at least one row")
@@ -286,10 +349,14 @@ def validate_candidate_ledger(path: Path, section_text: str) -> None:
         fail(f"{path.relative_to(ROOT)} Candidate Ledger has an invalid markdown separator row")
 
     data_rows = lines[2:]
+    rows: list[dict[str, str]] = []
     for row_index, row in enumerate(data_rows, start=1):
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) != len(header):
             fail(f"{path.relative_to(ROOT)} Candidate Ledger row {row_index} has {len(cells)} cells, expected {len(header)}")
+        rows.append(dict(zip(header, cells)))
+
+    return rows
 
 
 def clean_markdown_code(value: str) -> str:
@@ -342,7 +409,95 @@ def validate_review_value(path: Path, section_text: str) -> None:
         fail(f"{path.relative_to(ROOT)} Review Value low-value verdict `{verdict}` cannot recommend merge")
 
 
-def validate_report_structure() -> None:
+def selected_ledger_rows(ledger_rows: list[dict[str, str]]) -> dict[tuple[str, str], dict[str, str]]:
+    selected: dict[tuple[str, str], dict[str, str]] = {}
+    for row in ledger_rows:
+        decision = clean_markdown_code(row.get("Decision", "")).lower()
+        if "selected" not in decision:
+            continue
+        repository = clean_markdown_code(row.get("Repository", ""))
+        family = clean_markdown_code(row.get("Family", ""))
+        if repository and family:
+            selected[(repository, family)] = row
+    return selected
+
+
+def section_has_runtime_validation_gap(section_text: str) -> bool:
+    normalized = section_text.lower()
+    return any(keyword in normalized for keyword in RUNTIME_VALIDATION_KEYWORDS)
+
+
+def validate_validation_backlog_updates(
+    path: Path,
+    section_text: str,
+    *,
+    backlog_items: dict[str, dict[str, str]],
+    ledger_rows: list[dict[str, str]],
+    evidence_gaps: str,
+) -> None:
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    has_runtime_gap = section_has_runtime_validation_gap(evidence_gaps)
+    selected_rows = selected_ledger_rows(ledger_rows)
+
+    if not lines:
+        if not NO_BACKLOG_UPDATE_RE.search(section_text):
+            fail(
+                f"{path.relative_to(ROOT)} Validation Backlog Updates must contain a backlog table "
+                "or state that no validation backlog update was required"
+            )
+        if has_runtime_gap and selected_rows:
+            fail(f"{path.relative_to(ROOT)} records a runtime evidence gap but has no validation backlog item")
+        return
+
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Validation Backlog Updates must contain a markdown table with at least one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = VALIDATION_BACKLOG_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Validation Backlog Updates missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Validation Backlog Updates has an invalid markdown separator row")
+
+    for row_index, row in enumerate(lines[2:], start=1):
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            fail(
+                f"{path.relative_to(ROOT)} Validation Backlog Updates row {row_index} "
+                f"has {len(cells)} cells, expected {len(header)}"
+            )
+        row_data = dict(zip(header, cells))
+        item_id = clean_markdown_code(row_data["Backlog item"])
+        repository = clean_markdown_code(row_data["Repository"])
+        family = clean_markdown_code(row_data["Family"])
+        validation_type = clean_markdown_code(row_data["Validation type"])
+        status = clean_markdown_code(row_data["Status"])
+
+        item = backlog_items.get(item_id)
+        if item is None:
+            fail(f"{path.relative_to(ROOT)} references unknown validation backlog item: {item_id}")
+        if item["source_repository"] != repository:
+            fail(
+                f"{path.relative_to(ROOT)} backlog item `{item_id}` repository mismatch: "
+                f"{repository} != {item['source_repository']}"
+            )
+        if item["family"] != family:
+            fail(f"{path.relative_to(ROOT)} backlog item `{item_id}` family mismatch: {family} != {item['family']}")
+        if item["validation_type"] != validation_type:
+            fail(
+                f"{path.relative_to(ROOT)} backlog item `{item_id}` validation type mismatch: "
+                f"{validation_type} != {item['validation_type']}"
+            )
+        if item["status"] != status:
+            fail(f"{path.relative_to(ROOT)} backlog item `{item_id}` status mismatch: {status} != {item['status']}")
+        if selected_rows and (repository, family) not in selected_rows:
+            fail(f"{path.relative_to(ROOT)} backlog item `{item_id}` does not match a selected ledger row")
+
+
+def validate_report_structure(backlog_items: dict[str, dict[str, str]] | None = None) -> None:
+    backlog_items = backlog_items or {}
     for path in report_files_to_validate():
         if not path.is_file():
             fail(f"missing report: {path.relative_to(ROOT)}")
@@ -359,8 +514,15 @@ def validate_report_structure() -> None:
             if not sections[section].strip():
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
-        validate_candidate_ledger(path, sections["Candidate Ledger"])
+        ledger_rows = validate_candidate_ledger(path, sections["Candidate Ledger"])
         validate_review_value(path, sections["Review Value"])
+        validate_validation_backlog_updates(
+            path,
+            sections["Validation Backlog Updates"],
+            backlog_items=backlog_items,
+            ledger_rows=ledger_rows,
+            evidence_gaps=sections["Unresolved Evidence Gaps"],
+        )
 
 
 def clean_yaml_scalar(value: str) -> str:
@@ -388,6 +550,168 @@ def topic_families() -> set[str]:
     if not families:
         fail("docs/research-scope.md has no topic families")
     return families
+
+
+def interests_topic_families() -> set[str]:
+    interests = require_path("interests.md").read_text(encoding="utf-8")
+    families: set[str] = set()
+    in_family_list = False
+
+    for line in interests.splitlines():
+        if line.startswith("Use these top-level topic families"):
+            in_family_list = True
+            continue
+        if in_family_list and line.startswith("## "):
+            break
+        if not in_family_list:
+            continue
+        match = re.match(r"- `([^`]+)`:", line)
+        if match:
+            families.add(match.group(1))
+
+    if not families:
+        fail("interests.md has no topic families")
+    return families
+
+
+def validate_topic_family_consistency() -> None:
+    scope_families = topic_families()
+    interests_families = interests_topic_families()
+    missing_from_interests = scope_families - interests_families
+    missing_from_scope = interests_families - scope_families
+
+    if missing_from_interests:
+        fail(f"topic families missing from interests.md: {', '.join(sorted(missing_from_interests))}")
+    if missing_from_scope:
+        fail(f"topic families missing from docs/research-scope.md: {', '.join(sorted(missing_from_scope))}")
+
+
+def validate_family_playbooks() -> None:
+    require_path("docs/family-playbooks", directory=True)
+    families = topic_families()
+
+    for family, relpath in FAMILY_PLAYBOOKS.items():
+        if family not in families:
+            fail(f"family playbook `{relpath}` is configured for unknown family: {family}")
+        path = require_path(relpath)
+        sections = markdown_sections(path.read_text(encoding="utf-8"))
+        missing = FAMILY_PLAYBOOK_REQUIRED_HEADINGS - set(sections)
+        if missing:
+            fail(f"{relpath} missing required headings: {', '.join(sorted(missing))}")
+        if f"`{family}`" not in sections["Family"]:
+            fail(f"{relpath} Family section must name `{family}`")
+
+
+def parse_failure_backlog_yaml() -> list[dict[str, str]]:
+    path = require_path(BACKLOG_PATH)
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        fail(f"{BACKLOG_PATH} is empty")
+    if "\t" in text:
+        fail(f"{BACKLOG_PATH} must use spaces, not tabs")
+
+    saw_items = False
+    explicit_empty = False
+    items: list[dict[str, str]] = []
+    current: dict[str, str] | None = None
+
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+
+        if raw_line == "items: []":
+            if saw_items:
+                fail(f"{BACKLOG_PATH}:{line_number} duplicate top-level `items`")
+            saw_items = True
+            explicit_empty = True
+            continue
+        if raw_line == "items:":
+            if saw_items:
+                fail(f"{BACKLOG_PATH}:{line_number} duplicate top-level `items`")
+            saw_items = True
+            continue
+
+        if not saw_items:
+            fail(f"{BACKLOG_PATH}:{line_number} expected top-level `items:` before backlog entries")
+        if explicit_empty:
+            fail(f"{BACKLOG_PATH}:{line_number} cannot add entries after `items: []`")
+
+        if raw_line.startswith("  - "):
+            if current is not None:
+                items.append(current)
+            current = {}
+            payload = raw_line[4:]
+            if payload:
+                if ": " not in payload:
+                    fail(f"{BACKLOG_PATH}:{line_number} expected `key: value` after list marker")
+                key, value = payload.split(": ", 1)
+                if key not in BACKLOG_REQUIRED_FIELDS:
+                    fail(f"{BACKLOG_PATH}:{line_number} unsupported backlog field: {key}")
+                current[key] = clean_yaml_scalar(value)
+            continue
+
+        if raw_line.startswith("    "):
+            if current is None:
+                fail(f"{BACKLOG_PATH}:{line_number} expected a backlog entry")
+            payload = raw_line[4:]
+            if ": " not in payload:
+                fail(f"{BACKLOG_PATH}:{line_number} expected `key: value`")
+            key, value = payload.split(": ", 1)
+            if key not in BACKLOG_REQUIRED_FIELDS:
+                fail(f"{BACKLOG_PATH}:{line_number} unsupported backlog field: {key}")
+            current[key] = clean_yaml_scalar(value)
+            continue
+
+        fail(f"{BACKLOG_PATH}:{line_number} unsupported indentation or syntax")
+
+    if current is not None:
+        items.append(current)
+    if not saw_items:
+        fail(f"{BACKLOG_PATH} is missing top-level `items:`")
+
+    return items
+
+
+def validate_failure_backlog() -> dict[str, dict[str, str]]:
+    items = parse_failure_backlog_yaml()
+    families = topic_families()
+    by_id: dict[str, dict[str, str]] = {}
+
+    for index, item in enumerate(items, start=1):
+        missing = BACKLOG_REQUIRED_FIELDS - set(item)
+        if missing:
+            fail(f"{BACKLOG_PATH} item {index} missing required fields: {', '.join(sorted(missing))}")
+        extra = set(item) - BACKLOG_REQUIRED_FIELDS
+        if extra:
+            fail(f"{BACKLOG_PATH} item {index} has unsupported fields: {', '.join(sorted(extra))}")
+
+        item_id = item["id"]
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", item_id):
+            fail(f"{BACKLOG_PATH} item {index} has invalid id: {item_id}")
+        if item_id in by_id:
+            fail(f"{BACKLOG_PATH} has duplicate item id: {item_id}")
+        if item["family"] not in families:
+            fail(f"{BACKLOG_PATH} item `{item_id}` has unknown family: {item['family']}")
+        if not re.fullmatch(r"reports/\d{4}-\d{2}-\d{2}(?:-supplement-\d+)?\.md", item["source_report"]):
+            fail(f"{BACKLOG_PATH} item `{item_id}` has invalid source_report: {item['source_report']}")
+        if not re.fullmatch(r"[^/\s]+/[^/\s]+", item["source_repository"]):
+            fail(f"{BACKLOG_PATH} item `{item_id}` has invalid source_repository: {item['source_repository']}")
+        if item["validation_type"] not in BACKLOG_VALIDATION_TYPES:
+            fail(f"{BACKLOG_PATH} item `{item_id}` has unsupported validation_type: {item['validation_type']}")
+        if item["priority"] not in BACKLOG_PRIORITIES:
+            fail(f"{BACKLOG_PATH} item `{item_id}` has unsupported priority: {item['priority']}")
+        if item["status"] not in BACKLOG_STATUSES:
+            fail(f"{BACKLOG_PATH} item `{item_id}` has unsupported status: {item['status']}")
+        for date_field in ("created", "last_updated"):
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", item[date_field]):
+                fail(f"{BACKLOG_PATH} item `{item_id}` has invalid {date_field}: {item[date_field]}")
+        for text_field in ("mechanism", "evidence_gap", "proposed_validation", "success_condition"):
+            if len(item[text_field].strip()) < 10:
+                fail(f"{BACKLOG_PATH} item `{item_id}` {text_field} is too short")
+
+        by_id[item_id] = item
+
+    return by_id
 
 
 def validate_watchlist() -> None:
@@ -512,6 +836,8 @@ def validate_workspace() -> None:
     require_path("reports", directory=True)
     require_path("repositories", directory=True)
     require_path("patterns", directory=True)
+    require_path("docs/family-playbooks", directory=True)
+    require_path(BACKLOG_PATH)
     require_path("docs/agent-rules.md")
     require_path("docs/research-scope.md")
 
@@ -550,8 +876,11 @@ def validate_workspace() -> None:
 
 def main() -> None:
     validate_workspace()
+    validate_topic_family_consistency()
+    validate_family_playbooks()
+    backlog_items = validate_failure_backlog()
     validate_evidence_labels()
-    validate_report_structure()
+    validate_report_structure(backlog_items)
     validate_watchlist()
 
     print("radar artifacts validated")

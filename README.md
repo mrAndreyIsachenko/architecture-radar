@@ -10,7 +10,7 @@ Use it to build a radar for open-source architecture, market signals, security r
 
 The core idea: let the model research and write, but let deterministic GitHub Actions decide whether the result is structurally valid, evidence-labeled, reviewable, and safe to publish.
 
-The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, and drones/autonomy. The reusable part is not the topic list. It is the operating system around the research agent.
+The current radar reviews open-source repositories related to AI/LLM systems, document AI/OCR, blockchain intelligence, VPN/privacy networking, drones/autonomy, and satellites/space systems. The reusable part is not the topic list. It is the operating system around the research agent.
 
 The repository also includes a separate **Opportunity Radar** mode for money-first, evidence-backed demand research. It now looks for fragmentation-driven control-layer openings: places where new primitives or providers create repeated cross-company comparison, reconciliation, routing, optimization, or execution work that is more likely to be bought than rebuilt internally. It writes to `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`, not to the architecture-review artifacts.
 
@@ -102,7 +102,7 @@ Three independent boundaries:
 - [`scripts/publish-radar-run.sh`](scripts/publish-radar-run.sh) stages an explicit allowlist:
 
   ```
-  git add README.md interests.md radar.json reports repositories patterns
+  git add README.md interests.md radar.json reports repositories patterns experiments
   ```
 
 That last line is the one that matters. Note what is absent from it: `scripts/`, `.github/`, and `docs/`. Even with full local write access, the agent cannot get a change to the wrapper, the workflow, or **its own operating rules** into a commit — those writes are silently dropped. The blast radius is bounded by what the deterministic wrapper is willing to stage, not by what the agent was told not to touch.
@@ -204,7 +204,7 @@ Patterns require independent convergence. One repository doing something interes
 
 Worth stating precisely, since the distinction is the whole point.
 
-**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and required sections, candidate-ledger table shape, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, generated PR validation markers, and the absence of a GitHub token during the agent step.
+**Enforced in CI** — evidence label consistency, required workspace files, `watchlist.yml` shape, `radar.json` schema, report presence and required sections, candidate-ledger table shape, family playbooks, validation backlog shape, script syntax, PR-review helper unit tests, changed-file whitespace, the commit path allowlist, generated PR validation markers, and the absence of a GitHub token during the agent step.
 
 **Instructed in the prompt only** — pinning SHAs, honest candidate accounting, cost discipline, selecting zero, not reading CI credentials. Nothing mechanically stops the agent from ignoring these; pull request review is the backstop.
 

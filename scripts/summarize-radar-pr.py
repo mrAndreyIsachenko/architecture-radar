@@ -346,6 +346,7 @@ def emit_markdown(summary: dict[str, object]) -> None:
         print_list("Updated patterns", report.get("updated_patterns"))
         print_review_value(report.get("review_value"))
         print_list("Evidence gaps", report.get("evidence_gaps"))
+        print_validation_backlog(report)
         next_action = str(report.get("recommended_next_action") or "").strip()
         if next_action:
             print("Recommended next action:")
@@ -371,6 +372,24 @@ def print_review_value(value: object) -> None:
     reason = str(value.get("reason") or "").strip()
     if reason:
         print(f"Review value reason: {reason}")
+
+
+def print_validation_backlog(report: dict[str, object]) -> None:
+    rows = report.get("validation_backlog_updates")
+    note = str(report.get("validation_backlog_note") or "").strip()
+    if isinstance(rows, list) and rows:
+        print("Validation backlog updates:")
+        for row in rows:
+            if isinstance(row, dict):
+                item = row.get("Backlog item")
+                repository = row.get("Repository")
+                validation_type = row.get("Validation type")
+                status = row.get("Status")
+                print(f"- {item}: {repository} {validation_type} {status}")
+        return
+    if note:
+        print("Validation backlog updates:")
+        print(note)
 
 
 def main() -> None:

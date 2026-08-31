@@ -15,6 +15,7 @@ Use these families for candidate accounting and per-topic selection. They match 
 - `blockchain-intelligence`
 - `privacy-networking-vpn`
 - `drones-robotics-autonomy`
+- `satellites-space-systems`
 
 ## Research Areas
 
@@ -37,6 +38,7 @@ Prioritize repositories related to:
 - wallets, protocol analysis, and on-chain intelligence
 - VPN, privacy networking, secure tunnels, traffic routing, and access control
 - drones, robotics, autonomy, mission planning, telemetry, and fleet coordination
+- satellites, space systems, ground stations, delayed connectivity, command/telemetry loops, RF/geospatial processing, scheduling, safe-mode recovery, and constellation coordination
 - durable workflows and long-running agents
 
 Every selected repository must map to at least one concrete unresolved problem or research priority explicitly present in `interests.md`.
@@ -64,6 +66,7 @@ Examples of the abstraction level worth extracting. Not a checklist — a calibr
 - policy generation and invalidation
 - deterministic projection from event logs
 - model release watchlists when a model materially changes an evidence-ingestion capability
+- delayed-connectivity command/telemetry loops and operational recovery when space-system software exposes reusable resilience mechanisms
 
 A mechanism at this level survives removal of the repository's branding, UI, and product domain. A finding that does not survive that removal is a product observation, not a mechanism.
 
@@ -82,6 +85,15 @@ Document AI / OCR / multimodal evidence ingestion:
 - `datalab-to/marker`
 - `run-llama/ParseBench`
 - `Layout-Parser/layout-parser`
+
+Satellites / space systems / ground operations:
+
+- `nasa/openmct`
+- `nasa/fprime`
+- `nasa/cFS`
+- `gnuradio/gnuradio`
+- `librespacefoundation/satnogs-client`
+- `librespacefoundation/satnogs-network`
 
 When a seed is model-heavy or benchmark-heavy rather than source-heavy, apply the model/research release watch rules in `docs/agent-rules.md` instead of forcing a deep review.
 

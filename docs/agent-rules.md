@@ -17,6 +17,8 @@ Before beginning research, verify that the repository contains:
 - `interests.md`
 - `watchlist.yml`
 - `radar.json`
+- `docs/family-playbooks/`
+- `experiments/failure-injection-backlog.yml`
 - `reports/`
 - `repositories/`
 - `patterns/`
@@ -37,11 +39,18 @@ Before discovery, read:
 - `interests.md`
 - `watchlist.yml`
 - `docs/research-scope.md`
+- applicable files under `docs/family-playbooks/`
+- `experiments/failure-injection-backlog.yml`
 - the complete `radar.json`
 - relevant existing files under `repositories/` and `patterns/`
 - reports from the previous seven runs
 
 Use this state to avoid duplicate reviews, duplicate pattern names, and repeated recommendations.
+
+Family playbooks are domain-specific operating guidance. They are subordinate
+to `interests.md` and `docs/research-scope.md`, but when a playbook exists for
+a topic family, use it to calibrate search terms, selection bias, rejection
+triggers, and evidence gaps for that family.
 
 ## Discovery
 
@@ -106,6 +115,10 @@ Exclude:
 Use the topic families defined in `docs/research-scope.md`.
 
 Inspect at least 20 candidates per normal run, and prefer broad coverage across all topic families when candidate supply allows it.
+
+For topic families with files under `docs/family-playbooks/`, use the playbook
+mechanisms and evidence bar when deciding whether a candidate deserves
+source-inspection, deep review, deferral, or rejection.
 
 Process `watchlist.yml` before broad discovery. Every active watchlist entry must appear in the candidate ledger unless it is already in cooldown, already reviewed at the same or newer commit, or inaccessible. If an entry is skipped, record the exact skip reason in the daily report.
 
@@ -183,6 +196,10 @@ A selected repository should normally satisfy all of the following:
 When breadth, quality, and cost conflict, prioritize one high-confidence deep review per represented topic family before selecting second or third repositories in the same family.
 
 If a topic family has no strong candidate, explicitly record the gap instead of filling the slot with a weak repository.
+
+When a topic family with a playbook is under-covered, describe the gap using
+that playbook's mechanisms and evidence expectations. Do not merely state that
+no repository was selected.
 
 ## Cost Discipline
 
@@ -332,6 +349,43 @@ Avoid recommending an entire project when only one mechanism is valuable.
 
 Ask: what useful mechanism remains if the repository's branding, UI, and domain-specific product are removed?
 
+## Validation Backlog
+
+Selected mechanisms often remain useful but not ready for adoption because the
+missing evidence is runtime validation rather than more reading. Preserve those
+gaps in `experiments/failure-injection-backlog.yml`.
+
+Create or update a backlog item when a selected repository has an unresolved
+evidence gap requiring:
+
+- runtime validation
+- failure-injection
+- restart or reconnect recovery
+- replay validation
+- SITL validation
+- fleet or multi-node validation
+- operational validation
+
+Each backlog item must include:
+
+- `id`
+- `family`
+- `source_report`
+- `source_repository`
+- `mechanism`
+- `evidence_gap`
+- `validation_type`
+- `proposed_validation`
+- `success_condition`
+- `priority`
+- `status`
+- `created`
+- `last_updated`
+
+Use `Validation Backlog Updates` in the daily report to connect selected
+repositories and evidence gaps to backlog items. If no runtime or failure
+validation backlog update is needed, explicitly say so in that section.
+
 ## Pattern Extraction
 
 Repositories are evidence sources, not the final knowledge unit.
@@ -390,8 +444,18 @@ Create `reports/YYYY-MM-DD.md` containing:
 - one recommended, testable next action
 - notable rejected or deferred candidates and reasons
 - unresolved evidence gaps
+- validation backlog updates
 
 Keep the report concise. Detailed source analysis belongs in repository files.
+
+The `Validation Backlog Updates` section must either contain this table:
+
+```markdown
+| Backlog item | Repository | Family | Validation type | Reason | Status |
+|---|---|---|---|---|---|
+```
+
+or explicitly state that no validation backlog update was required.
 
 The `Review Value` section must contain exactly one table row:
 
