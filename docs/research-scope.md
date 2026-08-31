@@ -45,6 +45,24 @@ Every selected repository must map to at least one concrete unresolved problem o
 
 Broad topical similarity alone is insufficient.
 
+## Discovery Surfaces
+
+Use GitHub as the default source surface, but do not treat it as exhaustive.
+For China-originated or regional projects, include Gitee and GitCode repository
+search when searching the configured topic families.
+
+Use regional developer platforms such as Tencent CODING, Alibaba Codeup, Huawei
+CodeArts Repo, JiHu/GitLab China, launch pages, company pages, product pages,
+papers, model cards, and documentation as discovery surfaces only. They should
+lead to source expansion: identify a public repository, stable revision, mirror
+relationship, SDK, runtime, adapter, benchmark, recipe, or paper before a
+candidate can be selected for source-level review.
+
+When a project appears on both GitHub and a regional forge, prefer the canonical
+source if evidence is clear. If the canonical source is ambiguous, record the
+mirror ambiguity as an evidence gap and review at most one stable source
+snapshot.
+
 ## Mechanisms Of Interest
 
 Examples of the abstraction level worth extracting. Not a checklist — a calibration of granularity:

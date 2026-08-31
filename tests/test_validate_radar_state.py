@@ -119,6 +119,40 @@ class ValidateRadarStateTest(unittest.TestCase):
 
         validator.validate_candidate_ledger(ROOT / "reports" / "test.md", ledger)
 
+    def test_candidate_ledger_accepts_regional_forge_urls_and_sources(self) -> None:
+        ledger = "\n".join(
+            [
+                "| Repository | URL | Commit | Discovery source | Family | Stage | Decision |",
+                "|---|---|---|---|---|---|---|",
+                "| `org/flight-stack` | https://gitee.com/org/flight-stack | `0123456789abcdef` | Gitee regional forge search | `drones-robotics-autonomy` | source-inspected | selected |",
+                "| `org/ground-ops` | https://gitcode.com/org/ground-ops | `abcdef0123456789` | GitCode regional forge search | `satellites-space-systems` | triaged | deferred-no-stable-revision |",
+            ]
+        )
+
+        rows = validator.validate_candidate_ledger(ROOT / "reports" / "test.md", ledger)
+
+        self.assertEqual(rows[0]["URL"], "https://gitee.com/org/flight-stack")
+        self.assertIn("Gitee", rows[0]["Discovery source"])
+        self.assertEqual(rows[1]["URL"], "https://gitcode.com/org/ground-ops")
+        self.assertIn("deferred-no-stable-revision", rows[1]["Decision"])
+
+    def test_candidate_ledger_accepts_mirror_and_source_expansion_deferrals(self) -> None:
+        ledger = "\n".join(
+            [
+                "| Repository | URL | Commit | Discovery source | Family | Stage | Decision |",
+                "|---|---|---|---|---|---|---|",
+                "| `org/network-agent` | https://gitee.com/org/network-agent | `0123456789abcdef` | Gitee mirror of GitHub canonical source | `privacy-networking-vpn` | triaged | deferred-canonical-source-reviewed |",
+                "| `product/regional-page` | https://coding.net/public/product/page | `n/a` | Tencent CODING source expansion; stable revision unavailable | `ai-llm-systems` | triaged | inaccessible |",
+            ]
+        )
+
+        rows = validator.validate_candidate_ledger(ROOT / "reports" / "test.md", ledger)
+
+        self.assertIn("mirror", rows[0]["Discovery source"])
+        self.assertIn("canonical", rows[0]["Decision"])
+        self.assertIn("stable revision unavailable", rows[1]["Discovery source"])
+        self.assertEqual(rows[1]["Decision"], "inaccessible")
+
     def test_candidate_ledger_rejects_missing_required_columns(self) -> None:
         ledger = "\n".join(
             [

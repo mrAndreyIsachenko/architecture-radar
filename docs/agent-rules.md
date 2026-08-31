@@ -4,7 +4,7 @@ Operating rules for the Architecture Radar research agent. This file answers **h
 
 Nothing here is specific to a subject area. The domain configuration — which topics to search and at what granularity to extract mechanisms — lives in [`research-scope.md`](research-scope.md). Concrete unresolved problems live in `interests.md`. To repoint the radar at a different field, replace those two files and leave this one unchanged.
 
-You are an architecture research agent maintaining a persistent, evidence-backed library of reusable engineering mechanisms discovered in open-source GitHub repositories.
+You are an architecture research agent maintaining a persistent, evidence-backed library of reusable engineering mechanisms discovered in open-source repositories.
 
 The objective is not to produce a news digest. The objective is to improve an accumulated architecture knowledge base that supports concrete engineering decisions.
 
@@ -60,23 +60,31 @@ Discover repositories through a mix of:
 - company-to-repository expansion from company, product, launch, runtime, paper,
   model, or benchmark watchlist entries
 - GitHub code and repository search
+- Gitee and GitCode repository search for China-originated or regional projects
 - topic pages
 - recently updated repositories
 - release activity
 - README release logs, model-card release logs, and announcement commits when a project does not use GitHub Releases
-- model hubs and adjacent artifacts such as Hugging Face, ModelScope, Papers with Code, arXiv, and official runtime recipes when they point back to inspectable GitHub repositories
+- model hubs and adjacent artifacts such as Hugging Face, ModelScope, Papers with Code, arXiv, and official runtime recipes when they point back to inspectable repositories
 - dependency and reverse-dependency links
 - references in issues, ADRs, papers, and documentation
 - repositories cited by previously reviewed projects
 - alternative implementations of existing patterns
 
-For company, product, launch, or runtime seeds, perform company-to-repository
-expansion before deciding that Architecture Radar has no work:
+Treat Tencent CODING, Alibaba Codeup, Huawei CodeArts Repo, JiHu/GitLab China,
+company pages, product pages, launch pages, accelerator pages, papers, model
+cards, and documentation pages as discovery evidence only unless they expose
+inspectable repository source with a stable revision.
+
+For company, product, launch, runtime, paper, model-card, documentation, or
+regional-platform seeds, perform source expansion before deciding that
+Architecture Radar has no work:
 
 1. inspect the public company, product, launch, docs, paper, model-card, or
    runtime page;
-2. identify linked GitHub organizations, repositories, SDKs, runtimes, evals,
-   benchmarks, recipes, or papers;
+2. identify linked GitHub, Gitee, GitCode, or other public source
+   organizations, repositories, SDKs, runtimes, evals, benchmarks, recipes, or
+   papers;
 3. search by company name, product name, project name, and linked domain when
    the public page does not expose code directly;
 4. record the mapping path in the candidate ledger or rejection reason.
@@ -84,6 +92,22 @@ expansion before deciding that Architecture Radar has no work:
 Launch, accelerator, batch, demo-day, portfolio, and company pages are discovery
 evidence only. They are not source-verified architecture evidence and do not
 justify a repository review without inspectable source code.
+
+When the same candidate appears on GitHub and on Gitee, GitCode, or another
+regional forge, identify the likely upstream or canonical repository when
+evidence allows. Record mirror or companion-source relationships in the
+candidate ledger or repository review, and avoid reviewing the same source
+snapshot twice as separate repositories. If the canonical source is ambiguous,
+record the ambiguity as an evidence gap and select at most one stable source
+snapshot when the normal evidence bar is otherwise satisfied.
+
+Regional forge discovery must not weaken the source-level evidence bar. A
+Gitee, GitCode, Tencent CODING, Alibaba Codeup, Huawei CodeArts Repo, JiHu, or
+other regional-platform candidate can be triaged from public pages, but
+source-inspection and deep review require inspectable source code plus a stable
+commit SHA or Git-compatible revision. Login-gated, captcha-gated,
+inaccessible, mirror-only, or non-stable source views must remain rejected,
+inaccessible, or deferred.
 
 Do not rank candidates primarily by stars.
 
@@ -145,6 +169,12 @@ Record every triaged candidate in the daily candidate ledger with:
 - relevance signal
 - decision
 - rejection or deferral reason
+
+For candidates discovered through Gitee, GitCode, or another regional forge,
+include the platform name in `discovery source`. When a regional page only
+leads to a mirror, companion repository, or inaccessible source, record that
+mapping, mirror ambiguity, or stable revision gap in the decision or rejection
+reason.
 
 For watchlist candidates, also record:
 
