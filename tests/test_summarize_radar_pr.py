@@ -32,6 +32,12 @@ Total candidates reaching at least `triaged`: 20.
 
 - One useful finding.
 
+## Review Value
+
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+| `useful-delta` | 4 | One source-backed repository review adds a reusable mechanism. | `merge` |
+
 ## Extracted Or Updated Patterns
 
 - Updated [Example](../patterns/example.md).
@@ -105,6 +111,60 @@ class SummarizeRadarPrTest(unittest.TestCase):
         self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
         self.assertNotIn("manually read", summary["review_recommendation"]["next_action"])
         self.assertIn("merge the PR", summary["review_recommendation"]["next_action"])
+
+    def test_review_recommendation_uses_review_value_request_fix(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": summarizer.changed_files_by_kind(summary["files"]),
+                "reports": [
+                    {
+                        "path": "reports/2026-08-11.md",
+                        "review_value": {
+                            "verdict": "needs-targeted-fix",
+                            "score": 2,
+                            "reason": "The selected repository repeats a stale topic without closing the evidence gap.",
+                            "recommended_action": "request-fix",
+                        },
+                    }
+                ],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "needs_targeted_fix")
+        self.assertIn("targeted fix", recommendation["next_action"])
+
+    def test_review_recommendation_uses_review_value_close(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": summarizer.changed_files_by_kind(summary["files"]),
+                "reports": [
+                    {
+                        "path": "reports/2026-08-11.md",
+                        "review_value": {
+                            "verdict": "no-material-change",
+                            "score": 1,
+                            "reason": "The report adds no material architecture delta and should be regenerated.",
+                            "recommended_action": "close",
+                        },
+                    }
+                ],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "should_close")
+        self.assertIn("close or regenerate", recommendation["next_action"])
 
     def test_newest_open_radar_pr_selects_first_matching_pr(self) -> None:
         prs = [

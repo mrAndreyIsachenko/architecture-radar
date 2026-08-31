@@ -37,6 +37,12 @@ Total candidates reaching at least `triaged`: 20.
 - Alpha contributes one reusable mechanism.
 - Beta contributes another reusable mechanism.
 
+## Review Value
+
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+| `high-signal` | 5 | Two deeply reviewed repositories add reusable source-backed mechanisms. | `merge` |
+
 ## Extracted Or Updated Patterns
 
 - Updated [Example Pattern](../patterns/example-pattern.md).
@@ -90,6 +96,9 @@ class SummarizeRadarReportTest(unittest.TestCase):
         self.assertEqual(summary["stage_counts"]["source-inspected"], 4)
         self.assertEqual(len(summary["selected_repositories"]), 2)
         self.assertEqual(summary["updated_patterns"], ["Updated [Example Pattern](../patterns/example-pattern.md)."])
+        self.assertEqual(summary["review_value"]["verdict"], "high-signal")
+        self.assertEqual(summary["review_value"]["score"], 5)
+        self.assertEqual(summary["review_value"]["recommended_action"], "merge")
         self.assertEqual(summary["recommended_next_action"], "Run one bounded experiment.")
         self.assertEqual(len(summary["evidence_gaps"]), 2)
 

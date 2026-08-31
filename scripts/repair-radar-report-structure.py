@@ -15,6 +15,7 @@ REQUIRED_REPORT_SECTIONS = [
     "Candidate Counts",
     "Selected Repositories",
     "Executive Summary",
+    "Review Value",
     "Detailed Reviews",
     "Extracted Or Updated Patterns",
     "Relevance To Explicit Problems In `interests.md`",
@@ -56,6 +57,9 @@ SECTION_ALIASES = {
     "selected": "Selected Repositories",
     "summary": "Executive Summary",
     "exec summary": "Executive Summary",
+    "review value": "Review Value",
+    "value verdict": "Review Value",
+    "review verdict": "Review Value",
     "source backed analysis": "Detailed Reviews",
     "detailed analysis": "Detailed Reviews",
     "detailed source backed analysis": "Detailed Reviews",
@@ -172,6 +176,14 @@ def placeholder(section: str, missing_sections: set[str]) -> str:
         return "- Repair-generated placeholder: selected repositories were not reported by the research agent."
     if section == "Executive Summary":
         return "Repair-generated placeholder: the research agent omitted the canonical executive summary section."
+    if section == "Review Value":
+        return "\n".join(
+            [
+                "| Verdict | Score | Reason | Recommended action |",
+                "|---|---:|---|---|",
+                "| `needs-targeted-fix` | 1 | Repair-generated placeholder because the original report omitted review value. | `request-fix` |",
+            ]
+        )
     if section == "Detailed Reviews":
         return "- Repair-generated placeholder: no canonical detailed review section was found."
     if section == "Extracted Or Updated Patterns":

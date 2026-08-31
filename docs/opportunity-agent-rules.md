@@ -547,6 +547,7 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - signal counts;
 - selected opportunities;
 - executive summary;
+- review value verdict;
 - signal ledger;
 - topic coverage;
 - commercial delta;
@@ -559,6 +560,34 @@ Create `opportunity-reports/YYYY-MM-DD.md` containing:
 - recommended next test;
 - rejected or deferred signals;
 - evidence gaps.
+
+The `Review Value` section must contain exactly one table row:
+
+```markdown
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+```
+
+Use one of these verdicts:
+
+- `high-signal`: strong new paid demand, direct workflow spend, or actionable sell-before-build path.
+- `useful-delta`: useful commercial stage change, new corroborating signal, or clearer no-build decision.
+- `no-candidate-cleared`: the run usefully proves that no opportunity cleared the threshold.
+- `watchlist-only`: useful watchlist/deferred tracking with no selected opportunity.
+- `weak-signal`: money evidence, reachability, or paid wedge is too weak.
+- `stale-or-duplicate`: the report repeats known watchlist candidates without commercial delta.
+- `no-material-change`: no opportunity state, confidence, evidence, or next test changed.
+- `needs-targeted-fix`: the PR needs a fixable correction to evidence, stage, scoring, or topic coverage.
+
+Use `Recommended action` as the PR-level action:
+
+- `merge` only when the report adds useful commercial evidence, a useful stage change, or a useful no-candidate/watchlist conclusion.
+- `request-fix` when the PR should stay open but needs a specific targeted correction.
+- `close` when the PR should be closed or regenerated rather than repaired.
+- `watchlist` when selected or sell-before-build content should be demoted to watchlist/deferred state before merge.
+
+Do not combine `merge` with `weak-signal`, `stale-or-duplicate`,
+`no-material-change`, or `needs-targeted-fix`.
 
 The `Best Paths To First Transaction` section must contain at most five rows:
 

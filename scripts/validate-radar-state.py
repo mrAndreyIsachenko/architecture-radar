@@ -57,6 +57,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Candidate Counts",
     "Selected Repositories",
     "Executive Summary",
+    "Review Value",
     "Detailed Reviews",
     "Extracted Or Updated Patterns",
     "Relevance To Explicit Problems In `interests.md`",
@@ -74,6 +75,29 @@ LEDGER_REQUIRED_COLUMNS = {
     "Stage",
     "Decision",
 }
+REVIEW_VALUE_REQUIRED_COLUMNS = {
+    "Verdict",
+    "Score",
+    "Reason",
+    "Recommended action",
+}
+REVIEW_VALUE_VERDICTS = {
+    "high-signal",
+    "useful-delta",
+    "no-candidate-cleared",
+    "watchlist-only",
+    "weak-signal",
+    "stale-or-duplicate",
+    "no-material-change",
+    "needs-targeted-fix",
+}
+REVIEW_VALUE_LOW_VERDICTS = {
+    "weak-signal",
+    "stale-or-duplicate",
+    "no-material-change",
+    "needs-targeted-fix",
+}
+REVIEW_VALUE_ACTIONS = {"merge", "request-fix", "close", "watchlist"}
 
 
 def fail(message: str) -> None:
@@ -268,6 +292,56 @@ def validate_candidate_ledger(path: Path, section_text: str) -> None:
             fail(f"{path.relative_to(ROOT)} Candidate Ledger row {row_index} has {len(cells)} cells, expected {len(header)}")
 
 
+def clean_markdown_code(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value.startswith("`") and value.endswith("`"):
+        return value[1:-1].strip()
+    return value
+
+
+def validate_review_value(path: Path, section_text: str) -> None:
+    lines = [line for line in section_text.splitlines() if line.startswith("|")]
+    if len(lines) < 3:
+        fail(f"{path.relative_to(ROOT)} Review Value must contain a markdown table with one row")
+
+    header = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
+    missing = REVIEW_VALUE_REQUIRED_COLUMNS - set(header)
+    if missing:
+        fail(f"{path.relative_to(ROOT)} Review Value missing columns: {', '.join(sorted(missing))}")
+
+    separator = [cell.strip() for cell in lines[1].strip().strip("|").split("|")]
+    if len(separator) != len(header) or not all(re.fullmatch(r":?-{3,}:?", cell) for cell in separator):
+        fail(f"{path.relative_to(ROOT)} Review Value has an invalid markdown separator row")
+
+    data_rows = lines[2:]
+    if len(data_rows) != 1:
+        fail(f"{path.relative_to(ROOT)} Review Value must contain exactly one data row")
+
+    cells = [cell.strip() for cell in data_rows[0].strip().strip("|").split("|")]
+    if len(cells) != len(header):
+        fail(f"{path.relative_to(ROOT)} Review Value row has {len(cells)} cells, expected {len(header)}")
+
+    row = dict(zip(header, cells))
+    verdict = clean_markdown_code(row["Verdict"])
+    action = clean_markdown_code(row["Recommended action"])
+    score_text = clean_markdown_code(row["Score"])
+    reason = row["Reason"].strip()
+
+    if verdict not in REVIEW_VALUE_VERDICTS:
+        fail(f"{path.relative_to(ROOT)} Review Value has unsupported verdict: {verdict}")
+    if action not in REVIEW_VALUE_ACTIONS:
+        fail(f"{path.relative_to(ROOT)} Review Value has unsupported recommended action: {action}")
+    if not re.fullmatch(r"\d+", score_text):
+        fail(f"{path.relative_to(ROOT)} Review Value score must be an integer from 0 to 5")
+    score = int(score_text)
+    if score < 0 or score > 5:
+        fail(f"{path.relative_to(ROOT)} Review Value score must be an integer from 0 to 5")
+    if len(reason) < 30:
+        fail(f"{path.relative_to(ROOT)} Review Value reason is too short")
+    if verdict in REVIEW_VALUE_LOW_VERDICTS and action == "merge":
+        fail(f"{path.relative_to(ROOT)} Review Value low-value verdict `{verdict}` cannot recommend merge")
+
+
 def validate_report_structure() -> None:
     for path in report_files_to_validate():
         if not path.is_file():
@@ -286,6 +360,7 @@ def validate_report_structure() -> None:
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
         validate_candidate_ledger(path, sections["Candidate Ledger"])
+        validate_review_value(path, sections["Review Value"])
 
 
 def clean_yaml_scalar(value: str) -> str:

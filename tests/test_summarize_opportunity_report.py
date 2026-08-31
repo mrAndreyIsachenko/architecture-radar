@@ -33,6 +33,12 @@ REPORT = """# Opportunity Radar Report 2026-08-11
 ## Executive Summary
 - The strongest near-term money path is a paid checkpoint audit.
 
+## Review Value
+
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+| `useful-delta` | 4 | The report identifies one actionable paid audit path and records direct commercial gaps. | `merge` |
+
 ## Signal Ledger
 | Source | URL | Family | Signal type | Evidence label | Stage | Decision | Reason |
 |---|---|---|---|---|---|---|---|
@@ -79,6 +85,9 @@ class SummarizeOpportunityReportTest(unittest.TestCase):
         self.assertEqual(summary["reviewed_signals"], 16)
         self.assertEqual(summary["ledger_rows"], 1)
         self.assertEqual(summary["signal_counts"]["Triaged"], 16)
+        self.assertEqual(summary["review_value"]["verdict"], "useful-delta")
+        self.assertEqual(summary["review_value"]["score"], 4)
+        self.assertEqual(summary["review_value"]["recommended_action"], "merge")
         self.assertEqual(
             summary["selected_opportunities"],
             ["M1 paid demand: LangGraph Checkpoint Persistence And Cost Diagnostics."],

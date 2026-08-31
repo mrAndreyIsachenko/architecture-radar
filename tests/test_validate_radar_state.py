@@ -23,6 +23,13 @@ def complete_report() -> str:
         "Candidate Counts": "- `triaged`: 1",
         "Selected Repositories": "- `owner/repo` at `0123456789abcdef`",
         "Executive Summary": "One useful mechanism was reviewed.",
+        "Review Value": "\n".join(
+            [
+                "| Verdict | Score | Reason | Recommended action |",
+                "|---|---:|---|---|",
+                "| `useful-delta` | 4 | One reviewed repository adds a source-backed reusable mechanism. | `merge` |",
+            ]
+        ),
         "Detailed Reviews": "- [owner/repo](../repositories/owner-repo.md)",
         "Extracted Or Updated Patterns": "- None.",
         "Relevance To Explicit Problems In `interests.md`": "- `ai-llm-systems`: context construction.",
@@ -103,6 +110,37 @@ class ValidateRadarStateTest(unittest.TestCase):
             report = root / "reports" / "2026-08-11.md"
             report.parent.mkdir()
             report.write_text(complete_report().replace("## Candidate Ledger", "## Ledger"), encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_review_value(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report().replace("## Review Value", "## Value"), encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_low_value_merge(self) -> None:
+        report_text = complete_report().replace("`useful-delta` | 4", "`stale-or-duplicate` | 1")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(report_text, encoding="utf-8")
 
             with (
                 patch.object(validator, "ROOT", root),

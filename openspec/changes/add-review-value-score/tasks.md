@@ -1,0 +1,6 @@
+- [x] 1. Update Architecture Radar rules and validation to require `Review Value` in generated reports.
+- [x] 2. Update Opportunity Radar rules and validation to require `Review Value` in generated reports.
+- [x] 3. Parse `Review Value` in both report summarizers and include it in markdown output.
+- [x] 4. Use parsed review value in both PR summarizers to return `looks_mergeable`, `needs_targeted_fix`, or `should_close`.
+- [x] 5. Add or update unit tests for report parsing, validator rejection, and PR recommendation behavior.
+- [x] 6. Run unit tests, OpenSpec strict validation, and whitespace checks.

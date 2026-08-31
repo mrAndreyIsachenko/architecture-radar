@@ -32,6 +32,7 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '  - Candidate Counts\n'
   printf -- '  - Selected Repositories\n'
   printf -- '  - Executive Summary\n'
+  printf -- '  - Review Value\n'
   printf -- '  - Detailed Reviews\n'
   printf -- '  - Extracted Or Updated Patterns\n'
   printf -- '  - Relevance To Explicit Problems In `interests.md`\n'
@@ -39,6 +40,7 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '  - Recommended Next Action\n'
   printf -- '  - Notable Rejected Or Deferred Candidates\n'
   printf -- '  - Unresolved Evidence Gaps\n'
+  printf -- '- The `Review Value` section must contain exactly one markdown table row with columns: `Verdict`, `Score`, `Reason`, `Recommended action`. Use `merge` only for useful value; use `request-fix`, `close`, or `watchlist` when the report is stale, weak, duplicate-heavy, or needs targeted repair.\n'
   printf -- '- The `Candidate Ledger` section must contain a markdown table with these exact columns: `Repository`, `URL`, `Commit`, `Discovery source`, `Family`, `Stage`, `Decision`.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
   cat docs/research-scope.md

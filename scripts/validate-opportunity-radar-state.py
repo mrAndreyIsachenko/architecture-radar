@@ -32,6 +32,7 @@ REQUIRED_REPORT_SECTIONS = {
     "Signal Counts",
     "Selected Opportunities",
     "Executive Summary",
+    "Review Value",
     "Signal Ledger",
     "Interesting But Not Yet Commercial",
     "Topic Coverage",
@@ -140,6 +141,12 @@ FIRST_TRANSACTION_REQUIRED_COLUMNS = {
     "Why now",
     "Biggest uncertainty",
 }
+REVIEW_VALUE_REQUIRED_COLUMNS = {
+    "Verdict",
+    "Score",
+    "Reason",
+    "Recommended action",
+}
 
 SELECTED_OPPORTUNITY_SECTIONS = {
     "Opportunity Summary",
@@ -216,6 +223,23 @@ STATE_ARRAY_FIELDS = ("selected", "deferred", "watchlisted")
 STATE_DISCOVERY_MODES = {"broad-discovery", "watchlist-directed", "mixed", "diagnostic"}
 STATE_CONFIDENCE_VALUES = {"low", "medium-low", "medium", "medium-high", "high"}
 STATE_MONEY_SIGNAL_VALUES = {"none-found", "weak", "medium", "strong"}
+REVIEW_VALUE_VERDICTS = {
+    "high-signal",
+    "useful-delta",
+    "no-candidate-cleared",
+    "watchlist-only",
+    "weak-signal",
+    "stale-or-duplicate",
+    "no-material-change",
+    "needs-targeted-fix",
+}
+REVIEW_VALUE_LOW_VERDICTS = {
+    "weak-signal",
+    "stale-or-duplicate",
+    "no-material-change",
+    "needs-targeted-fix",
+}
+REVIEW_VALUE_ACTIONS = {"merge", "request-fix", "close", "watchlist"}
 STATE_REACHABILITY_VALUES = {"low", "medium", "high"}
 STATE_PRIVATE_DATA_BARRIER_VALUES = {
     "none",
@@ -964,6 +988,39 @@ def parse_markdown_table(
         rows.append(parsed)
 
     return rows
+
+
+def validate_review_value(path: Path, section_text: str) -> dict[str, object]:
+    rows = parse_markdown_table(path, "Review Value", section_text, REVIEW_VALUE_REQUIRED_COLUMNS)
+    if len(rows) != 1:
+        fail(f"{path.relative_to(ROOT)} Review Value must contain exactly one data row")
+
+    row = rows[0]
+    verdict = clean_table_cell(row["Verdict"])
+    action = clean_table_cell(row["Recommended action"])
+    score_text = clean_table_cell(row["Score"])
+    reason = str(row["Reason"]).strip()
+
+    if verdict not in REVIEW_VALUE_VERDICTS:
+        fail(f"{path.relative_to(ROOT)} Review Value has unsupported verdict: {verdict}")
+    if action not in REVIEW_VALUE_ACTIONS:
+        fail(f"{path.relative_to(ROOT)} Review Value has unsupported recommended action: {action}")
+    if not re.fullmatch(r"\d+", score_text):
+        fail(f"{path.relative_to(ROOT)} Review Value score must be an integer from 0 to 5")
+    score = int(score_text)
+    if score < 0 or score > 5:
+        fail(f"{path.relative_to(ROOT)} Review Value score must be an integer from 0 to 5")
+    if len(reason) < 30:
+        fail(f"{path.relative_to(ROOT)} Review Value reason is too short")
+    if verdict in REVIEW_VALUE_LOW_VERDICTS and action == "merge":
+        fail(f"{path.relative_to(ROOT)} Review Value low-value verdict `{verdict}` cannot recommend merge")
+
+    return {
+        "verdict": verdict,
+        "action": action,
+        "score": score,
+        "reason": reason,
+    }
 
 
 def parse_int_cell(value: object, path: Path, row_index: str, column: str) -> int:
@@ -2147,6 +2204,7 @@ def validate_report_structure() -> None:
             if not sections[section].strip():
                 fail(f"{path.relative_to(ROOT)} section is empty: {section}")
 
+        validate_review_value(path, sections["Review Value"])
         first_transaction_rows = validate_first_transaction_table(path, sections["Best Paths To First Transaction"])
         validate_first_transaction_state_consistency(path, first_transaction_rows, state_entries)
         signal_ledger_rows = validate_signal_ledger(path, sections["Signal Ledger"])

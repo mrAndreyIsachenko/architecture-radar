@@ -28,6 +28,12 @@ REPORT = """# Opportunity Radar Report 2026-08-11
 ## Selected Opportunities
 - M1 paid demand: LangGraph Checkpoint Persistence And Cost Diagnostics.
 
+## Review Value
+
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+| `useful-delta` | 4 | One paid audit path is actionable enough to preserve as a generated artifact. | `merge` |
+
 ## Build Readiness
 | Opportunity | Paid wedge | Distribution channel | Private data barrier | OSS commoditization risk | Product shape | Pricing hypothesis | Do not build until | Build decision |
 |---|---|---|---|---|---|---|---|---|
@@ -103,6 +109,60 @@ class SummarizeOpportunityPrTest(unittest.TestCase):
         self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
         self.assertNotIn("manually read", summary["review_recommendation"]["next_action"])
         self.assertIn("merge the PR", summary["review_recommendation"]["next_action"])
+
+    def test_review_recommendation_uses_review_value_request_fix(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": summarizer.changed_files_by_kind(summary["files"]),
+                "reports": [
+                    {
+                        "path": "opportunity-reports/2026-08-11.md",
+                        "review_value": {
+                            "verdict": "needs-targeted-fix",
+                            "score": 2,
+                            "reason": "The paid wedge is still too broad and needs a narrower buyer path.",
+                            "recommended_action": "request-fix",
+                        },
+                    }
+                ],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "needs_targeted_fix")
+        self.assertIn("targeted commercial fix", recommendation["next_action"])
+
+    def test_review_recommendation_uses_review_value_close(self) -> None:
+        summary = pr_view()
+        checks = [summarizer.check_summary(check) for check in summary["statusCheckRollup"]]
+
+        recommendation = summarizer.review_recommendation(
+            {
+                "checks": checks,
+                "changed_files": summarizer.changed_files_by_kind(summary["files"]),
+                "reports": [
+                    {
+                        "path": "opportunity-reports/2026-08-11.md",
+                        "review_value": {
+                            "verdict": "stale-or-duplicate",
+                            "score": 1,
+                            "reason": "The report repeats watchlist candidates without a new commercial delta.",
+                            "recommended_action": "close",
+                        },
+                    }
+                ],
+                "is_draft": False,
+                "mergeable": "MERGEABLE",
+            }
+        )
+
+        self.assertEqual(recommendation["decision"], "should_close")
+        self.assertIn("close or regenerate", recommendation["next_action"])
 
     def test_newest_open_opportunity_pr_selects_first_matching_pr(self) -> None:
         prs = [
