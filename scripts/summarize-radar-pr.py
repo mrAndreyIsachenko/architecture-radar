@@ -154,6 +154,64 @@ def required_check_state(checks: list[dict[str, str]]) -> str:
     return "missing"
 
 
+def review_value_recommendation(reports: list[object]) -> dict[str, str]:
+    parsed_values: list[dict[str, object]] = []
+    for report in reports:
+        if not isinstance(report, dict):
+            continue
+        value = report.get("review_value")
+        if not isinstance(value, dict) or not value:
+            continue
+        parsed_values.append(
+            {
+                "path": str(report.get("path") or "report"),
+                "verdict": str(value.get("verdict") or ""),
+                "score": value.get("score"),
+                "reason": str(value.get("reason") or "").strip(),
+                "action": str(value.get("recommended_action") or "").strip(),
+            }
+        )
+
+    if not parsed_values:
+        return {
+            "decision": "needs_manual_review",
+            "reason": "review value verdict is missing",
+            "next_action": "request regeneration or a targeted fix adding the Review Value section",
+        }
+
+    for action in ("close", "watchlist"):
+        for value in parsed_values:
+            if value["action"] == action:
+                return {
+                    "decision": "should_close",
+                    "reason": f"review value recommends {action}: {value['verdict']}",
+                    "next_action": (
+                        f"close or regenerate the PR; {value['path']} says "
+                        f"{value['verdict']} ({value['score']}/5): {value['reason']}"
+                    ),
+                }
+
+    for value in parsed_values:
+        if value["action"] == "request-fix":
+            return {
+                "decision": "needs_targeted_fix",
+                "reason": f"review value needs targeted fix: {value['verdict']}",
+                "next_action": (
+                    f"request a targeted fix for {value['path']}: "
+                    f"{value['reason'] or 'Review Value requested a fix'}"
+                ),
+            }
+
+    return {
+        "decision": "looks_mergeable",
+        "reason": "required validation passed and Review Value recommends merge",
+        "next_action": (
+            f"merge the PR; Review Value is {parsed_values[0]['verdict']} "
+            f"({parsed_values[0]['score']}/5): {parsed_values[0]['reason']}"
+        ),
+    }
+
+
 def review_recommendation(summary: dict[str, object]) -> dict[str, str]:
     checks = summary.get("checks") or []
     if not isinstance(checks, list):
@@ -201,14 +259,7 @@ def review_recommendation(summary: dict[str, object]) -> dict[str, str]:
             "reason": f"GitHub mergeability is {mergeable or 'unknown'}",
             "next_action": "resolve mergeability before content review",
         }
-    return {
-        "decision": "looks_mergeable",
-        "reason": "required validation passed and changed reports were summarized",
-        "next_action": (
-            "merge the PR; if the summarized evidence gaps are unacceptable, "
-            "request a targeted fix for those gaps"
-        ),
-    }
+    return review_value_recommendation(reports)
 
 
 def fetch_file_text(repo: str, ref: str, path: str) -> str:
@@ -293,6 +344,7 @@ def emit_markdown(summary: dict[str, object]) -> None:
         print(f"Candidate count: {report.get('candidate_count')} (ledger rows: {report.get('ledger_rows')})")
         print_list("Selected repositories", report.get("selected_repositories"))
         print_list("Updated patterns", report.get("updated_patterns"))
+        print_review_value(report.get("review_value"))
         print_list("Evidence gaps", report.get("evidence_gaps"))
         next_action = str(report.get("recommended_next_action") or "").strip()
         if next_action:
@@ -306,6 +358,19 @@ def print_list(label: str, values: object) -> None:
     print(f"{label}:")
     for value in values:
         print(f"- {value}")
+
+
+def print_review_value(value: object) -> None:
+    if not isinstance(value, dict) or not value:
+        return
+    print(
+        "Review value: "
+        f"{value.get('verdict')} score={value.get('score')} "
+        f"action={value.get('recommended_action')}"
+    )
+    reason = str(value.get("reason") or "").strip()
+    if reason:
+        print(f"Review value reason: {reason}")
 
 
 def main() -> None:

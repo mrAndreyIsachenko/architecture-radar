@@ -95,6 +95,29 @@ def parse_table(section_text: str) -> list[dict[str, str]]:
     return rows
 
 
+def clean_markdown_code(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value.startswith("`") and value.endswith("`"):
+        return value[1:-1].strip()
+    return value
+
+
+def parse_review_value(section_text: str) -> dict[str, object]:
+    rows = parse_table(section_text)
+    if not rows:
+        return {}
+
+    row = rows[0]
+    score_text = clean_markdown_code(str(row.get("Score", "")))
+    score: int | None = int(score_text) if re.fullmatch(r"\d+", score_text) else None
+    return {
+        "verdict": clean_markdown_code(str(row.get("Verdict", ""))),
+        "score": score,
+        "reason": str(row.get("Reason", "")).strip(),
+        "recommended_action": clean_markdown_code(str(row.get("Recommended action", ""))),
+    }
+
+
 def report_title(text: str) -> str:
     for line in text.splitlines():
         if line.startswith("# "):
@@ -109,6 +132,7 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
     selected = list_items(sections.get("Selected Repositories", ""))
     patterns = list_items(sections.get("Extracted Or Updated Patterns", ""))
     executive_summary = list_items(sections.get("Executive Summary", ""))
+    review_value = parse_review_value(sections.get("Review Value", ""))
     evidence_gaps = list_items(sections.get("Unresolved Evidence Gaps", ""))
     next_action = plain_text(sections.get("Recommended Next Action", ""))
 
@@ -121,6 +145,7 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
         "selected_repositories": selected,
         "updated_patterns": patterns,
         "executive_summary": executive_summary,
+        "review_value": review_value,
         "evidence_gaps": evidence_gaps,
         "recommended_next_action": next_action,
     }
@@ -150,6 +175,7 @@ def emit_markdown(summaries: list[dict[str, object]]) -> None:
         print_list("Selected repositories", summary.get("selected_repositories"))
         print_list("Updated patterns", summary.get("updated_patterns"))
         print_list("Executive summary", summary.get("executive_summary"))
+        print_review_value(summary.get("review_value"))
         print_list("Evidence gaps", summary.get("evidence_gaps"))
 
         next_action = str(summary.get("recommended_next_action") or "").strip()
@@ -164,6 +190,18 @@ def print_list(label: str, values: object) -> None:
     print(f"{label}:")
     for value in values:
         print(f"- {value}")
+
+
+def print_review_value(value: object) -> None:
+    if not isinstance(value, dict) or not value:
+        return
+    verdict = value.get("verdict")
+    score = value.get("score")
+    action = value.get("recommended_action")
+    reason = value.get("reason")
+    print(f"Review value: {verdict} score={score} action={action}")
+    if reason:
+        print(f"Review value reason: {reason}")
 
 
 def main() -> None:

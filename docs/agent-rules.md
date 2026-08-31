@@ -382,6 +382,7 @@ Create `reports/YYYY-MM-DD.md` containing:
 - candidate ledger
 - selected repositories
 - concise executive summary
+- review value verdict
 - material changes since the previous run
 - links to detailed repository reviews
 - extracted or updated patterns
@@ -391,6 +392,34 @@ Create `reports/YYYY-MM-DD.md` containing:
 - unresolved evidence gaps
 
 Keep the report concise. Detailed source analysis belongs in repository files.
+
+The `Review Value` section must contain exactly one table row:
+
+```markdown
+| Verdict | Score | Reason | Recommended action |
+|---|---:|---|---|
+```
+
+Use one of these verdicts:
+
+- `high-signal`: strong new source-backed architecture knowledge.
+- `useful-delta`: a narrower useful change in confidence, pattern evidence, or repository state.
+- `no-candidate-cleared`: the run usefully proves that no candidate cleared the threshold.
+- `watchlist-only`: useful watchlist/deferred tracking with no immediate adoption change.
+- `weak-signal`: evidence is too weak to treat as useful output.
+- `stale-or-duplicate`: the report repeats known topics without material new evidence.
+- `no-material-change`: no architecture recommendation, confidence, or watchlist state changed.
+- `needs-targeted-fix`: the report has a fixable evidence, scope, topic, or selection problem.
+
+Use `Recommended action` as the PR-level action:
+
+- `merge` only when the report adds useful value or a useful no-candidate/watchlist conclusion.
+- `request-fix` when the PR should stay open but needs a specific targeted correction.
+- `close` when the PR should be closed or regenerated rather than repaired.
+- `watchlist` when selected content should be demoted to watchlist/deferred state before merge.
+
+Do not combine `merge` with `weak-signal`, `stale-or-duplicate`,
+`no-material-change`, or `needs-targeted-fix`.
 
 ### Repository Reviews
 

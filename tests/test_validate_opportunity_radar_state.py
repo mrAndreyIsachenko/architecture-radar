@@ -169,6 +169,13 @@ def complete_report(
         "Signal Counts": "- `triaged`: 1",
         "Selected Opportunities": selected_text,
         "Executive Summary": "One demand signal was reviewed.",
+        "Review Value": "\n".join(
+            [
+                "| Verdict | Score | Reason | Recommended action |",
+                "|---|---:|---|---|",
+                "| `useful-delta` | 4 | The report records a reachable manual test and explicit commercial gaps. | `merge` |",
+            ]
+        ),
         "Signal Ledger": "\n".join(
             [
                 "| Source | URL | Family | Signal type | Source class | Evidence label | Decision | Reason |",
@@ -606,6 +613,41 @@ class ValidateOpportunityRadarStateTest(unittest.TestCase):
             report.write_text(complete_report(topic_coverage=topic_coverage), encoding="utf-8")
             write_complete_state(root)
             write_signal_note(root, families=["ai-llm-demand", "blockchain-demand"])
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_missing_review_value(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(complete_report().replace("## Review Value", "## Value"), encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
+    def test_report_structure_rejects_low_value_merge(self) -> None:
+        report_text = complete_report().replace("`useful-delta` | 4", "`weak-signal` | 1")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "opportunity-reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(report_text, encoding="utf-8")
+            write_complete_state(root)
+            write_signal_note(root)
 
             with (
                 patch.object(validator, "ROOT", root),
