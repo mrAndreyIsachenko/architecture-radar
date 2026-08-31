@@ -23,6 +23,7 @@ REQUIRED_REPORT_SECTIONS = [
     "Recommended Next Action",
     "Notable Rejected Or Deferred Candidates",
     "Unresolved Evidence Gaps",
+    "Validation Backlog Updates",
 ]
 
 LEDGER_COLUMNS = [
@@ -91,6 +92,11 @@ SECTION_ALIASES = {
     "unresolved gaps": "Unresolved Evidence Gaps",
     "quality concerns": "Unresolved Evidence Gaps",
     "evidence gaps and quality concerns": "Unresolved Evidence Gaps",
+    "validation backlog": "Validation Backlog Updates",
+    "validation backlog update": "Validation Backlog Updates",
+    "validation backlog updates": "Validation Backlog Updates",
+    "backlog updates": "Validation Backlog Updates",
+    "failure injection backlog": "Validation Backlog Updates",
 }
 
 CANONICAL_BY_KEY = {heading_key(section): section for section in REQUIRED_REPORT_SECTIONS}
@@ -196,6 +202,8 @@ def placeholder(section: str, missing_sections: set[str]) -> str:
         return "- Repair-generated placeholder: rejected or deferred candidates were not reported under the canonical section."
     if section == "Unresolved Evidence Gaps":
         return f"- Repair-generated placeholder: original report was missing canonical sections: {missing}."
+    if section == "Validation Backlog Updates":
+        return "No validation backlog update required. Repair-generated placeholder; verify unresolved evidence gaps before merging."
     if section == "Prerequisites And State":
         return "- Repair-generated placeholder: prerequisites and repository state were omitted; verify workflow logs before merging."
     return "- Repair-generated placeholder: section omitted by the research agent."

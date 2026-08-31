@@ -62,6 +62,12 @@ Run one bounded experiment.
 
 - No local test suite was run.
 - Runtime validation is still missing.
+
+## Validation Backlog Updates
+
+| Backlog item | Repository | Family | Validation type | Reason | Status |
+|---|---|---|---|---|---|
+| `owner-alpha-runtime-validation` | `owner/alpha` | `ai-llm-systems` | `runtime` | Runtime validation is still missing. | `open` |
 """
 
 
@@ -101,6 +107,11 @@ class SummarizeRadarReportTest(unittest.TestCase):
         self.assertEqual(summary["review_value"]["recommended_action"], "merge")
         self.assertEqual(summary["recommended_next_action"], "Run one bounded experiment.")
         self.assertEqual(len(summary["evidence_gaps"]), 2)
+        self.assertEqual(len(summary["validation_backlog_updates"]), 1)
+        self.assertEqual(
+            summary["validation_backlog_updates"][0]["Backlog item"],
+            "`owner-alpha-runtime-validation`",
+        )
 
 
 if __name__ == "__main__":

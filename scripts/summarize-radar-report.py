@@ -134,6 +134,10 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
     executive_summary = list_items(sections.get("Executive Summary", ""))
     review_value = parse_review_value(sections.get("Review Value", ""))
     evidence_gaps = list_items(sections.get("Unresolved Evidence Gaps", ""))
+    validation_backlog_updates = parse_table(sections.get("Validation Backlog Updates", ""))
+    validation_backlog_note = ""
+    if not validation_backlog_updates:
+        validation_backlog_note = plain_text(sections.get("Validation Backlog Updates", ""))
     next_action = plain_text(sections.get("Recommended Next Action", ""))
 
     return {
@@ -147,6 +151,8 @@ def summarize_report_text(text: str, path: str | Path) -> dict[str, object]:
         "executive_summary": executive_summary,
         "review_value": review_value,
         "evidence_gaps": evidence_gaps,
+        "validation_backlog_updates": validation_backlog_updates,
+        "validation_backlog_note": validation_backlog_note,
         "recommended_next_action": next_action,
     }
 
@@ -177,6 +183,7 @@ def emit_markdown(summaries: list[dict[str, object]]) -> None:
         print_list("Executive summary", summary.get("executive_summary"))
         print_review_value(summary.get("review_value"))
         print_list("Evidence gaps", summary.get("evidence_gaps"))
+        print_validation_backlog(summary)
 
         next_action = str(summary.get("recommended_next_action") or "").strip()
         if next_action:
@@ -202,6 +209,24 @@ def print_review_value(value: object) -> None:
     print(f"Review value: {verdict} score={score} action={action}")
     if reason:
         print(f"Review value reason: {reason}")
+
+
+def print_validation_backlog(summary: dict[str, object]) -> None:
+    rows = summary.get("validation_backlog_updates")
+    note = str(summary.get("validation_backlog_note") or "").strip()
+    if isinstance(rows, list) and rows:
+        print("Validation backlog updates:")
+        for row in rows:
+            if isinstance(row, dict):
+                item = row.get("Backlog item")
+                repository = row.get("Repository")
+                validation_type = row.get("Validation type")
+                status = row.get("Status")
+                print(f"- {item}: {repository} {validation_type} {status}")
+        return
+    if note:
+        print("Validation backlog updates:")
+        print(note)
 
 
 def main() -> None:

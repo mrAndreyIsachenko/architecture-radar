@@ -11,6 +11,7 @@ The radar should cast a wider net than the initial project list. Repositories ma
 - Blockchain indexing, transaction interpretation, wallets, protocol analysis, and on-chain intelligence.
 - VPN, privacy networking, secure tunnels, traffic routing, access control, censorship resistance, and network observability.
 - Drones, robotics, autonomy, fleet coordination, mission planning, telemetry, ground control, perception, and safety/recovery systems.
+- Satellites, space systems, ground stations, RF/geospatial processing, delayed connectivity, command/telemetry loops, constellation coordination, and safe-mode recovery.
 
 Broad topical relevance is not enough. A selected repository still needs an inspectable mechanism, source evidence, and a concrete link to an open problem below.
 
@@ -21,6 +22,7 @@ Use these top-level topic families for candidate accounting and per-topic select
 - `blockchain-intelligence`: blockchain indexing, transaction interpretation, wallets, protocol analysis, address/entity attribution, and on-chain intelligence.
 - `privacy-networking-vpn`: VPN, private networking, secure tunnels, mesh networking, traffic routing, access control, censorship resistance, and network observability.
 - `drones-robotics-autonomy`: drones, robotics, autonomy, mission planning, telemetry, ground control, perception, fleet coordination, safety, and recovery systems.
+- `satellites-space-systems`: satellite operations, ground stations, RF/geospatial processing, delayed connectivity, telemetry/command loops, constellation coordination, task scheduling, and safe-mode recovery.
 
 ## Current Priorities
 
@@ -203,6 +205,37 @@ Avoid:
 - Demo flight scripts with no recovery or safety model.
 - Black-box autonomy claims without logs, simulation, or test evidence.
 - Projects focused only on visual dashboards without mission or telemetry semantics.
+
+### Satellites, space systems, and ground operations
+
+We need mechanisms from satellite and space-system software that can inform resilient long-running agents, delayed-connectivity workflows, evidence capture, telemetry interpretation, scheduling, and safe recovery.
+
+Open problems:
+
+- Represent commands, telemetry, ground-station contacts, pass windows, tasks, operator actions, and anomalies as auditable state.
+- Coordinate assets across delayed, intermittent, partial, or bandwidth-constrained links.
+- Recover safely from missed contacts, stale telemetry, rejected commands, failed uploads, mode transitions, and safe-mode events.
+- Preserve provenance from RF/geospatial observations, orbital products, sensor outputs, and operator decisions.
+- Schedule observations, downlinks, processing, and follow-up commands under time windows and resource constraints.
+- Bridge low-level protocols, ground-station control, RF pipelines, and geospatial products into higher-level operational models.
+
+Useful mechanisms:
+
+- Command/telemetry acknowledgement loops.
+- Delayed-connectivity workflow recovery.
+- Ground-station automation.
+- Pass-window and task scheduling.
+- Safe-mode and fault recovery state machines.
+- RF signal-processing pipelines.
+- Geospatial evidence provenance.
+- Constellation and fleet coordination.
+
+Avoid:
+
+- Pure hardware or mission pages without reusable source code.
+- Visualization-only dashboards with no command, telemetry, scheduling, or recovery semantics.
+- Space-domain claims without reproducible data, tests, simulation, replay, or operational evidence.
+- Systems that cannot connect decisions back to observation, command, telemetry, or operator evidence.
 
 ### AI knowledge layer and metadata systems
 

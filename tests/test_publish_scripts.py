@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class PublishScriptsTest(unittest.TestCase):
     def test_publish_scripts_stage_allowlist_before_no_change_check(self) -> None:
         scripts = {
-            "scripts/publish-radar-run.sh": "git add README.md interests.md radar.json reports repositories patterns",
+            "scripts/publish-radar-run.sh": "git add README.md interests.md radar.json reports repositories patterns experiments",
             "scripts/publish-opportunity-radar-run.sh": "git add opportunity-interests.md opportunity-watchlist.yml opportunities.json opportunity-reports opportunities signals",
             "scripts/publish-weekly-synthesis-run.sh": "git add weekly-reports",
         }

@@ -10,7 +10,7 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
 fi
 
 git status --short
-git add README.md interests.md radar.json reports repositories patterns
+git add README.md interests.md radar.json reports repositories patterns experiments
 
 if git diff --cached --quiet; then
   echo "No publishable Architecture Radar changes after applying the allowlist."

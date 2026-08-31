@@ -35,6 +35,8 @@ Opportunity Radar runs at 05:30 UTC every Tuesday, which is 08:30 Europe/Moscow.
 
 Generated Architecture Radar and Opportunity Radar reports must include `Review Value`, a single-row table with `Verdict`, `Score`, `Reason`, and `Recommended action`. The PR review helper uses that deterministic report-declared value layer after validation passes. `merge` can produce `looks_mergeable`; `request-fix` produces `needs_targeted_fix`; `close` or `watchlist` produces `should_close`.
 
+Architecture Radar reports must include `Validation Backlog Updates`. When selected mechanisms need runtime, failure-injection, restart, reconnect, replay, SITL, fleet, or operational validation, the report must reference an item in `experiments/failure-injection-backlog.yml`. The publish allowlist includes `experiments/` so backlog updates can be reviewed in the generated PR with the report that introduced them.
+
 Opportunity Radar reports must include `Structural Candidate Ranking`, `Structural Score Breakdown`, and `Commercial Filter`. The score is a deterministic weighted 0-10 total from eight 0-5 dimensions: fragmentation, manual pain, economic value, objective measurability, execution potential, timing, competition gap, and prototype feasibility. A candidate with an unclear manual workflow, objective function, execution ladder, timing reason, paid wedge, multi-provider user, money flow, or permissionless validation stays watchlisted. A candidate with `internal_build_likelihood=high` also stays watchlisted.
 
 Weekly Synthesis runs at 04:30 UTC every Monday, which is 07:30 Europe/Moscow. It reads committed artifacts and writes `weekly-reports/YYYY-Www.md`; it does not perform new discovery.

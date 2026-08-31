@@ -55,6 +55,12 @@ Run one experiment.
 ## Unresolved Evidence Gaps
 
 - Needs runtime validation.
+
+## Validation Backlog Updates
+
+| Backlog item | Repository | Family | Validation type | Reason | Status |
+|---|---|---|---|---|---|
+| `owner-repo-runtime-validation` | `owner/repo` | `ai-llm-systems` | `runtime` | Needs runtime validation. | `open` |
 """
 
 
@@ -108,6 +114,7 @@ class SummarizeRadarPrTest(unittest.TestCase):
         self.assertEqual(summary["changed_files"]["reports"], ["reports/2026-08-11.md"])
         self.assertEqual(summary["reports"][0]["candidate_count"], 20)
         self.assertEqual(summary["reports"][0]["selected_repositories"], ["`owner/repo` at `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`"])
+        self.assertEqual(summary["reports"][0]["validation_backlog_updates"][0]["Backlog item"], "`owner-repo-runtime-validation`")
         self.assertEqual(summary["review_recommendation"]["decision"], "looks_mergeable")
         self.assertNotIn("manually read", summary["review_recommendation"]["next_action"])
         self.assertIn("merge the PR", summary["review_recommendation"]["next_action"])

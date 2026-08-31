@@ -24,6 +24,8 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '- Do not read, print, persist, or exfiltrate CI secrets, environment tokens, Codex credentials, or GitHub credentials.\n'
   printf -- '- Put temporary external repository clones and scratch files under `/tmp/architecture-radar-candidates`.\n'
   printf -- '- Use live web/GitHub discovery for current repository state.\n'
+  printf -- '- Read applicable files under `docs/family-playbooks/`, especially `privacy-networking-vpn`, `drones-robotics-autonomy`, and `satellites-space-systems`; use them to report under-covered family gaps and avoid generic repository picks.\n'
+  printf -- '- When selected mechanisms have runtime, failure-injection, restart, reconnect, replay, SITL, fleet, or operational evidence gaps, update `experiments/failure-injection-backlog.yml` and reference the item in `Validation Backlog Updates`.\n'
   printf -- '- For company, product, launch, or runtime watchlist entries, perform company-to-repository expansion before deciding there is no inspectable source. Launch/company pages are discovery evidence only, not source-verified architecture evidence.\n'
   printf -- '- If a required prerequisite is missing, create `reports/%s.md` as a diagnostic report and stop without synthetic reviews, patterns, or radar entries.\n' "$run_date"
   printf -- '- If `Supplement required` is `true`, do not stop merely because `reports/%s.md` already exists. Create the supplement report at the provided supplement path and focus on changed or under-covered topic families.\n' "$run_date"
@@ -40,7 +42,9 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '  - Recommended Next Action\n'
   printf -- '  - Notable Rejected Or Deferred Candidates\n'
   printf -- '  - Unresolved Evidence Gaps\n'
+  printf -- '  - Validation Backlog Updates\n'
   printf -- '- The `Review Value` section must contain exactly one markdown table row with columns: `Verdict`, `Score`, `Reason`, `Recommended action`. Use `merge` only for useful value; use `request-fix`, `close`, or `watchlist` when the report is stale, weak, duplicate-heavy, or needs targeted repair.\n'
+  printf -- '- The `Validation Backlog Updates` section must either contain a markdown table with columns: `Backlog item`, `Repository`, `Family`, `Validation type`, `Reason`, `Status`; or explicitly state that no validation backlog update was required.\n'
   printf -- '- The `Candidate Ledger` section must contain a markdown table with these exact columns: `Repository`, `URL`, `Commit`, `Discovery source`, `Family`, `Stage`, `Decision`.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'
   cat docs/research-scope.md
