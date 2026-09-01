@@ -1,21 +1,21 @@
 # Blockscout Verification And Indexing Review
 
 ## Opportunity Summary
-Public Blockscout docs and pricing show a paid ecosystem around hosted explorer deployment, multichain API access, and contract verification. The sell-before-build wedge is a manual review that checks whether one chain or explorer rollout will break on verification, websocket delivery, or indexer configuration before engineering time is committed.
+Public Blockscout docs, pricing, and customer stories show a paid ecosystem around hosted explorer deployment, multichain API access, managed hosting, and contract verification. The sell-before-build wedge is a manual review that checks whether one chain or explorer rollout will break on verification, websocket delivery, or indexer configuration before engineering time is committed.
 
 ## Evidence
-- M1 paid demand: Blockscout publishes paid Autoscout explorer plans starting at $349/mo and a PRO API with public tiers starting at $49/mo, $199/mo, and $999/mo.
+- M1 paid demand: Blockscout publishes paid Autoscout explorer plans starting at $349/mo, a PRO API with public tiers starting at $49/mo, $199/mo, and $999/mo, and EAAS managed hosting.
 - M1 paid demand: the PRO API page says one account covers multichain onchain data with higher limits, predictable pricing, and a single billing account.
 - M2 repeated pain: issue `#10488` asks for documentation on automated solutions around the verification API, which means users are still assembling the workflow manually.
 - M2 repeated pain: the verification docs and websocket docs exist because teams need to wire verification and event handling across multiple entry points.
-- M3 competitor proof: Blockscout already sells hosted explorers, multichain APIs, and verification tooling, so the underlying workflow is already monetized.
+- M3 competitor proof: Onyx and Kinto deployment stories plus Blockscout's managed-hosting pages show the workflow is already used by real chains.
 - M4 workaround evidence: users can verify through Hardhat, Foundry, Remix, Sourcify, or custom API wiring, which implies repeated glue work at the boundary.
 
 ## Structural Pattern
 Control and review layer for explorer deployment, verification events, and multichain indexing.
 
 ## Primitive Growth
-Blockscout has added Autoscout hosting, PRO API access, websocket events, and multichain infrastructure while EVM chains and L2s kept proliferating through 2024-2026.
+Blockscout has added Autoscout hosting, EAAS managed hosting, PRO API access, websocket events, and multichain infrastructure while EVM chains and L2s kept proliferating through 2024-2026.
 
 ## Fragmentation
 Teams still juggle explorer hosting, chain RPCs, verification methods, websocket/event handling, and per-chain rollout settings.
@@ -36,7 +36,7 @@ Minimize rollout risk and verification failure while maximizing deployment speed
 Wrong setup delays explorer launches, breaks verification flows, and burns engineer time on chain-by-chain debugging.
 
 ## Timing Reason
-Recent productization around Autoscout and PRO API, plus continuing multichain growth, made the workflow more valuable in 2025-2026.
+Recent productization around Autoscout, EAAS, and PRO API, plus continuing multichain growth, made the workflow more valuable in 2025-2026.
 
 ## Competitors
 - Autoscout
@@ -69,16 +69,16 @@ Users combine docs, APIs, framework plugins, and trial-and-error to get verifica
 direct_workflow_spend
 
 ## Money Evidence
-Blockscout publishes paid Autoscout hosting plans, PRO API pricing, and enterprise-style explorer offerings for the same workflow family.
+Blockscout publishes paid Autoscout hosting plans, PRO API pricing, EAAS managed hosting, and enterprise-style explorer offerings for the same workflow family.
 
 ## Existing Paid Workflow
-Teams already pay for hosted explorer deployment, verification APIs, and multichain onchain data access.
+Teams already pay for hosted explorer deployment, verification APIs, multichain onchain data access, and managed explorer hosting.
 
 ## Current Workaround
 Teams wire Hardhat, Foundry, Remix, or Sourcify verification paths, read docs, and manually debug webhook/indexer behavior.
 
 ## Current Cost
-Autoscout starts at $349/mo; PRO API tiers start at $49/mo, $199/mo, and $999/mo, plus engineering time.
+Autoscout starts at $349/mo; PRO API tiers start at $49/mo, $199/mo, and $999/mo, plus managed-hosting and engineering time.
 
 ## Why Buy From Us
 A manual review compresses doc-reading and trial-and-error into one explicit risk report before the team commits engineering time.
@@ -96,13 +96,13 @@ One manual Blockscout verification/indexer risk report for a single chain or exp
 Read the public docs and, if needed, a sanitized config dump, then return the top failure points, missing webhook wiring, and a rollout checklist.
 
 ## One-Sentence Offer
-Send me your Blockscout verification setup and we will return a 48-hour rollout-risk report for $750.
+Send me your Blockscout verification setup and receive a 48-hour rollout-risk report within 48 hours for $750.
 
 ## Price Hypothesis
-$750 report
+$750 manual report
 
 ## Buyer Acquisition Path
-Public chain launch pages, Blockscout Autoscout and PRO API prospects, explorer operators listed in docs and blogs, and protocol teams asking verification questions in public issues.
+Public chain launch pages, Blockscout customer stories, explorer operators listed in docs and blogs, and protocol teams asking verification questions in public issues.
 
 ## Time To Transaction
 4
@@ -117,11 +117,11 @@ Turn repeated reviews into a small config checker or hosted audit that flags ver
 If three reachable chain teams decline a paid review or say they would rather build it internally, keep it watchlisted.
 
 ## Technology Shift
-- What changed: Blockscout added Autoscout, PRO API, websocket events, and multichain support while more chains and L2s multiplied.
+- What changed: Blockscout added Autoscout, PRO API, websocket events, managed hosting, and customer deployment stories while more chains and L2s multiplied.
 - When: 2024-2026, with the strongest commercial evidence in 2025-2026.
 - Old constraint: teams had to stitch together custom explorer deployments, verification hooks, and per-chain integrations.
-- New capability: teams can buy hosted explorer deployment, use a single multichain API key, and wire verification/event delivery from public docs.
-- Cost delta: Autoscout and PRO API tiers make the spend visible instead of implicit.
+- New capability: teams can buy hosted explorer deployment, use a single multichain API key, rely on managed hosting, and wire verification/event delivery from public docs.
+- Cost delta: Autoscout, EAAS, and PRO API tiers make the spend visible instead of implicit.
 - Quality delta: fewer integration mistakes and faster onboarding are possible.
 - Latency delta: faster initial deployment and verification-event handling.
 - Accessibility delta: public docs, pricing, and launch pages make buyers reachable.
@@ -134,7 +134,7 @@ Chain operators, explorer/platform teams, and protocol teams shipping EVM or mul
 Deploying a multichain explorer, wiring contract verification, and keeping verification events and indexers reliable across chains.
 
 ## Existing Spend
-Autoscout pricing and PRO API tiers show direct spend on explorer deployment and multichain onchain data; docs show teams already buy verification tooling.
+Autoscout, EAAS, and PRO API pricing show direct spend on explorer deployment and multichain onchain data; customer stories show real deployments.
 
 ## Paid Experiment
 Offer a 48-hour manual review of one Blockscout verification/indexer setup to three public chain teams at a starter price and count one paid request as success.
@@ -150,6 +150,8 @@ Offer a 48-hour manual review of one Blockscout verification/indexer setup to th
 - github
 - docs
 - pricing
+- launch
+- news
 
 ## Fragmented Providers
 Blockscout explorers, chain RPC providers, verification frameworks like Hardhat, Foundry, Remix, and Sourcify, websocket consumers, and hosted explorer tiers.
@@ -167,7 +169,7 @@ This is non-core but necessary cross-company coordination, not the chain's diffe
 medium
 
 ## Money Flow
-Blockscout charges for Autoscout and PRO API access; chain teams pay RPC and infra vendors plus engineer time to integrate verification.
+Blockscout charges for Autoscout, EAAS, and PRO API access; chain teams pay RPC and infra vendors plus engineer time to integrate verification.
 
 ## Recurrence
 Each new chain, explorer rollout, verification method, or websocket integration revives the same setup and debugging work.
@@ -203,7 +205,7 @@ pro
 One buyer pays for a manual Blockscout verification/indexer review or three teams ask for the report after seeing the sample.
 
 ## Proposed Offer
-Send me your Blockscout verification setup and we will return a 48-hour rollout-risk report for $750.
+Send me your Blockscout verification setup and receive a 48-hour rollout-risk report within 48 hours for $750.
 
 ## Success Threshold
 One buyer pays for a manual Blockscout verification/indexer review or three teams ask for the report after seeing the sample.
