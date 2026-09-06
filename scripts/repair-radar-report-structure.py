@@ -36,6 +36,30 @@ LEDGER_COLUMNS = [
     "Decision",
 ]
 
+BACKLOG_PATH = "experiments/failure-injection-backlog.yml"
+
+BACKLOG_VALIDATION_TYPES = {
+    "runtime",
+    "failure-injection",
+    "restart-recovery",
+    "reconnect-recovery",
+    "replay",
+    "sitl",
+    "fleet",
+    "operational",
+}
+
+VALIDATION_TYPE_KEYWORDS = [
+    ("restart-recovery", ("restart", "restart-recovery")),
+    ("reconnect-recovery", ("reconnect", "reconnect-recovery")),
+    ("replay", ("replay",)),
+    ("sitl", ("sitl", "software-in-the-loop", "software in the loop")),
+    ("fleet", ("fleet", "multi-node", "multinode")),
+    ("failure-injection", ("failure-injection", "failure injection", "fault-injection", "fault injection")),
+    ("operational", ("operational", "operations", "ops")),
+    ("runtime", ("runtime", "runtime-validation", "runtime validation")),
+]
+
 
 def heading_key(heading: str) -> str:
     normalized = heading.replace("`", "").replace("'", "")
@@ -167,6 +191,82 @@ def quote_original(text: str) -> str:
     return "\n".join(f"> {line}" if line else ">" for line in text.splitlines())
 
 
+def clean_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"`", "'", '"'}:
+        return value[1:-1].strip()
+    return value
+
+
+def canonical_validation_type(value: str) -> str | None:
+    cleaned = clean_scalar(value)
+    normalized = re.sub(r"[_\s]+", "-", cleaned.casefold())
+
+    if normalized in BACKLOG_VALIDATION_TYPES:
+        return normalized
+
+    phrase = cleaned.casefold()
+    for canonical, keywords in VALIDATION_TYPE_KEYWORDS:
+        if any(keyword in phrase or keyword in normalized for keyword in keywords):
+            return canonical
+
+    return None
+
+
+def normalize_markdown_validation_table(section_text: str) -> str:
+    lines = section_text.splitlines()
+    table_indexes = [index for index, line in enumerate(lines) if line.startswith("|")]
+    if len(table_indexes) < 3:
+        return section_text
+
+    header_index = table_indexes[0]
+    header = [cell.strip() for cell in lines[header_index].strip().strip("|").split("|")]
+    if "Validation type" not in header:
+        return section_text
+
+    validation_index = header.index("Validation type")
+    changed = False
+    for row_index in table_indexes[2:]:
+        cells = [cell.strip() for cell in lines[row_index].strip().strip("|").split("|")]
+        if len(cells) != len(header):
+            continue
+        canonical = canonical_validation_type(cells[validation_index])
+        if canonical and clean_scalar(cells[validation_index]) != canonical:
+            cells[validation_index] = f"`{canonical}`"
+            lines[row_index] = "| " + " | ".join(cells) + " |"
+            changed = True
+
+    if not changed:
+        return section_text
+    return "\n".join(lines)
+
+
+def normalize_backlog_validation_types() -> bool:
+    path = ROOT / BACKLOG_PATH
+    if not path.is_file():
+        return False
+
+    original = path.read_text(encoding="utf-8")
+    lines: list[str] = []
+    changed = False
+
+    for line in original.splitlines():
+        match = re.match(r"^(\s*validation_type:\s*)(.+?)(\s*)$", line)
+        if match:
+            canonical = canonical_validation_type(match.group(2))
+            if canonical and clean_scalar(match.group(2)) != canonical:
+                line = f"{match.group(1)}{canonical}{match.group(3)}"
+                changed = True
+        lines.append(line)
+
+    if not changed:
+        return False
+
+    path.write_text("\n".join(lines) + ("\n" if original.endswith("\n") else ""), encoding="utf-8")
+    print(f"normalized validation_type values: {BACKLOG_PATH}")
+    return True
+
+
 def placeholder(section: str, missing_sections: set[str]) -> str:
     missing = ", ".join(sorted(missing_sections))
     if section == "Candidate Counts":
@@ -231,6 +331,9 @@ def repair_report_text(text: str, report_name: str) -> str:
         elif not content:
             content = placeholder(section, missing_sections)
 
+        if section == "Validation Backlog Updates":
+            content = normalize_markdown_validation_table(content)
+
         output.extend([f"## {section}", "", content, ""])
 
     for section, content in extra_sections.items():
@@ -283,6 +386,7 @@ def main() -> int:
 
     for path in paths:
         repair_path(path)
+    normalize_backlog_validation_types()
     return 0
 
 

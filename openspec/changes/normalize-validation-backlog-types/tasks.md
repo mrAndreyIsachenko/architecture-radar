@@ -1,0 +1,4 @@
+- [x] 1. Update Architecture Radar operating prompt/rules to list the allowed `validation_type` enum values and prohibit combined values.
+- [x] 2. Extend the repair step to normalize known descriptive or combined validation type phrases in backlog YAML and report tables.
+- [x] 3. Add tests covering successful normalization and preservation of unknown invalid values for strict validation.
+- [x] 4. Run targeted tests and strict radar validation.
