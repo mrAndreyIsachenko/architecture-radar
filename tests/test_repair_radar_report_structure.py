@@ -88,6 +88,74 @@ class RepairRadarReportStructureTest(unittest.TestCase):
             self.assertIn("## Candidate Ledger", text)
             self.assertIn("deferred: missing candidate ledger", text)
 
+    def test_repair_normalizes_validation_backlog_table_type(self) -> None:
+        original = "\n".join(
+            [
+                "# Architecture Radar Report: 2026-09-04",
+                "",
+                "## Validation Backlog Updates",
+                "",
+                "| Backlog item | Repository | Family | Validation type | Reason | Status |",
+                "|---|---|---|---|---|---|",
+                "| `repo-runtime` | `owner/repo` | `ai-llm-systems` | `runtime validation and failure-injection` | Needs fault testing. | `open` |",
+            ]
+        )
+
+        repaired = repairer.repair_report_text(original, "2026-09-04")
+
+        self.assertIn(
+            "| `repo-runtime` | `owner/repo` | `ai-llm-systems` | `failure-injection` | Needs fault testing. | `open` |",
+            repaired,
+        )
+
+    def test_repair_normalizes_backlog_yaml_validation_type(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            backlog = root / "experiments" / "failure-injection-backlog.yml"
+            backlog.parent.mkdir()
+            backlog.write_text(
+                "\n".join(
+                    [
+                        "items:",
+                        "  - id: owner-repo-runtime-faults",
+                        "    family: ai-llm-systems",
+                        "    validation_type: runtime validation and failure-injection",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(repairer, "ROOT", root):
+                changed = repairer.normalize_backlog_validation_types()
+
+            self.assertTrue(changed)
+            self.assertIn("validation_type: failure-injection", backlog.read_text(encoding="utf-8"))
+
+    def test_repair_leaves_unknown_backlog_validation_type_for_validator(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            backlog = root / "experiments" / "failure-injection-backlog.yml"
+            backlog.parent.mkdir()
+            backlog.write_text(
+                "\n".join(
+                    [
+                        "items:",
+                        "  - id: owner-repo-vague",
+                        "    family: ai-llm-systems",
+                        "    validation_type: vague",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(repairer, "ROOT", root):
+                changed = repairer.normalize_backlog_validation_types()
+
+            self.assertFalse(changed)
+            self.assertIn("validation_type: vague", backlog.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -412,6 +412,22 @@ Each backlog item must include:
 - `created`
 - `last_updated`
 
+Use exactly one of these `validation_type` values:
+
+- `runtime`
+- `failure-injection`
+- `restart-recovery`
+- `reconnect-recovery`
+- `replay`
+- `sitl`
+- `fleet`
+- `operational`
+
+Do not combine validation types in the `validation_type` field. When a gap
+needs multiple validation dimensions, choose the most specific primary type
+for `validation_type` and describe the full validation shape in
+`evidence_gap` or `proposed_validation`.
+
 Use `Validation Backlog Updates` in the daily report to connect selected
 repositories and evidence gaps to backlog items. If no runtime or failure
 validation backlog update is needed, explicitly say so in that section.
