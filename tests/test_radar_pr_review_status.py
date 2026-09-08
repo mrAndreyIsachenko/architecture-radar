@@ -16,7 +16,13 @@ assert spec.loader is not None
 spec.loader.exec_module(radar)
 
 
-def args(now: str, *, radar_kind: str = "architecture", include_failed_log: bool = False) -> Namespace:
+def args(
+    now: str,
+    *,
+    radar_kind: str = "architecture",
+    include_failed_log: bool = False,
+    schedule_delay_grace_minutes: int | None = None,
+) -> Namespace:
     return Namespace(
         repo="mrAndreyIsachenko/architecture-radar",
         radar=radar_kind,
@@ -30,6 +36,7 @@ def args(now: str, *, radar_kind: str = "architecture", include_failed_log: bool
         limit=20,
         format="json",
         include_failed_log=include_failed_log,
+        schedule_delay_grace_minutes=schedule_delay_grace_minutes,
     )
 
 
@@ -170,7 +177,7 @@ class RadarPrReviewStatusTest(unittest.TestCase):
         self.assertEqual(status["status"], "no_pr")
         self.assertEqual(status["notification"], "INFO")
 
-    def test_opportunity_waits_after_due_time_when_weekly_schedule_run_is_missing(self) -> None:
+    def test_opportunity_waits_before_latest_due_wakeup_when_weekly_schedule_run_is_missing(self) -> None:
         with (
             patch.object(radar, "list_runs", return_value=[]),
             patch.object(radar, "list_prs", return_value=[]),
@@ -179,14 +186,25 @@ class RadarPrReviewStatusTest(unittest.TestCase):
 
         self.assertEqual(status["status"], "waiting")
         self.assertEqual(status["notification"], "DONT_NOTIFY")
-        self.assertIn("has not appeared", status["message"])
+        self.assertIn("not due", status["message"])
+
+    def test_opportunity_reports_missed_schedule_after_grace_window(self) -> None:
+        with (
+            patch.object(radar, "list_runs", return_value=[]),
+            patch.object(radar, "list_prs", return_value=[]),
+        ):
+            status = radar.build_status(args("2026-08-11T13:30:00Z", radar_kind="opportunity"))
+
+        self.assertEqual(status["status"], "missed_schedule")
+        self.assertEqual(status["notification"], "REPORT")
+        self.assertIn("grace window", status["message"])
 
     def test_opportunity_does_not_wait_on_non_due_day(self) -> None:
         with (
             patch.object(radar, "list_runs", return_value=[]),
             patch.object(radar, "list_prs", return_value=[]),
         ):
-            status = radar.build_status(args("2026-08-12T06:30:00Z", radar_kind="opportunity"))
+            status = radar.build_status(args("2026-08-14T06:30:00Z", radar_kind="opportunity"))
 
         self.assertEqual(status["status"], "no_pr")
         self.assertEqual(status["notification"], "INFO")

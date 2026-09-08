@@ -2,8 +2,12 @@ name: Opportunity Radar
 
 on:
   schedule:
-    # GitHub cron is UTC. This runs weekly on Tuesday at 08:30 Europe/Moscow.
-    - cron: "30 5 * * 2"
+    # GitHub cron is UTC and best-effort. These are cheap daily wake-ups;
+    # scripts/check-opportunity-radar-cadence.sh runs expensive research only
+    # for the weekly Tuesday due date when no report or generated branch exists.
+    - cron: "30 5 * * *"
+    - cron: "30 8 * * *"
+    - cron: "30 11 * * *"
   workflow_dispatch:
     inputs:
       run_date:
@@ -32,6 +36,7 @@ jobs:
       CODEX_HOME: /home/runner/.codex
       CODEX_MODEL: ${{ github.event.inputs.model || vars.OPPORTUNITY_RADAR_CODEX_MODEL || 'gpt-5.4-mini' }}
       OPPORTUNITY_RADAR_DATE: ${{ github.event.inputs.run_date || '' }}
+      OPPORTUNITY_RADAR_CATCHUP_DAYS: "2"
 
     steps:
       - name: Check out repository
@@ -40,16 +45,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Check opportunity cadence
+        id: cadence
+        run: scripts/check-opportunity-radar-cadence.sh
+
+      - name: Skip scheduled run
+        if: steps.cadence.outputs.should_run != 'true'
+        run: |
+          echo "Skipping expensive Opportunity Radar step: ${{ steps.cadence.outputs.reason }}"
+
       - name: Set up Node.js
+        if: steps.cadence.outputs.should_run == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: "24"
           package-manager-cache: false
 
       - name: Install Codex CLI
+        if: steps.cadence.outputs.should_run == 'true'
         run: npm install -g @openai/codex@0.146.0
 
       - name: Authenticate Codex
+        if: steps.cadence.outputs.should_run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -58,15 +75,19 @@ jobs:
           printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key
 
       - name: Prepare dated branch
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/prepare-opportunity-radar-run.sh
 
       - name: Run opportunity research agent
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/run-codex-opportunity-radar.sh
 
       - name: Validate opportunity artifacts
+        if: steps.cadence.outputs.should_run == 'true'
         run: scripts/validate-opportunity-radar-state.py
 
       - name: Publish pull request
+        if: steps.cadence.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: scripts/publish-opportunity-radar-run.sh

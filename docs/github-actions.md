@@ -31,7 +31,7 @@ permissions:
 
 Architecture Radar runs at 05:00 UTC, which is 08:00 Europe/Moscow. A cadence gate lets the expensive research step run every three days.
 
-Opportunity Radar runs at 05:30 UTC every Tuesday, which is 08:30 Europe/Moscow. It researches public demand signals with money-first selection, structural fragmentation scoring, and a commercial filter for cross-company glue that buyers are more likely to buy than rebuild internally. It writes `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`. Manual dispatch remains available for event-driven opportunity checks.
+Opportunity Radar uses catch-up-safe scheduled wake-ups at 05:30, 08:30, and 11:30 UTC. The cadence gate runs expensive Codex research only for the weekly Tuesday due date when `opportunity-reports/YYYY-MM-DD.md` is missing and no generated `opportunity-radar/YYYY-MM-DD-*` branch already exists. This avoids relying on a single best-effort GitHub cron while keeping the expensive research cadence weekly. It researches public demand signals with money-first selection, structural fragmentation scoring, and a commercial filter for cross-company glue that buyers are more likely to buy than rebuild internally. It writes `opportunity-reports/`, `opportunities/`, `signals/`, and `opportunities.json`. Manual dispatch remains available for event-driven opportunity checks.
 
 Generated Architecture Radar and Opportunity Radar reports must include `Review Value`, a single-row table with `Verdict`, `Score`, `Reason`, and `Recommended action`. The PR review helper uses that deterministic report-declared value layer after validation passes. `merge` can produce `looks_mergeable`; `request-fix` produces `needs_targeted_fix`; `close` or `watchlist` produces `should_close`.
 
@@ -73,7 +73,7 @@ Use the local helper to decide whether a review notification is warranted:
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. On an Architecture cadence day, or on the Opportunity Radar Tuesday schedule, if the due scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and the report-declared review value. `looks_mergeable` means validation passed and `Review Value` recommends `merge`; `needs_targeted_fix` means the report recommends a specific repair; `should_close` means the report says to close, regenerate, or demote selected content to watchlist first. `needs_manual_review` is reserved for validation, summarization, draft, or mergeability blockers. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
+The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. On an Architecture cadence day, or inside the Opportunity Radar scheduled wake-up window, if the due scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. After the configured grace window passes, a missing due scheduled run is reported as an actionable missed schedule. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and the report-declared review value. `looks_mergeable` means validation passed and `Review Value` recommends `merge`; `needs_targeted_fix` means the report recommends a specific repair; `should_close` means the report says to close, regenerate, or demote selected content to watchlist first. `needs_manual_review` is reserved for validation, summarization, draft, or mergeability blockers. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
 
 For failed runs, `--include-failed-log` includes a short actionable excerpt from `gh run view --log-failed`.
 
@@ -101,4 +101,5 @@ python3 scripts/summarize-opportunity-pr.py PR_NUMBER --format markdown
 - Missing report file for the run date: validation fails.
 - Missing weekly synthesis report for the week id: weekly validation fails.
 - No file changes: the publish step exits without opening a PR.
+- Missing scheduled run: the PR review helper reports a missed schedule after the grace window instead of waiting indefinitely.
 - GitHub token lacks write permissions: publish fails after research artifacts are produced in the runner.
