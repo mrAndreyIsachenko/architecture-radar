@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-01",
+  "generated_at": "2026-09-08",
   "discovery_mode": "mixed",
   "selected": [
     {
@@ -26,7 +26,7 @@
       "confidence": "medium-high",
       "money_signal": "strong",
       "reachability": "high",
-      "evidence_count": 9,
+      "evidence_count": 12,
       "next_test": "Offer a paid manual review of one Blockscout verification/indexer rollout to three public chain teams and look for one paid request this week.",
       "technology_shift": {
         "what_changed": "Blockscout now sells hosted explorer deployment, multichain API access, websocket events, managed hosting, and public customer deployment stories while more chains and L2s keep proliferating.",

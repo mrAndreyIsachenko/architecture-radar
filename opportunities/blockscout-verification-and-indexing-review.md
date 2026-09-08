@@ -6,9 +6,10 @@ Public Blockscout docs, pricing, and customer stories show a paid ecosystem arou
 ## Evidence
 - M1 paid demand: Blockscout publishes paid Autoscout explorer plans starting at $349/mo, a PRO API with public tiers starting at $49/mo, $199/mo, and $999/mo, and EAAS managed hosting.
 - M1 paid demand: the PRO API page says one account covers multichain onchain data with higher limits, predictable pricing, and a single billing account.
+- M1 paid demand: Blockscout's June 24, 2026 Pro API switch post says legacy API keys are being sunset and that the new API covers 120+ chains, which makes the paid workflow explicit.
 - M2 repeated pain: issue `#10488` asks for documentation on automated solutions around the verification API, which means users are still assembling the workflow manually.
 - M2 repeated pain: the verification docs and websocket docs exist because teams need to wire verification and event handling across multiple entry points.
-- M3 competitor proof: Onyx and Kinto deployment stories plus Blockscout's managed-hosting pages show the workflow is already used by real chains.
+- M3 competitor proof: Onyx and Kinto deployment stories plus Blockscout's managed-hosting pages and AI-agent posts show the workflow is already used by real chains and tooling teams.
 - M4 workaround evidence: users can verify through Hardhat, Foundry, Remix, Sourcify, or custom API wiring, which implies repeated glue work at the boundary.
 
 ## Structural Pattern
