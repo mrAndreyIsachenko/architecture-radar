@@ -37,6 +37,7 @@ jobs:
       - name: Check script syntax
         run: |
           bash -n scripts/check-radar-cadence.sh
+          bash -n scripts/check-opportunity-radar-cadence.sh
           bash -n scripts/check-radar-rerun.sh
           bash -n scripts/prepare-radar-run.sh
           bash -n scripts/prepare-opportunity-radar-run.sh

@@ -14,7 +14,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
@@ -54,6 +54,8 @@ class RadarProfile(NamedTuple):
     schedule_weekday: int | None = None
     schedule_hour_utc: int = DEFAULT_SCHEDULE_HOUR_UTC
     schedule_minute_utc: int = DEFAULT_SCHEDULE_MINUTE_UTC
+    schedule_delay_grace_minutes: int = 300
+    catchup_days: int = 0
 
 
 PROFILES = {
@@ -73,8 +75,10 @@ PROFILES = {
         branch_re=OPPORTUNITY_PR_BRANCH_RE,
         schedule_kind="weekly",
         schedule_weekday=1,
-        schedule_hour_utc=5,
+        schedule_hour_utc=11,
         schedule_minute_utc=30,
+        schedule_delay_grace_minutes=90,
+        catchup_days=2,
     ),
 }
 
@@ -113,6 +117,12 @@ def parse_args() -> argparse.Namespace:
         "--schedule-minute-utc",
         type=int,
         default=int(os.environ.get("ARCHITECTURE_RADAR_SCHEDULE_MINUTE_UTC", str(DEFAULT_SCHEDULE_MINUTE_UTC))),
+    )
+    parser.add_argument(
+        "--schedule-delay-grace-minutes",
+        type=int,
+        default=None,
+        help="Override the profile-specific grace window before a missing scheduled run is reported.",
     )
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
@@ -269,24 +279,43 @@ def cadence_state(
     }
 
 
-def weekly_state(now: datetime, tz: ZoneInfo, weekday: int, schedule_hour_utc: int, schedule_minute_utc: int) -> dict[str, object]:
+def weekly_state(
+    now: datetime,
+    tz: ZoneInfo,
+    weekday: int,
+    schedule_hour_utc: int,
+    schedule_minute_utc: int,
+    catchup_days: int = 0,
+) -> dict[str, object]:
     today = now.astimezone(tz).date()
-    should_run = today.weekday() == weekday
+    days_after_due = (today.weekday() - weekday) % 7
+    due_date = today - timedelta(days=days_after_due)
+    should_run = days_after_due <= catchup_days
     scheduled_at = datetime.combine(today, time(hour=schedule_hour_utc, minute=schedule_minute_utc), tzinfo=timezone.utc)
     return {
         "schedule_kind": "weekly",
-        "run_date": today.isoformat(),
+        "run_date": due_date.isoformat(),
+        "today": today.isoformat(),
         "weekday": today.weekday(),
         "scheduled_weekday": weekday,
+        "days_after_due": days_after_due,
+        "catchup_days": catchup_days,
         "should_run": should_run,
-        "reason": "weekly schedule matched" if should_run else "weekly schedule is not due today",
+        "reason": "weekly schedule matched" if should_run else "weekly schedule is outside the catch-up window",
         "scheduled_at_utc": scheduled_at.isoformat().replace("+00:00", "Z"),
     }
 
 
 def schedule_state(args: argparse.Namespace, profile: RadarProfile, now: datetime, tz: ZoneInfo) -> dict[str, object]:
     if profile.schedule_kind == "weekly":
-        return weekly_state(now, tz, int(profile.schedule_weekday or 0), profile.schedule_hour_utc, profile.schedule_minute_utc)
+        return weekly_state(
+            now,
+            tz,
+            int(profile.schedule_weekday or 0),
+            profile.schedule_hour_utc,
+            profile.schedule_minute_utc,
+            profile.catchup_days,
+        )
 
     return cadence_state(
         now,
@@ -339,7 +368,7 @@ def build_profile_status(args: argparse.Namespace, profile: RadarProfile) -> dic
     tz = ZoneInfo(args.timezone)
     now = current_time(args.now)
     cadence = schedule_state(args, profile, now, tz)
-    today = date.fromisoformat(str(cadence["run_date"]))
+    today = now.astimezone(tz).date()
     workflow = workflow_for(args, profile)
 
     runs = list_runs(args.repo, workflow, args.limit)
@@ -371,13 +400,25 @@ def build_profile_status(args: argparse.Namespace, profile: RadarProfile) -> dic
         return result
 
     scheduled_at = parse_datetime(str(cadence["scheduled_at_utc"]))
-    if cadence["should_run"] and now < scheduled_at:
+    if cadence["should_run"] and not todays_schedule and now < scheduled_at:
         result["status"] = "waiting"
         result["notification"] = "DONT_NOTIFY"
         result["message"] = "Today's cadence run is not due yet."
         return result
 
     if cadence["should_run"] and not todays_schedule:
+        grace_minutes = getattr(args, "schedule_delay_grace_minutes", None)
+        if grace_minutes is None:
+            grace_minutes = profile.schedule_delay_grace_minutes
+        missed_at = scheduled_at + timedelta(minutes=int(grace_minutes))
+        if now >= missed_at:
+            result["status"] = "missed_schedule"
+            result["notification"] = "REPORT"
+            result["message"] = (
+                f"Today's scheduled {profile.label} run has not appeared after the configured "
+                f"{grace_minutes}-minute grace window."
+            )
+            return result
         result["status"] = "waiting"
         result["notification"] = "DONT_NOTIFY"
         result["message"] = "Today's scheduled cadence run has not appeared yet; wait for GitHub Actions schedule delay."
@@ -407,6 +448,7 @@ def build_combined_status(args: argparse.Namespace) -> dict[str, object]:
     statuses = [build_profile_status(args, profile) for profile in PROFILES.values()]
     fresh_prs: list[dict[str, object]] = []
     failed_runs: list[dict[str, object]] = []
+    missed_schedules: list[dict[str, object]] = []
     waiting: list[dict[str, object]] = []
 
     for status in statuses:
@@ -415,6 +457,8 @@ def build_combined_status(args: argparse.Namespace) -> dict[str, object]:
             fresh_prs.extend([pr for pr in status_fresh if isinstance(pr, dict)])
         if status.get("status") == "failed_run":
             failed_runs.append(status)
+        if status.get("status") == "missed_schedule":
+            missed_schedules.append(status)
         if status.get("status") == "waiting":
             waiting.append(status)
 
@@ -426,6 +470,7 @@ def build_combined_status(args: argparse.Namespace) -> dict[str, object]:
         "radars": statuses,
         "fresh_prs": fresh_prs,
         "failed_runs": failed_runs,
+        "missed_schedules": missed_schedules,
         "status": "unknown",
         "notification": "INFO",
         "message": "",
@@ -442,6 +487,13 @@ def build_combined_status(args: argparse.Namespace) -> dict[str, object]:
         result["status"] = "failed_run"
         result["notification"] = "REPORT"
         result["message"] = f"Latest completed generated radar run failed: {labels}."
+        return result
+
+    if missed_schedules:
+        labels = ", ".join(str(status.get("radar_label") or status.get("radar")) for status in missed_schedules)
+        result["status"] = "missed_schedule"
+        result["notification"] = "REPORT"
+        result["message"] = f"Generated radar schedule appears to be missed: {labels}."
         return result
 
     if waiting:
