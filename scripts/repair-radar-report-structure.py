@@ -36,6 +36,13 @@ LEDGER_COLUMNS = [
     "Decision",
 ]
 
+REVIEW_VALUE_COLUMNS = [
+    "Verdict",
+    "Score",
+    "Reason",
+    "Recommended action",
+]
+
 BACKLOG_PATH = "experiments/failure-injection-backlog.yml"
 
 BACKLOG_VALIDATION_TYPES = {
@@ -241,6 +248,47 @@ def normalize_markdown_validation_table(section_text: str) -> str:
     return "\n".join(lines)
 
 
+def clean_markdown_code(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value.startswith("`") and value.endswith("`"):
+        return value[1:-1].strip()
+    return value
+
+
+def normalize_review_value_table(section_text: str) -> str:
+    lines = section_text.splitlines()
+    table_indexes = [index for index, line in enumerate(lines) if line.startswith("|")]
+    if len(table_indexes) < 3:
+        return section_text
+
+    header_index = table_indexes[0]
+    header = [cell.strip() for cell in lines[header_index].strip().strip("|").split("|")]
+    if header != REVIEW_VALUE_COLUMNS:
+        return section_text
+
+    data_indexes = table_indexes[2:]
+    if len(data_indexes) != 1:
+        return section_text
+
+    row_index = data_indexes[0]
+    cells = [cell.strip() for cell in lines[row_index].strip().strip("|").split("|")]
+    if len(cells) != len(header):
+        return section_text
+
+    score_index = header.index("Score")
+    score_text = clean_markdown_code(cells[score_index])
+    if not re.fullmatch(r"\d+", score_text):
+        return section_text
+
+    score = int(score_text)
+    if 6 <= score <= 10:
+        cells[score_index] = str(min(5, (score + 1) // 2))
+        lines[row_index] = "| " + " | ".join(cells) + " |"
+        return "\n".join(lines)
+
+    return section_text
+
+
 def normalize_backlog_validation_types() -> bool:
     path = ROOT / BACKLOG_PATH
     if not path.is_file():
@@ -331,6 +379,8 @@ def repair_report_text(text: str, report_name: str) -> str:
         elif not content:
             content = placeholder(section, missing_sections)
 
+        if section == "Review Value":
+            content = normalize_review_value_table(content)
         if section == "Validation Backlog Updates":
             content = normalize_markdown_validation_table(content)
 
