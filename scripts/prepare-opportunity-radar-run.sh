@@ -14,8 +14,11 @@ fi
 
 branch="opportunity-radar/${run_date}-${GITHUB_RUN_NUMBER:-local}"
 
-git config user.name "opportunity-radar-bot"
-git config user.email "opportunity-radar-bot@users.noreply.github.com"
+commit_user_name="${RADAR_COMMIT_USER_NAME:-Andrey Isachenko}"
+commit_user_email="${RADAR_COMMIT_USER_EMAIL:-mr.andrey.isachenko@gmail.com}"
+
+git config user.name "$commit_user_name"
+git config user.email "$commit_user_email"
 git checkout -B "$branch"
 
 {
