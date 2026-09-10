@@ -108,6 +108,26 @@ class RepairRadarReportStructureTest(unittest.TestCase):
             repaired,
         )
 
+    def test_repair_normalizes_review_value_score_from_ten_point_scale(self) -> None:
+        original = "\n".join(
+            [
+                "# Architecture Radar Report: 2026-09-10",
+                "",
+                "## Review Value",
+                "",
+                "| Verdict | Score | Reason | Recommended action |",
+                "|---|---:|---|---|",
+                "| high-signal | 9 | Strong source-backed reviews across several configured topic families. | merge |",
+            ]
+        )
+
+        repaired = repairer.repair_report_text(original, "2026-09-10")
+
+        self.assertIn(
+            "| high-signal | 5 | Strong source-backed reviews across several configured topic families. | merge |",
+            repaired,
+        )
+
     def test_repair_normalizes_backlog_yaml_validation_type(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

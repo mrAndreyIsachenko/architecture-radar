@@ -4,3 +4,6 @@
 - [x] 4. Use parsed review value in both PR summarizers to return `looks_mergeable`, `needs_targeted_fix`, or `should_close`.
 - [x] 5. Add or update unit tests for report parsing, validator rejection, and PR recommendation behavior.
 - [x] 6. Run unit tests, OpenSpec strict validation, and whitespace checks.
+- [x] 7. Update Architecture Radar prompt and rules to state that `Review Value.Score` is a 0-5 integer, not a 0-10 score.
+- [x] 8. Normalize accidental 6-10 `Review Value.Score` values in `scripts/repair-radar-report-structure.py` before strict validation.
+- [x] 9. Add regression tests for ten-point score repair and validator rejection above five.

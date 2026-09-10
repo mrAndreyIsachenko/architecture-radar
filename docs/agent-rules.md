@@ -510,6 +510,8 @@ The `Review Value` section must contain exactly one table row:
 |---|---:|---|---|
 ```
 
+`Score` must be an integer from 0 to 5. Do not use a 0-10 scale.
+
 Use one of these verdicts:
 
 - `high-signal`: strong new source-backed architecture knowledge.

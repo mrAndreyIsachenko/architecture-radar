@@ -48,7 +48,7 @@ last_message="${RUNNER_TEMP:-/tmp}/architecture-radar-last-message-${run_date}.m
   printf -- '  - Notable Rejected Or Deferred Candidates\n'
   printf -- '  - Unresolved Evidence Gaps\n'
   printf -- '  - Validation Backlog Updates\n'
-  printf -- '- The `Review Value` section must contain exactly one markdown table row with columns: `Verdict`, `Score`, `Reason`, `Recommended action`. Use `merge` only for useful value; use `request-fix`, `close`, or `watchlist` when the report is stale, weak, duplicate-heavy, or needs targeted repair.\n'
+  printf -- '- The `Review Value` section must contain exactly one markdown table row with columns: `Verdict`, `Score`, `Reason`, `Recommended action`. `Score` must be an integer from 0 to 5; do not use a 0-10 scale. Use `merge` only for useful value; use `request-fix`, `close`, or `watchlist` when the report is stale, weak, duplicate-heavy, or needs targeted repair.\n'
   printf -- '- The `Validation Backlog Updates` section must either contain a markdown table with columns: `Backlog item`, `Repository`, `Family`, `Validation type`, `Reason`, `Status`; or explicitly state that no validation backlog update was required.\n'
   printf -- '- The `Candidate Ledger` section must contain a markdown table with these exact columns: `Repository`, `URL`, `Commit`, `Discovery source`, `Family`, `Stage`, `Decision`.\n'
   printf -- '- The final answer should briefly summarize files changed and unresolved blockers; detailed analysis belongs in repository artifacts.\n\n'

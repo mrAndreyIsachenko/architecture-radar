@@ -224,6 +224,22 @@ class ValidateRadarStateTest(unittest.TestCase):
             ):
                 validator.validate_report_structure()
 
+    def test_report_structure_rejects_review_value_score_above_five(self) -> None:
+        report_text = complete_report().replace("`useful-delta` | 4", "`useful-delta` | 9")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            report = root / "reports" / "2026-08-11.md"
+            report.parent.mkdir()
+            report.write_text(report_text, encoding="utf-8")
+
+            with (
+                patch.object(validator, "ROOT", root),
+                patch.object(validator, "report_files_to_validate", return_value=[report]),
+                patch("sys.stderr", io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                validator.validate_report_structure()
+
     def test_report_structure_rejects_runtime_gap_without_backlog_item(self) -> None:
         report_text = complete_report().replace(
             "No validation backlog update required.",

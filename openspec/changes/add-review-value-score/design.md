@@ -26,6 +26,9 @@ See `proposal.md` for motivation. Current generated PR review already checks val
 
    `Verdict`, `Score`, `Reason`, `Recommended action`.
 
+   `Score` is a 0-5 integer. It is not a 0-10 ranking, because downstream PR
+   helpers display it as `<score>/5` and validators reject larger values.
+
    Alternative considered: free-form bullets. Rejected because they are harder to validate consistently.
 
 2. Use small enumerations for verdict and action.
@@ -56,6 +59,14 @@ See `proposal.md` for motivation. Current generated PR review already checks val
 4. Do not require old reports to have `Review Value`.
 
    The validators already focus on changed/generated reports. Historical artifacts remain useful and should not churn.
+
+5. Repair accidental 0-10 review value scores before validation.
+
+   The workflow prompt must ask for a 0-5 score, but the repair step also
+   normalizes a single-row `Review Value` score from 6-10 onto the 0-5 scale
+   before strict validation. Values outside 0-10 still fail validation because
+   they indicate an unrecognized report format rather than a common scale
+   mistake.
 
 ## Risks / Trade-offs
 
