@@ -89,6 +89,17 @@ Architecture Radar has no work:
    the public page does not expose code directly;
 4. record the mapping path in the candidate ledger or rejection reason.
 
+When discovery finds secondary artifacts for named AI runtime or memory seeds,
+perform canonical source expansion before rejecting the topic. In particular,
+DeepSeek Harness handbooks, plugin lists, desktop wrappers, product pages,
+documentation pages, and forks must be mapped to `deepseek-ai/deepseek-harness`
+or to a concrete no-stable-source reason. TencentDB Agent Memory adapters,
+bridges, hooks, product pages, documentation pages, and forks must be mapped to
+`TencentCloud/TencentDB-Agent-Memory` or to a concrete no-stable-source reason.
+This mapping requirement does not lower the evidence bar: source-inspection and
+deep review still require inspectable source code plus a stable commit SHA or
+Git-compatible revision.
+
 Launch, accelerator, batch, demo-day, portfolio, and company pages are discovery
 evidence only. They are not source-verified architecture evidence and do not
 justify a repository review without inspectable source code.
