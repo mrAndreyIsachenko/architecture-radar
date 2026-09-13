@@ -70,6 +70,45 @@ entries:
       - tiny LLM inference
       - constrained-device LLM runtime
 
+  - repository: deepseek-ai/deepseek-harness
+    url: https://github.com/deepseek-ai/deepseek-harness
+    family: ai-llm-systems
+    artifact_type: runtime
+    priority: high
+    status: pending
+    review_mode: watch-runtime
+    reason: Canonical DeepSeek Harness runtime repository; inspect plugin architecture, session/runtime state, storage boundaries, tool execution, sandboxing, and recoverable agent-loop mechanisms.
+    external_artifacts:
+      - https://deepseek.com/harness/en/
+      - https://github.com/awesome-dsh-plugin/awesome-dsh-plugin
+      - https://github.com/dataelement/dsh-desktop
+    search_terms:
+      - DeepSeek Harness
+      - deepseek-ai/deepseek-harness
+      - DSH
+      - Cordis
+      - dsh-plugin
+
+  - repository: TencentCloud/TencentDB-Agent-Memory
+    url: https://github.com/TencentCloud/TencentDB-Agent-Memory
+    family: ai-llm-systems
+    artifact_type: runtime
+    priority: high
+    status: pending
+    review_mode: watch-runtime
+    reason: TencentDB Agent Memory team-level memory runtime; inspect layered memory assets, governance boundaries, local/vector persistence, framework adapters, provenance, and cross-agent sharing.
+    external_artifacts:
+      - https://github.com/TencentCloud/TencentDB-Agent-Memory/releases/tag/v2.0.1
+      - https://github.com/kuaizhongqiang/TencentAgentMemoryBridge
+      - https://github.com/mercuryLiu163/tdai-standard-hook
+    search_terms:
+      - TencentDB Agent Memory
+      - TencentCloud/TencentDB-Agent-Memory
+      - Tencent Agent Memory
+      - TDAI
+      - OpenClaw memory
+      - team-level agent memory
+
   - repository: baidu/Unlimited-OCR
     url: https://github.com/baidu/Unlimited-OCR
     family: document-ai-ocr

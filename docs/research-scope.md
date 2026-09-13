@@ -92,6 +92,15 @@ A mechanism at this level survives removal of the repository's branding, UI, and
 
 Use these as search anchors and comparison baselines, not as automatic selections.
 
+AI runtime / agent memory / context engineering:
+
+- `deepseek-ai/deepseek-harness`
+  - aliases: DeepSeek Harness, DSH, Cordis, dsh-plugin
+  - adjacent artifacts: handbooks, plugin lists, desktop wrappers, product pages, and forks
+- `TencentCloud/TencentDB-Agent-Memory`
+  - aliases: TencentDB Agent Memory, Tencent Agent Memory, TDAI, OpenClaw memory, team-level agent memory
+  - adjacent artifacts: adapters, bridge repositories, hooks, release notes, and product documentation
+
 Document AI / OCR / multimodal evidence ingestion:
 
 - `baidu/Unlimited-OCR`
