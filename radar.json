@@ -1638,6 +1638,125 @@
       "decision_reason": "Source and tests show confirmation-based scanning, cursor rewind/persistence, multi-RPC failover, and sink-separated delivery. It is useful as an event-scanning mechanism, but it stops short of full state reconstruction or orphan-branch repair.",
       "revisit_reason": "Review if the scanner adds full reorg repair or state-projection semantics materially.",
       "next_revisit_condition": "Revisit after a material change to reorg handling, cursor persistence, or RPC node selection."
+    },
+    {
+      "repository": "juanfont/headscale",
+      "URL": "https://github.com/juanfont/headscale",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "hscontrol/poll.go",
+        "hscontrol/state/state.go",
+        "hscontrol/servertest/routes_test.go",
+        "hscontrol/servertest/policy_test.go",
+        "hscontrol/servertest/ha_health_test.go",
+        "hscontrol/state/persist_test.go"
+      ],
+      "operational_blockers": [
+        "needs live reconnect-recovery validation",
+        "policy reload and route election still need multi-node operational proof"
+      ],
+      "first_seen": "2026-09-13",
+      "last_reviewed": "2026-09-13",
+      "commit_reviewed": "4087d1fee9d34d042b279262ffbdaf1030ffd5e8",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "policy control",
+        "route reconciliation",
+        "reconnect recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Policy-Guarded Route Reconciliation Loop"
+      ],
+      "candidate_patterns": [
+        "reconnect-safe route approval propagation"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a reusable private-network control-plane mechanism that orders reconnect processing before connect-time route election, persists approved routes, rebuilds peer maps on policy reload, and clears stale unhealthy state when approvals are removed. The main remaining gap is live reconnect-recovery validation under multi-node churn.",
+      "revisit_reason": "Review if reconnect ordering, policy reload, route election, or health cleanup changes materially.",
+      "next_revisit_condition": "Revisit after a material change to reconnect handling, policy reload behavior, approved-route persistence, or HA health semantics."
+    },
+    {
+      "repository": "nasa/fprime",
+      "URL": "https://github.com/nasa/fprime",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "Svc/FprimeRouter/FprimeRouter.cpp",
+        "Svc/FprimeRouter/test/ut/FprimeRouterTester.cpp",
+        "Svc/FprimeRouter/docs/sdd.md",
+        "Fw/FilePacket/docs/sdd.md"
+      ],
+      "operational_blockers": [
+        "needs integrated runtime validation",
+        "bounded context table not exercised in a full uplink deployment"
+      ],
+      "first_seen": "2026-09-13",
+      "last_reviewed": "2026-09-13",
+      "commit_reviewed": "4dee010c3002bce6a66f1372b89e1fed47289c57",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "command/telemetry loop",
+        "delayed connectivity",
+        "packet routing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "bounded context-preserving packet router"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a bounded packet router that preserves frame context across non-copying file and unknown-data hand-offs, then restores the original context on return. The mechanism is clear and reusable, but the review still lacks runtime validation under a full uplink stack and return-table saturation.",
+      "revisit_reason": "Review if router context handling, table sizing, or uplink integration changes materially.",
+      "next_revisit_condition": "Revisit after runtime validation of context preservation, overflow behavior, or uplink concurrency."
+    },
+    {
+      "repository": "ArduPilot/ardupilot",
+      "URL": "https://github.com/ArduPilot/ardupilot",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "ArduCopter/failsafe.cpp",
+        "ArduCopter/mode_rtl.cpp",
+        "ArduCopter/GCS_MAVLink_Copter.cpp",
+        "Tools/autotest/arducopter.py",
+        "Tools/autotest/run_mission.py"
+      ],
+      "operational_blockers": [
+        "needs longer SITL recovery churn",
+        "hardware-timing and sensor-fidelity paths remain unvalidated"
+      ],
+      "first_seen": "2026-09-13",
+      "last_reviewed": "2026-09-13",
+      "commit_reviewed": "acef45eb0f0145943a9c2ba341d3825b8af34472",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "failsafe",
+        "mission planning",
+        "telemetry",
+        "recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "tiered RTL recovery ladder"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and autotests show a reusable safety mechanism: a periodic watchdog detects main-loop stall, forces a staged failsafe, and drives RTL or land behavior based on mission and sensor state. The design is strong, but adoption still needs longer SITL/HIL validation outside the current regression harness.",
+      "revisit_reason": "Review if failsafe policy, RTL fallback, or SITL coverage changes materially.",
+      "next_revisit_condition": "Revisit after a material change to failsafe logic, RTL state transitions, or SITL recovery tests."
     }
   ]
 }
