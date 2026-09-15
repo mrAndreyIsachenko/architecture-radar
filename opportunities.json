@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-08",
+  "generated_at": "2026-09-15",
   "discovery_mode": "mixed",
   "selected": [
     {
@@ -409,6 +409,7 @@
       "existing_spend": "Public forum work shows manual diagnosis effort, and a 2026 ArduPilot log-diagnosis project suggests interest in automated review, but no direct public spend is visible.",
       "paid_experiment": "Ask for representative logs and willingness to pay only after finding direct operator demand or manual log-analysis spend.",
       "source_classes": [
+        "forum",
         "github"
       ],
       "money_evidence_type": "no_money_evidence",
