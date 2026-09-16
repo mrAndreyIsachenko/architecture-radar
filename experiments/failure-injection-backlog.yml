@@ -1,1 +1,40 @@
-items: []
+items:
+  - id: 2026-09-16-nasa-fprime-runtime-restart
+    family: satellites-space-systems
+    source_report: reports/2026-09-16.md
+    source_repository: nasa/fprime
+    mechanism: command dispatcher and health monitor recovery
+    evidence_gap: Source and tests verify command routing, pending tracking, ping cycles, and watchdog strobes, but the repository still needs a real restart or fault-injection run on a target build to prove those paths recover cleanly after a crash.
+    validation_type: runtime
+    proposed_validation: Run the command dispatcher and health component on a target or emulator build, kill the process mid-command and mid-ping cycle, restart it, and observe whether pending command state, ping sequencing, and watchdog strobes recover without duplicate acknowledgements.
+    success_condition: After restart, the component reports a consistent command and health state, no command is acknowledged twice, and ping/watchdog behavior resumes from a deterministic baseline.
+    priority: high
+    status: open
+    created: 2026-09-16
+    last_updated: 2026-09-16
+  - id: 2026-09-16-headscale-reconnect-recovery
+    family: privacy-networking-vpn
+    source_report: reports/2026-09-16.md
+    source_repository: juanfont/headscale
+    mechanism: session-epoch gated reconnect recovery and batched primary-route election
+    evidence_gap: Source and tests pin the reconnect and HA election rules, but the control plane still needs live multi-node churn to prove reconnect storms and overlapping sessions do not strand nodes online or elect stale primaries.
+    validation_type: reconnect-recovery
+    proposed_validation: Run a small tailnet with one ordinary node and one subnet-router or relay target, inject reconnect storms plus overlapping disconnects, and confirm ordinary reconnects stay lightweight while topology-changing nodes still trigger exactly one recompute.
+    success_condition: No node remains stranded online after its final session release, ordinary reconnects stay lightweight, and primary-route changes only occur when the live candidate set changes.
+    priority: high
+    status: open
+    created: 2026-09-16
+    last_updated: 2026-09-16
+  - id: 2026-09-16-gnuradio-flowgraph-restart
+    family: satellites-space-systems
+    source_report: reports/2026-09-16.md
+    source_repository: gnuradio/gnuradio
+    mechanism: lock-gated flowgraph restart and scheduler recreation
+    evidence_gap: Source and tests show the restart path, but the repository still needs a live scheduler fault or midstream reconfiguration run to prove restart keeps the graph coherent under real workload pressure.
+    validation_type: restart-recovery
+    proposed_validation: Start a live flowgraph, lock it, change the block chain, interrupt the scheduler or inject a block fault, then unlock and restart to verify the reflattened graph and recreated scheduler recover without deadlock or stale wiring.
+    success_condition: Restart revalidates the graph, reconnects cleanly, and resumes output without deadlock, stale connections, or leaked scheduler state.
+    priority: medium
+    status: open
+    created: 2026-09-16
+    last_updated: 2026-09-16

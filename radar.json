@@ -1638,6 +1638,125 @@
       "decision_reason": "Source and tests show confirmation-based scanning, cursor rewind/persistence, multi-RPC failover, and sink-separated delivery. It is useful as an event-scanning mechanism, but it stops short of full state reconstruction or orphan-branch repair.",
       "revisit_reason": "Review if the scanner adds full reorg repair or state-projection semantics materially.",
       "next_revisit_condition": "Revisit after a material change to reorg handling, cursor persistence, or RPC node selection."
+    },
+    {
+      "repository": "nasa/fprime",
+      "URL": "https://github.com/nasa/fprime",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "Svc/CmdDispatcher/CommandDispatcherImpl.cpp",
+        "Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp",
+        "Svc/Health/HealthComponentImpl.cpp",
+        "Svc/Health/test/ut/HealthTester.cpp"
+      ],
+      "operational_blockers": [
+        "needs target or hardware-in-the-loop restart validation",
+        "filed source evidence only, no mission runtime exercised"
+      ],
+      "first_seen": "2026-09-16",
+      "last_reviewed": "2026-09-16",
+      "commit_reviewed": "198092c8f2f58a89e2922404bddf4b68eaaa3dbb",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "command routing",
+        "health monitoring",
+        "flight software"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "opcode-tracked command dispatcher",
+        "watchdog-ping cycle monitor",
+        "clear-tracking response fan-out"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and unit tests show command deserialization, pending-command tracking, clear-tracking fan-out, ping return validation, warning/fatal thresholds, and watchdog strobes. The reusable mechanism is strong, but the runtime still needs target or hardware-in-the-loop restart validation before adoption.",
+      "revisit_reason": "Review after restart, fault-injection, or target execution evidence for the command dispatcher and health loop.",
+      "next_revisit_condition": "Revisit after a material change to command-tracking, health monitoring, or target restart behavior."
+    },
+    {
+      "repository": "juanfont/headscale",
+      "URL": "https://github.com/juanfont/headscale",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "hscontrol/policy/v2/policy.go",
+        "hscontrol/state/state.go",
+        "hscontrol/state/node_store.go",
+        "hscontrol/state/connect_test.go",
+        "hscontrol/state/primaries_property_test.go"
+      ],
+      "operational_blockers": [
+        "needs live reconnect-storm validation",
+        "needs multi-node HA churn validation"
+      ],
+      "first_seen": "2026-09-16",
+      "last_reviewed": "2026-09-16",
+      "commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "privacy networking",
+        "policy control",
+        "reconnect recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "session-epoch gated reconnect recovery",
+        "atomic HA primary-election batch",
+        "policy-driven peer-recompute gate"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, approved-route persistence, and batched primary-election updates. The reusable control-plane mechanism is strong, but it still needs live reconnect and HA churn validation before adoption.",
+      "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
+    },
+    {
+      "repository": "gnuradio/gnuradio",
+      "URL": "https://github.com/gnuradio/gnuradio",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "gnuradio-runtime/lib/top_block_impl.cc",
+        "gnuradio-runtime/include/gnuradio/top_block.h",
+        "gr-blocks/lib/qa_gr_top_block.cc",
+        "gnuradio-runtime/python/gnuradio/gr/qa_flowgraph.py",
+        "gnuradio-runtime/python/gnuradio/gr/qa_realtime.py"
+      ],
+      "operational_blockers": [
+        "needs live restart-recovery validation",
+        "signal-processing workloads still need corpus-specific tuning"
+      ],
+      "first_seen": "2026-09-16",
+      "last_reviewed": "2026-09-16",
+      "commit_reviewed": "aee9fd3f79389c4282a98e8d62c8405c73fd91df",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "flowgraph runtime",
+        "scheduler reconfiguration",
+        "RF processing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "lock-gated flowgraph restart",
+        "validated flat-flowgraph reconfiguration",
+        "scheduler recreation on unlock"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show flowgraph flattening, lock/unlock reconfiguration, restart semantics, and binding coverage. The reusable runtime mechanism is clear, but the restart path still needs live workload validation under fault conditions.",
+      "revisit_reason": "Review after live restart, scheduler fault, or reconfiguration validation changes materially.",
+      "next_revisit_condition": "Revisit after a material change to restart semantics, lock/unlock behavior, or scheduler recreation."
     }
   ]
 }
