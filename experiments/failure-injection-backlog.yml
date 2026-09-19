@@ -1,1 +1,56 @@
-items: []
+items:
+  - id: 2026-09-19-docling-stage-timeout
+    family: document-ai-ocr
+    source_report: reports/2026-09-19.md
+    source_repository: docling-project/docling
+    mechanism: timeout-bounded threaded PDF pipeline with page retention
+    evidence_gap: The source and tests show timeout handling and partial-success recovery, but we still need an end-to-end mixed-quality batch run to confirm the behavior under realistic OCR/model latency and resource pressure.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF batch with one intentionally blocking stage and one malformed page set, then compare final document shape, page retention, and timeout behavior against the expected partial-success result.
+    success_condition: The job completes without hanging, failed pages remain present, and the result status is PARTIAL_SUCCESS with stable page numbering.
+    priority: medium
+    status: open
+    created: 2026-09-19
+    last_updated: 2026-09-19
+
+  - id: 2026-09-19-defguard-reconnect-recovery
+    family: privacy-networking-vpn
+    source_report: reports/2026-09-19.md
+    source_repository: DefGuard/gateway
+    mechanism: disconnect-safe interface rehydration
+    evidence_gap: Source and unit tests cover purge-then-configure, but the reconnect path still needs live network validation across disconnects, interface recreation, and firewall reapplication.
+    validation_type: reconnect-recovery
+    proposed_validation: Bring the gateway up, drop the control-plane connection, remove the WireGuard interface, then reconnect and confirm the gateway recreates the interface and reapplies the expected firewall state.
+    success_condition: After reconnect, the gateway restores the interface and access policy without manual intervention or route leakage.
+    priority: medium
+    status: open
+    created: 2026-09-19
+    last_updated: 2026-09-19
+
+  - id: 2026-09-19-px4-sitl-failsafe
+    family: drones-robotics-autonomy
+    source_report: reports/2026-09-19.md
+    source_repository: PX4/PX4-Autopilot
+    mechanism: failsafe command acknowledgment matrix with sensor-loss recovery
+    evidence_gap: Source and tests show ACK and failsafe logic, but the mission/sensor-loss recovery path still needs a full SITL run with command loss and sensor degradation.
+    validation_type: sitl
+    proposed_validation: Run PX4 SITL with mission, RTL, and offboard transitions while injecting sensor loss and command rejection cases, then compare ACKs and recovery mode transitions against the source-level expectations.
+    success_condition: The simulator produces accepted, denied, or temporarily rejected ACKs as expected and transitions into the intended failsafe recovery modes without unstable oscillation.
+    priority: high
+    status: open
+    created: 2026-09-19
+    last_updated: 2026-09-19
+
+  - id: 2026-09-19-fprime-operational-routing
+    family: satellites-space-systems
+    source_report: reports/2026-09-19.md
+    source_repository: nasa/fprime
+    mechanism: context-preserving packet router with CFDP transaction management
+    evidence_gap: The source and unit tests cover routing and CFDP failure cases, but the packet-ordering and queue-depth behavior still needs an operational integration run under realistic message load.
+    validation_type: operational
+    proposed_validation: Exercise the router and CFDP manager in an integration harness with delayed buffer returns, out-of-order packets, and queue saturation, then confirm context restoration and transaction completion semantics.
+    success_condition: Context is preserved across returns, command/file routing remains correct, and CFDP transactions fail or complete cleanly without deadlock.
+    priority: medium
+    status: open
+    created: 2026-09-19
+    last_updated: 2026-09-19

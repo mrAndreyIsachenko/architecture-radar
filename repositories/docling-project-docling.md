@@ -1,12 +1,12 @@
 # docling-project/docling
 
 - Repository: https://github.com/docling-project/docling
-- Review date: 2026-08-08
-- Current commit reviewed: `8050c42be2b179504445cb8f3c75655e27cbb662`
-- Commit date: 2026-08-08T08:02:29+02:00
+- Review date: 2026-09-19
+- Current commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
+- Commit date: 2026-09-18T09:18:30Z
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `8050c42be2b179504445cb8f3c75655e27cbb662`
+- Material changes since previous review: version bump to 2.129.0 and refreshed current-head verification; the threaded PDF pipeline and recovery model remain the same mechanism.
 - Decision: track
 
 ## Problem Fit
@@ -22,7 +22,8 @@ This repository informs `document-ai-ocr`, especially batch PDF conversion, page
 - E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` retains page sizes and error items separately from the success path so downstream output can still render page breaks correctly.
 - E2 test verified: `tests/test_failed_pages.py::test_failed_pages_added_to_document_1page` and `::test_failed_pages_added_to_document_2pages` verify that failed pages remain present in `DoclingDocument.pages` and the result status becomes `PARTIAL_SUCCESS`.
 - E2 test verified: `tests/test_threaded_pipeline.py::test_threaded_pipeline_stage_shutdown_timeout` verifies the stage shutdown timeout path when a blocking model call does not return.
-- E2 test verified: `tests/test_settings_load.py::test_scoped_settings_restores_state` verifies the settings wrapper restores the original state after a scoped override fails.
+- E2 test verified: `tests/test_native_pdf_pipeline.py` covers provenance retention, page-image scaling, picture/bitmap extraction, text-cell granularity, order restoration, and concurrent conversion separation.
+- E2 test verified: `tests/test_pipeline_cache.py` exercises pipeline option hashing and fallback behavior across pipeline subtype collisions.
 
 ## Architecture
 

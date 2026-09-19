@@ -194,9 +194,9 @@
       "repository": "PX4/PX4-Autopilot",
       "URL": "https://github.com/PX4/PX4-Autopilot",
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-08-02",
-      "commit_reviewed": "43cccdea0e57cf92a58562d2d7a1cba0854395f7",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-09-19",
+      "commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
+      "previous_commit_reviewed": "43cccdea0e57cf92a58562d2d7a1cba0854395f7",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -212,7 +212,7 @@
         "mission sensor-loss recovery"
       ],
       "decision": "track",
-      "decision_reason": "Commander, RC update, parameter validation, and MAVSDK integration tests form a reusable safety model for high-risk autonomy transitions and failure recovery.",
+      "decision_reason": "Commander, RC update, parameter validation, and MAVSDK integration tests form a reusable safety model for high-risk autonomy transitions and failure recovery. The refreshed head keeps that mechanism intact, so the decision remains track.",
       "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
       "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
     },
@@ -514,9 +514,9 @@
       "repository": "DefGuard/gateway",
       "URL": "https://github.com/DefGuard/gateway",
       "first_seen": "2026-08-08",
-      "last_reviewed": "2026-08-08",
-      "commit_reviewed": "ebac60b5a36ae38b537e3b7af45aa85ad3c785fb",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-09-19",
+      "commit_reviewed": "dc21d0ba4e7d9c49ff1b9184447967da833f65fb",
+      "previous_commit_reviewed": "ebac60b5a36ae38b537e3b7af45aa85ad3c785fb",
       "categories": [
         "VPN",
         "access control",
@@ -533,7 +533,7 @@
         "serial-pinned mTLS gateway"
       ],
       "decision": "track",
-      "decision_reason": "The gateway's configuration-diff loop, interface recreation, disconnect grace period, firewall mutation, and mTLS tests provide a reusable control-plane recovery mechanism for private networking. It is more informative than a client-side VPN wrapper and directly maps to the privacy-networking priority.",
+      "decision_reason": "The gateway's configuration-diff loop, interface recreation, disconnect grace period, firewall mutation, and mTLS tests provide a reusable control-plane recovery mechanism for private networking. The refreshed head keeps that recovery model intact, so the selection still stands.",
       "revisit_reason": "Revisit if the gateway reconfiguration, firewall diffing, or mTLS handshake model materially changes.",
       "next_revisit_condition": "Revisit after a material change to reconnect handling, interface recovery, or certificate validation."
     },
@@ -541,9 +541,9 @@
       "repository": "docling-project/docling",
       "URL": "https://github.com/docling-project/docling",
       "first_seen": "2026-08-08",
-      "last_reviewed": "2026-08-08",
-      "commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-09-19",
+      "commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
+      "previous_commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
@@ -574,7 +574,7 @@
         "confidence aggregation across page outputs"
       ],
       "decision": "track",
-      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The source and tests show behavior that is directly reusable in batch document-AI pipelines without adopting the broader product surface.",
+      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The refreshed head keeps that reusable mechanism intact without changing the decision.",
       "revisit_reason": "Revisit if the pipeline, backend adapters, or confidence aggregation semantics materially change.",
       "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, or backend behavior."
     },
@@ -1638,6 +1638,47 @@
       "decision_reason": "Source and tests show confirmation-based scanning, cursor rewind/persistence, multi-RPC failover, and sink-separated delivery. It is useful as an event-scanning mechanism, but it stops short of full state reconstruction or orphan-branch repair.",
       "revisit_reason": "Review if the scanner adds full reorg repair or state-projection semantics materially.",
       "next_revisit_condition": "Revisit after a material change to reorg handling, cursor persistence, or RPC node selection."
+    },
+    {
+      "repository": "nasa/fprime",
+      "URL": "https://github.com/nasa/fprime",
+      "first_seen": "2026-09-19",
+      "last_reviewed": "2026-09-19",
+      "commit_reviewed": "3d9c014b0bc23d2c8ba0aaa981e172d311b284c2",
+      "previous_commit_reviewed": null,
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "Svc/FprimeRouter/FprimeRouter.cpp",
+        "Svc/CmdDispatcher/CommandDispatcherImpl.cpp",
+        "Svc/Ccsds/CfdpManager/CfdpManager.cpp",
+        "Svc/FprimeRouter/test/ut/FprimeRouterTester.cpp",
+        "Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp",
+        "Svc/Ccsds/CfdpManager/test/ut/CfdpManagerCommandTests.cpp"
+      ],
+      "operational_blockers": [
+        "integration harness not run locally",
+        "queue depth and packet ordering still need operational validation"
+      ],
+      "categories": [
+        "command/telemetry",
+        "delayed connectivity",
+        "file transfer recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "context-preserving packet router",
+        "command response dispatch table",
+        "CFDP transaction manager"
+      ],
+      "decision": "track",
+      "decision_reason": "F Prime's router, command dispatcher, and CFDP manager provide a reusable packet-routing and delayed-connectivity mechanism for space systems. The source and tests show explicit context preservation, routing, and file-transfer failure handling.",
+      "revisit_reason": "Revisit if the router context table, command dispatch semantics, or CFDP transaction behavior materially changes.",
+      "next_revisit_condition": "Revisit after a material change to packet routing, command acknowledgment handling, or CFDP engine lifecycle."
     }
   ]
 }
