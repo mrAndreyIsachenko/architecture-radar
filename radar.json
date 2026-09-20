@@ -1645,6 +1645,10 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
+        "Svc/FprimeRouter/FprimeRouter.cpp",
+        "Svc/FprimeRouter/test/ut/FprimeRouterTester.cpp",
+        "Svc/FprimeRouter/docs/sdd.md",
+        "Fw/FilePacket/docs/sdd.md",
         "Svc/CmdDispatcher/CommandDispatcherImpl.cpp",
         "Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp",
         "Svc/Health/HealthComponentImpl.cpp",
@@ -1652,13 +1656,17 @@
       ],
       "operational_blockers": [
         "needs target or hardware-in-the-loop restart validation",
-        "filed source evidence only, no mission runtime exercised"
+        "filed source evidence only, no mission runtime exercised",
+        "bounded context table not exercised in a full uplink deployment"
       ],
-      "first_seen": "2026-09-16",
+      "first_seen": "2026-09-13",
       "last_reviewed": "2026-09-16",
       "commit_reviewed": "198092c8f2f58a89e2922404bddf4b68eaaa3dbb",
-      "previous_commit_reviewed": null,
+      "previous_commit_reviewed": "4dee010c3002bce6a66f1372b89e1fed47289c57",
       "categories": [
+        "command/telemetry loop",
+        "delayed connectivity",
+        "packet routing",
         "command routing",
         "health monitoring",
         "flight software"
@@ -1669,6 +1677,7 @@
       "evidence_quality": "high",
       "extracted_patterns": [],
       "candidate_patterns": [
+        "bounded context-preserving packet router",
         "opcode-tracked command dispatcher",
         "watchdog-ping cycle monitor",
         "clear-tracking response fan-out"
@@ -1684,31 +1693,41 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
+        "hscontrol/poll.go",
         "hscontrol/policy/v2/policy.go",
         "hscontrol/state/state.go",
         "hscontrol/state/node_store.go",
         "hscontrol/state/connect_test.go",
-        "hscontrol/state/primaries_property_test.go"
+        "hscontrol/state/primaries_property_test.go",
+        "hscontrol/servertest/routes_test.go",
+        "hscontrol/servertest/policy_test.go",
+        "hscontrol/servertest/ha_health_test.go",
+        "hscontrol/state/persist_test.go"
       ],
       "operational_blockers": [
         "needs live reconnect-storm validation",
-        "needs multi-node HA churn validation"
+        "needs multi-node HA churn validation",
+        "policy reload and route election still need multi-node operational proof"
       ],
-      "first_seen": "2026-09-16",
+      "first_seen": "2026-09-13",
       "last_reviewed": "2026-09-16",
       "commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
-      "previous_commit_reviewed": null,
+      "previous_commit_reviewed": "4087d1fee9d34d042b279262ffbdaf1030ffd5e8",
       "categories": [
         "privacy networking",
         "policy control",
+        "route reconciliation",
         "reconnect recovery"
       ],
       "maturity": "track",
       "novelty_score": 4,
       "relevance_score": 5,
       "evidence_quality": "high",
-      "extracted_patterns": [],
+      "extracted_patterns": [
+        "Policy-Guarded Route Reconciliation Loop"
+      ],
       "candidate_patterns": [
+        "reconnect-safe route approval propagation",
         "session-epoch gated reconnect recovery",
         "atomic HA primary-election batch",
         "policy-driven peer-recompute gate"

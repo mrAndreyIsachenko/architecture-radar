@@ -5,8 +5,8 @@
 - Current commit reviewed: `c90ba0f0d6f82fe79fc2da82d95561f0e2780628`
 - Commit date: 2026-09-14T17:04:04+03:00
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `4087d1fee9d34d042b279262ffbdaf1030ffd5e8`
+- Material changes since previous review: adds session-aware reconnect accounting, bounded peer recomputation, and batched HA election evidence; the earlier policy and route reconciliation findings remain recorded in `reports/2026-09-13.md` and the extracted pattern.
 - Decision: track
 
 ## Problem Fit
@@ -78,6 +78,7 @@ Run a multi-node tailnet through reconnect storms, overlapping disconnects, and 
 
 ## Candidate Patterns
 
+- `reconnect-safe route approval propagation`
 - `session-epoch gated reconnect recovery`
 - `atomic HA primary-election batch`
 - `policy-driven peer-recompute gate`

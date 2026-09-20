@@ -5,8 +5,8 @@
 - Current commit reviewed: `198092c8f2f58a89e2922404bddf4b68eaaa3dbb`
 - Commit date: 2026-09-15T14:09:56-07:00
 - Branch: `devel`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `4dee010c3002bce6a66f1372b89e1fed47289c57`
+- Material changes since previous review: adds command-dispatch and health/watchdog evidence; the earlier bounded context-preserving router finding remains recorded in `reports/2026-09-13.md`.
 - Decision: track
 
 ## Problem Fit
@@ -77,6 +77,7 @@ Kill the command dispatcher mid-flight on a target or emulator build, restart it
 
 ## Candidate Patterns
 
+- `bounded context-preserving packet router`
 - `opcode-tracked command dispatcher`
 - `watchdog-ping cycle monitor`
 - `clear-tracking response fan-out`
