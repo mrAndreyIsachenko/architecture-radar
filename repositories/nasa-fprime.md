@@ -5,8 +5,8 @@
 - Current commit reviewed: `3d9c014b0bc23d2c8ba0aaa981e172d311b284c2`
 - Commit date: 2026-09-17T07:51:50-07:00
 - Branch: `devel`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `198092c8f2f58a89e2922404bddf4b68eaaa3dbb`
+- Material changes since previous review: adds CFDP transaction-management evidence and extends the packet-routing analysis; the command-dispatch, health/watchdog, and bounded router findings from the 2026-09-13 and 2026-09-16 reviews remain applicable.
 - Decision: track
 
 ## Problem Fit
@@ -24,12 +24,18 @@ Incoming packet or command -> `FprimeRouter` classifies packet type and restores
 - E2 test verified: `Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp` covers dispatch-table behavior, response routing, and command status handling.
 - E2 test verified: `Svc/Ccsds/CfdpManager/test/ut/CfdpManagerCommandTests.cpp` covers file-send success and failure paths, invalid inputs, and transaction handling.
 
+Previously established evidence retained from the prior review:
+
+- E1 source verified: `Svc/Health/HealthComponentImpl.cpp:72-149` implements ping return validation, warning/fatal timeout progression, telemetry updates, and watchdog strobes.
+- E2 test verified: `Svc/Health/test/ut/HealthTester.cpp:140-583` covers nominal telemetry, warning/fatal timeout behavior, monitoring enable/disable, watchdog checks, and command handler behavior.
+
 ## Architecture
 
 Principal components:
 
 - `Svc/FprimeRouter` for packet demultiplexing and context restoration.
 - `Svc/CmdDispatcher` for command table management and response accounting.
+- `Svc/Health` for ping-cycle monitoring and watchdog signaling.
 - `Svc/Ccsds/CfdpManager` for CFDP engine ownership and file-transfer workflow.
 - Unit-test harnesses for router, dispatcher, and CFDP regression coverage.
 
@@ -43,6 +49,7 @@ Reusable:
 
 - Preserve buffer-to-context association across asynchronous packet routing.
 - Keep command dispatch, telemetry response, and file-transfer logic separate but coordinated.
+- Model health checking as an explicit ping cycle with warning, fatal, and watchdog behavior.
 - Treat file-transfer engines as owned runtime components with a visible cycle.
 - Test out-of-order buffer returns and table-full behavior, not just nominal dispatch.
 
@@ -57,6 +64,7 @@ Do not copy:
 Production-quality signals:
 
 - Strong unit-test coverage for router, dispatcher, and CFDP error handling.
+- Source- and test-backed health monitoring, timeout progression, and watchdog behavior.
 - Explicit ownership of dispatch state and CFDP engine lifecycle.
 - Clear separation between packet routing and protocol-specific handlers.
 
@@ -78,6 +86,9 @@ Use the F Prime router pattern in a delayed-connectivity control plane, then for
 
 ## Candidate Patterns
 
-- `context-preserving packet router`
+- `bounded context-preserving packet router`
+- `opcode-tracked command dispatcher`
+- `watchdog-ping cycle monitor`
+- `clear-tracking response fan-out`
 - `command response dispatch table`
 - `CFDP transaction manager`
