@@ -77,4 +77,3 @@ Run the router in a realistic uplink stack with concurrent file and unknown pack
 ## Candidate Patterns
 
 - `bounded context-preserving packet router`
-

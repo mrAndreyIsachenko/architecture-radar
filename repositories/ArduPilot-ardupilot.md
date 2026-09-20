@@ -75,4 +75,3 @@ Run SITL failure injection for RC and GPS loss, then verify the vehicle transiti
 ## Candidate Patterns
 
 - `mission failsafe fallback state machine`
-
