@@ -1,1 +1,42 @@
-items: []
+items:
+  - id: 2026-09-13-headscale-reconnect-recovery
+    family: privacy-networking-vpn
+    source_report: reports/2026-09-13.md
+    source_repository: juanfont/headscale
+    mechanism: policy-guarded route reconciliation loop
+    evidence_gap: Source and tests show route and policy reconciliation order, but the reviewed evidence does not validate reconnect and policy reload behavior under a live multi-node control plane with real disconnect/reconnect churn.
+    validation_type: reconnect-recovery
+    proposed_validation: Run a live reconnect test with subnet-router advertisements, policy reload, and approved-route clearing while capturing AllowedIPs, primary routes, and health-bit changes across disconnect/reconnect cycles.
+    success_condition: Reconnect order, policy reload, and approved-route persistence converge without stale AllowedIPs, stale unhealthy bits, or replayed routes after restart.
+    priority: high
+    status: open
+    created: 2026-09-13
+    last_updated: 2026-09-13
+
+  - id: 2026-09-13-fprime-router-runtime
+    family: satellites-space-systems
+    source_report: reports/2026-09-13.md
+    source_repository: nasa/fprime
+    mechanism: bounded context-preserving packet router
+    evidence_gap: The router and unit tests prove bounded context restoration in source, but the review did not validate the buffer-context table under realistic packet rates, delayed returns, or integration with a full uplink stack.
+    validation_type: runtime
+    proposed_validation: Exercise the router in an integrated F Prime uplink with concurrent file and unknown packets, delayed buffer returns, and a saturated outstanding-buffer set to verify warning degradation only.
+    success_condition: Context is restored on matching returns, overflow only emits warning degradation, and command/file routing remains correct under sustained load.
+    priority: medium
+    status: open
+    created: 2026-09-13
+    last_updated: 2026-09-13
+
+  - id: 2026-09-13-ardupilot-sitl-failsafe
+    family: drones-robotics-autonomy
+    source_report: reports/2026-09-13.md
+    source_repository: ArduPilot/ardupilot
+    mechanism: mission failsafe fallback state machine
+    evidence_gap: Source and autotests cover RC/GPS loss paths, but the review did not validate the same fallback ladder in a longer SITL mission with repeated recovery, restart, and mission-resume churn.
+    validation_type: sitl
+    proposed_validation: Run a long SITL mission that injects RC loss, GPS loss, and mode changes multiple times, then reboot the mission harness mid-run to confirm RTL/Land/SmartRTL behavior stays consistent.
+    success_condition: The vehicle follows the expected fallback ladder each time, telemetry reflects the active failsafe state, and restart does not produce unsafe mission continuation.
+    priority: high
+    status: open
+    created: 2026-09-13
+    last_updated: 2026-09-13
