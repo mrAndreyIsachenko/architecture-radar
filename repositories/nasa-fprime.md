@@ -1,79 +1,88 @@
 # nasa/fprime
 
 - Repository: https://github.com/nasa/fprime
-- Review date: 2026-09-16
-- Current commit reviewed: `198092c8f2f58a89e2922404bddf4b68eaaa3dbb`
-- Commit date: 2026-09-15T14:09:56-07:00
+- Review date: 2026-09-19
+- Current commit reviewed: `3d9c014b0bc23d2c8ba0aaa981e172d311b284c2`
+- Commit date: 2026-09-17T07:51:50-07:00
 - Branch: `devel`
-- Previous commit reviewed: `4dee010c3002bce6a66f1372b89e1fed47289c57`
-- Material changes since previous review: adds command-dispatch and health/watchdog evidence; the earlier bounded context-preserving router finding remains recorded in `reports/2026-09-13.md`.
+- Previous commit reviewed: `198092c8f2f58a89e2922404bddf4b68eaaa3dbb`
+- Material changes since previous review: adds CFDP transaction-management evidence and extends the packet-routing analysis; the command-dispatch, health/watchdog, and bounded router findings from the 2026-09-13 and 2026-09-16 reviews remain applicable.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `satellites-space-systems`, especially delayed command/telemetry loops, health monitoring, and safe recovery after operator or hardware faults. The reusable mechanism is not the flight-software branding; it is the command dispatcher plus health component that keep command acceptance, ping cadence, and watchdog signaling consistent under load.
+This repository informs `satellites-space-systems`, especially command/telemetry loops, delayed-connectivity workflows, packet routing, and file-transfer recovery. The reusable mechanism is the combination of explicit packet dispatch, context preservation, and CFDP transaction management, not the broader flight-software framework.
 
 ## Verified Flow
 
-`CommandDispatcherImpl::seqCmdBuff_handler` deserializes a command buffer, resolves the opcode in the dispatch map, allocates a sequence number, optionally inserts a pending tracker entry, forwards the command to the destination component, and emits rejection/status events when validation or routing fails -> `CMD_CLEAR_TRACKING_cmdHandler` clears outstanding pending entries while preserving its own acknowledgement path -> `HealthImpl::Run_handler` drains queued messages, pings each enabled entry, records late pings, and strobes the watchdog -> `HealthImpl::PingReturn_handler` validates the return key before resetting counters -> the `CommandDispatcherTester` and `HealthTester` unit suites exercise nominal dispatch, invalid opcode handling, queue overflow, clear-tracking behavior, ping timeout thresholds, and watchdog stroke paths.
+Incoming packet or command -> `FprimeRouter` classifies packet type and restores the originating context from its buffer table -> `CommandDispatcherImpl` resolves opcode handlers, tracks sequence/overflow state, and emits command responses -> `CfdpManager` creates and cycles the CFDP engine for file transfer requests -> tests verify command routing, file routing, unknown-packet handling, out-of-order buffer returns, and CFDP error cases.
 
-- E1 source verified: `Svc/CmdDispatcher/CommandDispatcherImpl.cpp:104-158` implements deserialization, opcode lookup, pending-command tracking, failure responses, and invalid-opcode consumption.
-- E1 source verified: `Svc/CmdDispatcher/CommandDispatcherImpl.cpp:185-229` implements clear-tracking fan-out, ping echoing, and queue-overflow accounting.
+- E1 source verified: `Svc/FprimeRouter/FprimeRouter.cpp` dispatches packet types, preserves buffer/context association in a fixed-size table, and restores context on `fileBufferReturnIn`.
+- E1 source verified: `Svc/CmdDispatcher/CommandDispatcherImpl.cpp` maintains the opcode dispatch table, sequence tracking, command overflow handling, and command response routing.
+- E1 source verified: `Svc/Ccsds/CfdpManager/CfdpManager.cpp` owns CFDP engine lifetime, file-transfer initiation, queueing of file requests, and the 1 Hz processing cycle.
+- E2 test verified: `Svc/FprimeRouter/test/ut/FprimeRouterTester.cpp` covers command routing, file routing, unknown packet routing, context round-trip, multi-buffer out-of-order return, and table-full degradation.
+- E2 test verified: `Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp` covers dispatch-table behavior, response routing, and command status handling.
+- E2 test verified: `Svc/Ccsds/CfdpManager/test/ut/CfdpManagerCommandTests.cpp` covers file-send success and failure paths, invalid inputs, and transaction handling.
+
+Previously established evidence retained from the prior review:
+
 - E1 source verified: `Svc/Health/HealthComponentImpl.cpp:72-149` implements ping return validation, warning/fatal timeout progression, telemetry updates, and watchdog strobes.
-- E2 test verified: `Svc/CmdDispatcher/test/ut/CommandDispatcherTester.cpp:59-91,95-360,543-841` covers command registration, nominal dispatch, invalid command rejection, failure paths, overflow handling, and clear-tracking behavior.
 - E2 test verified: `Svc/Health/test/ut/HealthTester.cpp:140-583` covers nominal telemetry, warning/fatal timeout behavior, monitoring enable/disable, watchdog checks, and command handler behavior.
 
 ## Architecture
 
 Principal components:
 
-- Command dispatcher component with opcode routing and sequence tracking.
-- Health monitor component with ping send/return logic and watchdog strobes.
-- Event and telemetry surfaces that make late or invalid states observable.
-- Unit-test harnesses that exercise queue, timeout, and rejection edges.
+- `Svc/FprimeRouter` for packet demultiplexing and context restoration.
+- `Svc/CmdDispatcher` for command table management and response accounting.
+- `Svc/Health` for ping-cycle monitoring and watchdog signaling.
+- `Svc/Ccsds/CfdpManager` for CFDP engine ownership and file-transfer workflow.
+- Unit-test harnesses for router, dispatcher, and CFDP regression coverage.
 
-Most interesting mechanism: the dispatcher makes pending command tracking conditional on a connected status path, which keeps the fast path lean while still giving the operator a deterministic failure or clear-status path when the downstream component cannot confirm completion.
+Most interesting mechanism: `FprimeRouter` preserves packet-origin context across routing and out-of-order returns instead of treating buffers as anonymous payloads. That lets the flight-software stack reconnect response data to the right caller even when buffers come back in a different order.
 
-Baseline comparison: a conventional command router would forward opcodes and leave ack handling to ad hoc call sites. Fprime keeps the command lifecycle explicit, with sequence tracking, status return paths, and clear-tracking semantics in one component boundary.
+Baseline comparison: a simpler flight stack would route packets by type alone and rely on implicit caller assumptions for buffer ownership. F Prime keeps a concrete context table and routes command/file/unknown packets through explicit handlers.
 
 ## Reuse Guidance
 
 Reusable:
 
-- Keep command acceptance, pending-state tracking, and completion reporting in one boundary.
-- Treat malformed or unroutable commands as first-class observable failures.
-- Model health checking as a ping cycle with explicit warning and fatal thresholds.
-- Surface watchdog strobes as part of the health loop, not a side effect hidden in operator code.
+- Preserve buffer-to-context association across asynchronous packet routing.
+- Keep command dispatch, telemetry response, and file-transfer logic separate but coordinated.
+- Model health checking as an explicit ping cycle with warning, fatal, and watchdog behavior.
+- Treat file-transfer engines as owned runtime components with a visible cycle.
+- Test out-of-order buffer returns and table-full behavior, not just nominal dispatch.
 
 Do not copy:
 
-- Do not copy the concrete port layout or generated FPP naming without an adapter.
-- Do not assume the current in-tree command-tracker design is enough for high-rate ground links without runtime validation.
-- Do not treat the unit tests as a substitute for flight-target or hardware-in-the-loop exercise.
+- Do not copy the whole flight-framework stack unless you need the same deployment model.
+- Do not assume the context table is sufficient without resource-lifetime discipline.
+- Do not treat CFDP as a general-purpose queue; it is a protocol-specific workflow.
 
 ## Quality, Limits, And Adoption Conditions
 
 Production-quality signals:
 
-- The command path and the health path are both source-backed and test-backed.
-- Invalid opcode, malformed buffer, queue overflow, warning, and fatal paths all have explicit observable behavior.
-- Clear-tracking preserves the caller's own acknowledgement instead of wiping the whole response path blindly.
+- Strong unit-test coverage for router, dispatcher, and CFDP error handling.
+- Source- and test-backed health monitoring, timeout progression, and watchdog behavior.
+- Explicit ownership of dispatch state and CFDP engine lifecycle.
+- Clear separation between packet routing and protocol-specific handlers.
 
 Experimental or incomplete for our needs:
 
-- The repository is still shaped around generated component interfaces and target-specific deployment plumbing.
-- The current evidence is source and unit tests, not a target runtime with injected fault handling.
-- Recovery behavior after process restart is not yet validated against a real mission build.
+- The review did not run the broader deployment or integration harness locally.
+- CFDP and router behavior are operationally sensitive to queue depth and packet ordering.
+- The framework is large and flight-software-specific.
 
 Hidden costs and failure modes:
 
-- Pending-state growth can hide liveness problems if the downstream completion path is unhealthy.
-- Clear-tracking can suppress useful state if operators use it too aggressively.
-- Health thresholds need target-specific tuning; warning and fatal values are not universal.
+- Fixed-size context tables can degrade when traffic exceeds the table size.
+- Packet context recovery requires careful buffer lifecycle discipline.
+- File-transfer behavior depends on protocol timing and ground-link assumptions.
 
 Adoption experiment:
 
-Kill the command dispatcher mid-flight on a target or emulator build, restart it, and confirm that pending command tracking, command responses, and ping/watchdog behavior return to a consistent state without duplicate acknowledgements.
+Use the F Prime router pattern in a delayed-connectivity control plane, then force out-of-order buffer returns and a table-full condition to confirm the caller context is preserved and the system degrades cleanly.
 
 ## Candidate Patterns
 
@@ -81,3 +90,5 @@ Kill the command dispatcher mid-flight on a target or emulator build, restart it
 - `opcode-tracked command dispatcher`
 - `watchdog-ping cycle monitor`
 - `clear-tracking response fan-out`
+- `command response dispatch table`
+- `CFDP transaction manager`

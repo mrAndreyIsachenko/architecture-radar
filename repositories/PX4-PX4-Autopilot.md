@@ -1,12 +1,12 @@
 # PX4/PX4-Autopilot
 
 - Repository: https://github.com/PX4/PX4-Autopilot
-- Review date: 2026-08-02
-- Current commit reviewed: `43cccdea0e57cf92a58562d2d7a1cba0854395f7`
-- Commit date: 2026-08-01T13:02:45-06:00
+- Review date: 2026-09-19
+- Current commit reviewed: `c4e4ef98e9d75063bf3d53ebb2716221ee7505ae`
+- Commit date: 2026-09-18T13:06:04+02:00
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `43cccdea0e57cf92a58562d2d7a1cba0854395f7`
+- Material changes since previous review: refreshed current-head verification; the commander/failsafe and mission-validation mechanism remains the same safety model despite the new head commit.
 - Decision: track
 
 ## Problem Fit
@@ -20,8 +20,8 @@ MAVLink command / mission input -> commander / health checks / mission state -> 
 - E1 source verified: `src/modules/commander/Commander.hpp` wires in failsafe, mission, offboard, `mission_result`, `vehicle_command_ack`, and health-check subsystems.
 - E1 source verified: `src/modules/commander/Commander.cpp` maps incoming `vehicle_command` messages to accepted, denied, or temporarily rejected ACKs and handles mode transitions.
 - E1 source verified: `src/modules/rc_update/rc_update.cpp` handles RC function mapping and fallback behavior when parameters or calibration state change.
-- E1 source verified: `test/test_mavlink_param_validation.py` rejects mission items and commands with unsupported parameter slots and accepts valid variants.
-- E1 source verified: `test/mavsdk_tests/test_multicopter_failsafe.cpp` exercises mission continuation or landing after GPS, baro, and magnetometer loss.
+- E2 test verified: `test/test_mavlink_param_validation.py` rejects mission items and commands with unsupported parameter slots and accepts valid variants.
+- E2 test verified: `test/mavsdk_tests/test_multicopter_failsafe.cpp` exercises mission continuation or landing after GPS, baro, and magnetometer loss.
 - E2 test verified: `test/mavsdk_tests/test_multicopter_mission.cpp` exercises mission execution and RTL transitions.
 
 ## Architecture

@@ -1,12 +1,12 @@
 # DefGuard/gateway
 
 - Repository: https://github.com/DefGuard/gateway
-- Review date: 2026-08-08
-- Current commit reviewed: `ebac60b5a36ae38b537e3b7af45aa85ad3c785fb`
-- Commit date: 2026-08-04T11:27:12+02:00
+- Review date: 2026-09-19
+- Current commit reviewed: `dc21d0ba4e7d9c49ff1b9184447967da833f65fb`
+- Commit date: 2026-09-11T13:47:33+02:00
 - Branch: `stable/2.x`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `ebac60b5a36ae38b537e3b7af45aa85ad3c785fb`
+- Material changes since previous review: refreshed current-head verification; the reconnect-safe gateway loop, firewall diffing, and mTLS boundary remain the same mechanism.
 - Decision: track
 
 ## Problem Fit
