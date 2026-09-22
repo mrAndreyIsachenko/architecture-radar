@@ -136,3 +136,45 @@ items:
     status: open
     created: 2026-09-19
     last_updated: 2026-09-19
+
+  - id: 2026-09-22-durable-agent-runtime-fault-injection
+    family: ai-llm-systems
+    source_report: reports/2026-09-22.md
+    source_repository: rmax-ai/durable-agent-runtime-lab
+    mechanism: deterministic proposal boundary and append-only hash-chained workflow ledger
+    evidence_gap: Source and tests show the durable workflow path and deterministic fault injection, but the review did not validate an actual process-kill and restart cycle on the same workflow ledger.
+    validation_type: failure-injection
+    proposed_validation: Start a goal run, inject a process-kill fault after workflow creation or planning, restart the runtime, and confirm the ledger, state projection, and idempotency checks replay the same workflow without duplicate side effects.
+    success_condition: The restarted runtime reconstructs the workflow from durable state, no action is committed twice, and the event hash chain remains valid after recovery.
+    priority: high
+    status: open
+    created: 2026-09-22
+    last_updated: 2026-09-22
+
+  - id: 2026-09-22-autonomous-uav-sitl-hold
+    family: drones-robotics-autonomy
+    source_report: reports/2026-09-22.md
+    source_repository: EspiroFares/Autonomous-UAV
+    mechanism: canonical hold boundary with single FCU gateway
+    evidence_gap: Source and unit tests show the hold policy and FCU bridge, but the review did not validate repeated world-model silence and bridge restart behavior in a longer SITL mission.
+    validation_type: sitl
+    proposed_validation: Run a long SITL mission with repeated target-loss, world-model silence, and FCU bridge restarts, then verify the controller always converges to the canonical hold command before any unsafe actuation reaches the bridge.
+    success_condition: Every dropout or restart produces the same safe hold output, no stale setpoint is forwarded, and mission state remains consistent across recovery.
+    priority: high
+    status: open
+    created: 2026-09-22
+    last_updated: 2026-09-22
+
+  - id: 2026-09-22-hdtn-operational-routing
+    family: satellites-space-systems
+    source_report: reports/2026-09-22.md
+    source_repository: nasa/HDTN
+    mechanism: contact-plan driven route recomputation with storage-gated forwarding
+    evidence_gap: Source and tests show the route and storage plumbing, but the review did not validate live contact-plan churn, storage pressure, and delayed transport together in an operational run.
+    validation_type: operational
+    proposed_validation: Run HDTN with a live contact-plan update sequence, intentional storage pressure, and delayed or lossy transport, then confirm route updates, link notifications, and storage restore behavior remain coherent without stale forwarding state.
+    success_condition: Route recomputation tracks the live plan, storage exhaustion suppresses forwarding safely, and recovery from restore does not reintroduce stale routes or duplicate bundles.
+    priority: medium
+    status: open
+    created: 2026-09-22
+    last_updated: 2026-09-22

@@ -3,7 +3,7 @@
 - Canonical name: Mission Failsafe Fallback State Machine
 - Aliases: RTL fallback machine, safe-mode mission controller, staged recovery state machine, autonomy failsafe ladder
 - Avoided duplicate names: emergency lander, panic stop, autopilot watchdog, mission abort switch
-- Last updated: 2026-09-13
+- Last updated: 2026-09-22
 
 ## Problem
 
@@ -35,17 +35,21 @@ Combine a fast watchdog with explicit mission fallback states:
 - Staged RTL controller: ArduPilot's RTL mode moves through start, climb, return, loiter, descent, and land states, with terrain restart when needed.
 - Mission/safety regression harness: ArduPilot autotests inject RC and GPS failures and verify the resulting mode transitions and mission continuation behavior.
 - Command-response safety matrix: PX4 uses a different control structure, but still encodes explicit failsafe and mission recovery policies that can be compared against the staged RTL approach.
+- Mission-state hold boundary: `EspiroFares/Autonomous-UAV` routes world-model freshness into mission states, forces stale or silent setpoints into a canonical hold, and keeps the FCU bridge as the only actuation gateway.
 
 ## Known Repositories
 
 - `ArduPilot/ardupilot` reviewed at `acef45eb0f0145943a9c2ba341d3825b8af34472`.
 - `PX4/PX4-Autopilot` reviewed at `d57d7f3b11c044b86195a12cfb933d17fac85b34`.
+- `EspiroFares/Autonomous-UAV` reviewed at `8df4f467332fcf7a93cf93dc596d5f8d78f94396`.
 
 ## Comparison Of Implementations
 
 ArduPilot is strongest for making the fallback ladder explicit in both source and SITL tests. The staged RTL machine makes the transition from mission intent to conservative landing easy to audit.
 
 PX4 is the useful comparison baseline because it provides a separate autonomy stack with its own failsafe and mission recovery design. That helps distinguish reusable safety structure from ArduPilot-specific implementation details.
+
+`EspiroFares/Autonomous-UAV` shows the same fallback idea at a more application-level autonomy stack: mission state, freshness checks, and a canonical hold command are enough to keep the FCU bridge from seeing stale setpoints. The implementation is smaller than ArduPilot, so it is a useful safety-pattern variant but not a replacement for flight-stack-grade validation.
 
 The conventional baseline is a single "land now" emergency response. That is simpler, but it loses the ability to preserve mission intent when the system can still navigate safely.
 
@@ -55,12 +59,14 @@ The conventional baseline is a single "land now" emergency response. That is sim
 - Mode transitions can flap if sensor confidence changes during recovery.
 - Mission continuation policies can keep flying when the operator expected an abort.
 - Terrain-data mismatch can force repeated RTL restarts or a conservative land.
+- Canonical hold policies can become overconservative if freshness thresholds are too strict or one node stops publishing.
 
 ## Trade-Offs
 
 - More explicit recovery states improve auditability but increase state-machine complexity.
 - Safety-first fallback may interrupt missions that could have continued with more permissive policy.
 - SITL coverage is cheap compared with flight testing, but it can still miss hardware timing and sensor edge cases.
+- Pure hold policies make the safety decision easy to test, but they can mask whether the upstream controller is actually healthy.
 
 ## Applicability To Interests
 
@@ -73,6 +79,7 @@ The conventional baseline is a single "land now" emergency response. That is sim
 - Validate RC-loss, GPS-loss, and mission-continuation cases in SITL or HIL.
 - Verify that telemetry/status matches the active fallback stage.
 - Test recovery and restart behavior after both transient and persistent sensor loss.
+- Validate repeated target-loss, world-model silence, and bridge-restart cases in SITL so the canonical hold path is exercised more than once.
 
 ## Evidence References
 
@@ -81,3 +88,8 @@ The conventional baseline is a single "land now" emergency response. That is sim
 - E1 source verified: ArduPilot `ArduCopter/GCS_MAVLink_Copter.cpp::vehicle_system_status` reports critical state when any failsafe is active.
 - E2 test verified: ArduPilot `Tools/autotest/arducopter.py::ThrottleFailsafe` injects RC and GPS failures and checks RTL, Land, SmartRTL, guided continuation, and mission continuation behavior.
 - E2 test verified: ArduPilot `Tools/autotest/run_mission.py` runs a mission in SITL and waits for completion/disarm.
+- E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_behavior/src/mission_manager_node.cpp` tracks mission state from world-model validity and publishes `follow_enabled`.
+- E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_control/src/follow_controller_node.cpp` clamps and freshness-gates the control output, then degrades to safe hover or hold.
+- E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_safety/include/drone_safety/hold_policy.hpp` normalizes all unsafe states into a canonical hold command.
+- E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_state/src/fcu_bridge_node.cpp` zeroes unsafe actuation and remains the only gateway to the FCU.
+- E2 test verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_safety/test/test_hold_policy.cpp` and `test_safety_checks.cpp` verify silence, veto, and staleness behavior.
