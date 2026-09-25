@@ -71,11 +71,37 @@ allowlisting, file and directory symlinks, empty and
 partial output, provenance filtering, workflow failure/skip conditions, and
 preservation of failed status. These tests are not proof of a hosted upload.
 
-## Remaining Acceptance
+## Hosted Acceptance
 
-Task 3.4 remains open until hosted proof is recorded. The manual `recovery_smoke`
-input skips production research and runs the real validator against an invalid
-fixture, with the identical recovery steps and read-only job permissions. No
-paid model invocation is needed. Expected proof: validator failed, publication
-sentinel skipped, recovery uploaded, downloaded checksums verified, and failed
-workflow conclusion. Do not mark the change fully operational before that proof.
+After the user's continuation request, implementation was published in PR #93:
+https://github.com/mrAndreyIsachenko/architecture-radar/pull/93
+
+No-model smoke run (2026-09-25, 13:14 UTC):
+https://github.com/mrAndreyIsachenko/architecture-radar/actions/runs/36139673671
+
+Tested implementation SHA: `25b32d23ff5654653817e90b588b4d0ced3864e2`.
+The API and step logs confirmed:
+
+- Workflow conclusion: `failure`, as required for the intentional failure test.
+- Production `research` job: `skipped`; no Codex/model or API-key step ran.
+- Fixture generation: `success`.
+- Real strict validator: `failure` specifically because
+  `reports/9999-12-31.md` is missing required report sections.
+- Publication sentinel: `skipped`.
+- Staging and upload: `success`.
+- Artifact: `radar-recovery-36139673671-1`, ID `10866415926`, 235411 bytes,
+  expires `2026-10-02T13:14:15Z`.
+- Downloaded to `/tmp/radar-hosted-recovery-36139673671`: all 72 file lengths
+  and SHA-256 checksums matched the manifest, with no unlisted or hidden files.
+  Run/base/date provenance matched, and the invalid report matched the fixture
+  byte for byte. This snapshot includes baseline research, not 72 new outputs.
+- Open PR inventory remained #90, #91, #92, and implementation #93; no research
+  PR was created by the smoke run.
+
+Ordinary PR validation also passed, independently of the intentional failure:
+https://github.com/mrAndreyIsachenko/architecture-radar/actions/runs/36139673619
+
+Task 3.4 is complete. Production adoption still requires merging PR #93; the
+next real research run has not been exercised and is not claimed as verified.
+The recovered September 25 report remains a separate local artifact, not a
+published report. No paid regeneration was launched and no PR was auto-merged.

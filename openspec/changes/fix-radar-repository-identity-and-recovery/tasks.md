@@ -15,4 +15,4 @@
 - [x] 3.1 Inspect run 36121754617 log patches as data and reconstruct complete allowlisted output at base e8e7441cb82e03ef52f71133615d38aa4ef40a70 in isolation; produce a per-file completeness inventory, explicitly identifying any missing or truncated output.
 - [x] 3.2 Apply the identity repair to recovered output and run the full radar validator; retain the exact result and any remaining concrete blockers without fabricating research or spending API credits.
 - [x] 3.3 Run the full unit suite, strict OpenSpec validation, shell syntax checks, relevant state validators, and diff whitespace checks; record results and keep failed checks unresolved.
-- [ ] 3.4 After explicit publication/run authorization, exercise a no-model CI failure fixture and verify a downloadable recovery artifact, failed workflow conclusion, and no invalid PR publication; record the run URL and leave this item open until verified.
+- [x] 3.4 After explicit publication/run authorization, exercise a no-model CI failure fixture and verify a downloadable recovery artifact, failed workflow conclusion, and no invalid PR publication; record the run URL and leave this item open until verified.
