@@ -20,6 +20,11 @@ on:
         required: false
         type: boolean
         default: false
+      recovery_smoke:
+        description: "Test recovery upload without a model (expected failed run)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -31,6 +36,7 @@ concurrency:
 
 jobs:
   research:
+    if: github.event_name != 'workflow_dispatch' || !inputs.recovery_smoke
     runs-on: ubuntu-latest
     timeout-minutes: 360
     env:
@@ -93,6 +99,7 @@ jobs:
         run: scripts/prepare-radar-run.sh
 
       - name: Run research agent
+        id: research
         if: steps.cadence.outputs.should_run == 'true' && steps.rerun.outputs.should_run == 'true'
         run: scripts/run-codex-radar.sh
 
@@ -113,3 +120,59 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: scripts/publish-radar-run.sh
+
+      - name: Stage failed research output
+        id: recovery
+        if: failure() && (steps.research.outcome == 'success' || steps.research.outcome == 'failure')
+        run: python3 scripts/stage-radar-recovery.py --output "$RUNNER_TEMP/radar-recovery-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Preserve failed research output
+        if: failure() && steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: radar-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/radar-recovery-${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
+
+  recovery-smoke:
+    if: github.event_name == 'workflow_dispatch' && inputs.recovery_smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      ARCHITECTURE_RADAR_RUN_DATE: "9999-12-31"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Produce intentionally invalid research fixture
+        id: research
+        run: cp tests/fixtures/recovery-invalid-report.md reports/9999-12-31.md
+
+      - name: Validate radar artifacts (expected failure)
+        run: scripts/validate-radar-state.py
+
+      - name: Publication must remain blocked
+        run: |
+          echo "::error::Invalid fixture unexpectedly passed validation"
+          exit 1
+
+      - name: Stage failed research output
+        id: recovery
+        if: failure() && (steps.research.outcome == 'success' || steps.research.outcome == 'failure')
+        run: python3 scripts/stage-radar-recovery.py --output "$RUNNER_TEMP/radar-recovery-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Preserve failed research output
+        if: failure() && steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: radar-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/radar-recovery-${{ github.run_id }}-${{ github.run_attempt }}/
+          retention-days: 7
+          if-no-files-found: error
+          include-hidden-files: false
