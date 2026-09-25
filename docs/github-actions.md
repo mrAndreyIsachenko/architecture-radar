@@ -103,3 +103,64 @@ python3 scripts/summarize-opportunity-pr.py PR_NUMBER --format markdown
 - No file changes: the publish step exits without opening a PR.
 - Missing scheduled run: the PR review helper reports a missed schedule after the grace window instead of waiting indefinitely.
 - GitHub token lacks write permissions: publish fails after research artifacts are produced in the runner.
+
+## Recovering Failed Architecture Research
+
+After an executed research step or a downstream step fails, the workflow stages
+regular files from `reports/*.md`, `repositories/*.md`, `patterns/*.md`,
+`radar.json`, `README.md`, and `experiments/failure-injection-backlog.yml`.
+The artifact `radar-recovery-RUN_ID-ATTEMPT` is retained for seven days. It includes
+`files/` and `manifest.json` with the original base SHA, run ID, attempt, date,
+file lengths, and SHA-256 checksums. It is unvalidated recovery data, not a
+successful report or a delta against current main. Empty/partial output is
+recorded honestly. A skipped research run does not create a recovery artifact.
+
+Download a known run's artifact into a fresh directory:
+
+```bash
+gh run download RUN_ID --name radar-recovery-RUN_ID-ATTEMPT --dir /tmp/radar-recovery-RUN_ID-ATTEMPT
+```
+
+Verify manifest checksums, inspect the file inventory, and restore only those
+research files in an isolated checkout at the manifest's `base_commit`. Do not
+overwrite newer research on main. Correct observed errors, then run from that
+checkout using the manifest's report date:
+
+```bash
+export ARCHITECTURE_RADAR_RUN_DATE=YYYY-MM-DD
+python3 scripts/normalize-radar-evidence-labels.py
+python3 scripts/repair-radar-report-structure.py
+python3 scripts/validate-radar-state.py
+git diff --check
+```
+
+Use the fixed repair script when recovering a run whose base predates the fix.
+Bare repository names are expanded only from unambiguous source references;
+the backlog ID alone does not identify an owner or forge. Local clone paths
+are not source evidence: a corroborated `radar.json` URL can establish identity,
+but the repair does not fabricate missing public URLs or rewrite prose. Explicit
+owner/forge conflicts remain unresolved for strict validation.
+
+Recovery does not rerun Codex, publish, merge, or change failure status. Review
+restored data before authorizing publication. Credentials, hidden files,
+symlinks, external clones, and raw agent logs are excluded by construction;
+the allowlist is not a content-level secret scanner. Abrupt runner loss,
+cancellation, or artifact-upload failure can still prevent recovery. Runs before
+this change have no recovery artifact; only complete logged patches with verified
+Git blob hashes can be reconstructed without a new research run.
+
+To verify hosted recovery without API spending, dispatch the existing workflow
+on a ref containing this change:
+
+```bash
+gh workflow run architecture-radar.yml --ref BRANCH --field recovery_smoke=true
+```
+
+The manual-only `recovery-smoke` job has read-only permissions and no model or
+secret access. Normal research is skipped. It copies an intentionally invalid
+fixture, runs the real validator, and executes the same recovery upload steps
+as production. Expected acceptance is a **failed** workflow, the validator step
+failed, the publication sentinel skipped, and a downloadable recovery artifact
+containing `files/reports/9999-12-31.md` with matching manifest checksums.
+The sentinel failing instead of being skipped is a smoke-test failure, not
+successful acceptance. This test proves upload behavior, not a new research run.

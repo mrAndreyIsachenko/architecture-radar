@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
+import json
 import os
 import re
 from collections import OrderedDict
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 ROOT = Path.cwd()
@@ -255,6 +258,130 @@ def clean_markdown_code(value: str) -> str:
     return value
 
 
+def repository_url(value: str) -> tuple[str, str] | None:
+    value = clean_markdown_code(value)
+    link = re.fullmatch(r"\[[^\]]*\]\((https?://[^\s)]+)\)", value)
+    if link:
+        value = link.group(1)
+    try:
+        url = urlsplit(value)
+        if url.scheme != "https" or url.netloc not in {"github.com", "gitee.com", "gitcode.com"}:
+            return None
+        parts = url.path.strip("/").split("/")
+        if len(parts) == 2 and parts[1].endswith(".git"):
+            parts[1] = parts[1][:-4]
+        if len(parts) != 2 or not all(re.fullmatch(r"[\w.-]+", part) for part in parts):
+            return None
+        return url.netloc, "/".join(parts)
+    except ValueError:
+        return None
+
+
+def table_rows(text: str) -> list[tuple[int, list[str], dict[str, str]]]:
+    lines = text.splitlines()
+    indexes = [i for i, line in enumerate(lines) if line.startswith("|")]
+    if len(indexes) < 3:
+        return []
+    header = [cell.strip() for cell in lines[indexes[0]].strip("|").split("|")]
+    if len(set(header)) != len(header):
+        return []
+    rows = []
+    for index in indexes[2:]:
+        cells = [cell.strip() for cell in lines[index].strip("|").split("|")]
+        if len(cells) == len(header):
+            rows.append((index, header, dict(zip(header, cells))))
+    return rows
+
+
+def repair_repository_identities(text: str, radar: list[dict], backlog: list[dict]) -> str:
+    preamble, sections, extras = split_h2_sections(text)
+    ledger = table_rows(sections.get("Candidate Ledger", ""))
+    updates = table_rows(sections.get("Validation Backlog Updates", ""))
+    candidates: dict[str, set[tuple[str, str]]] = {}
+    blocked: set[str] = set()
+
+    def short_name(name: str) -> str:
+        return clean_markdown_code(name).rsplit("/", 1)[-1]
+
+    def add_source(name: str, url: str) -> None:
+        name = clean_markdown_code(name)
+        short = short_name(name)
+        identity = repository_url(url)
+        if identity is None or name not in {identity[1], short_name(identity[1])}:
+            blocked.add(short)
+            if identity:
+                blocked.add(short_name(identity[1]))
+            return
+        candidates.setdefault(short, set()).add(identity)
+
+    for record in radar:
+        add_source(record.get("repository", ""), record.get("URL", ""))
+    for _, _, row in ledger:
+        url = clean_markdown_code(row.get("URL", ""))
+        # A clone path is not source evidence. A corroborated radar URL may
+        # still establish identity, but an explicit conflicting URL must block.
+        if not url.startswith("/") and url not in {"", "unavailable"}:
+            add_source(row.get("Repository", ""), url)
+
+    # A backlog ID is a reference, never evidence for guessing an owner or forge.
+    by_id: dict[str, list[str]] = {}
+    for item in backlog:
+        by_id.setdefault(item.get("id", ""), []).append(item.get("source_repository", ""))
+    for _, _, row in updates:
+        name = clean_markdown_code(row.get("Repository", ""))
+        short = short_name(name)
+        sources = by_id.get(clean_markdown_code(row.get("Backlog item", "")), [])
+        identities = candidates.get(short, set())
+        if len(sources) != 1 or len(identities) != 1:
+            blocked.add(short)
+            continue
+        canonical = next(iter(identities))[1]
+        if sources[0] != canonical or name not in {short, canonical}:
+            blocked.add(short)
+
+    for _, _, row in ledger:
+        name = clean_markdown_code(row.get("Repository", ""))
+        identities = candidates.get(short_name(name), set())
+        if "/" in name and identities and name not in {identity[1] for identity in identities}:
+            blocked.add(short_name(name))
+
+    for section in ("Candidate Ledger", "Validation Backlog Updates"):
+        content = sections.get(section, "")
+        lines = content.splitlines()
+        for index, header, row in table_rows(content):
+            raw = row.get("Repository", "")
+            name = clean_markdown_code(raw)
+            if not name or "/" in name:
+                continue
+            identities = candidates.get(name, set())
+            if name in blocked or len(identities) != 1:
+                print(f"unresolved repository identity: {name}")
+                continue
+            canonical = next(iter(identities))[1]
+            row["Repository"] = f"`{canonical}`" if raw.startswith("`") else canonical
+            lines[index] = "| " + " | ".join(row[column] for column in header) + " |"
+        if section in sections:
+            sections[section] = "\n".join(lines)
+    output = [preamble, ""]
+    for section, content in [*sections.items(), *extras.items()]:
+        output.extend([f"## {section}", "", content, ""])
+    return "\n".join(output).rstrip() + "\n"
+
+
+def load_identity_references() -> tuple[list[dict], list[dict]]:
+    radar_path = ROOT / "radar.json"
+    radar = json.loads(radar_path.read_text(encoding="utf-8"))["repositories"] if radar_path.exists() else []
+    backlog = []
+    if (ROOT / BACKLOG_PATH).exists():
+        spec = importlib.util.spec_from_file_location("radar_identity_validator", Path(__file__).with_name("validate-radar-state.py"))
+        assert spec and spec.loader
+        validator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validator)
+        validator.ROOT = ROOT
+        backlog = validator.parse_failure_backlog_yaml()
+    return radar, backlog
+
+
 def normalize_review_value_table(section_text: str) -> str:
     lines = section_text.splitlines()
     table_indexes = [index for index, line in enumerate(lines) if line.startswith("|")]
@@ -414,6 +541,7 @@ def target_paths(args: argparse.Namespace) -> list[Path]:
 def repair_path(path: Path) -> bool:
     original = path.read_text(encoding="utf-8") if path.is_file() else ""
     repaired = repair_report_text(original, path.stem)
+    repaired = repair_repository_identities(repaired, *load_identity_references())
     if repaired == original:
         print(f"report structure already canonical: {path.relative_to(ROOT)}")
         return False
