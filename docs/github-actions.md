@@ -73,7 +73,7 @@ Use the local helper to decide whether a review notification is warranted:
 python3 scripts/radar-pr-review.py --format markdown --include-failed-log
 ```
 
-The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. On an Architecture cadence day, or inside the Opportunity Radar scheduled wake-up window, if the due scheduled run is missing, queued, or still in progress, it prints `DONT_NOTIFY` so the heartbeat can wait for a later check instead of claiming there is no PR. After the configured grace window passes, a missing due scheduled run is reported as an actionable missed schedule. For fresh radar PRs, it summarizes the PR metadata, checks, changed radar artifacts, changed report files, and the report-declared review value. `looks_mergeable` means validation passed and `Review Value` recommends `merge`; `needs_targeted_fix` means the report recommends a specific repair; `should_close` means the report says to close, regenerate, or demote selected content to watchlist first. `needs_manual_review` is reserved for validation, summarization, draft, or mergeability blockers. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
+The helper checks open Architecture Radar and Opportunity Radar pull requests before returning a no-work result. An unchanged open PR remains pending until its exact revision has a delivery receipt for this conversation. A pending content review takes priority over schedule waiting; run health remains visible separately. With no pending content, on an Architecture cadence day or inside the Opportunity Radar scheduled wake-up window, a missing, queued, or in-progress due scheduled run prints `DONT_NOTIFY`. After the configured grace window passes, a missing due scheduled run is reported as an actionable missed schedule. For pending radar PRs, the helper summarizes the PR metadata, checks, changed radar artifacts, changed report files, and the report-declared review value. `looks_mergeable` means validation passed and `Review Value` recommends `merge`; `needs_targeted_fix` means the report recommends a specific repair; `should_close` means the report says to close, regenerate, or demote selected content to watchlist first. `needs_manual_review` is reserved for validation, summarization, draft, or mergeability blockers. Use `--radar architecture` or `--radar opportunity` when reviewing only one radar family.
 
 For failed runs, `--include-failed-log` includes a short actionable excerpt from `gh run view --log-failed`.
 
@@ -94,6 +94,70 @@ For an Opportunity Radar PR:
 ```bash
 python3 scripts/summarize-opportunity-pr.py PR_NUMBER --format markdown
 ```
+
+### Delivery Receipts And Heartbeat Caller Protocol
+
+The local macOS/Linux caller uses SQLite receipts keyed by repository,
+conversation (`delivery_scope`), PR number, and immutable head SHA. The default
+store is `$XDG_STATE_HOME/architecture-radar/review-delivery.sqlite3`, or
+`~/.local/state/architecture-radar/review-delivery.sqlite3` without that variable.
+It is local state, not a tracked research artifact. A POSIX lock plus SQLite
+transactions protects concurrent acknowledgements. Reading or printing never
+creates a receipt or initializes the store.
+
+Use a stable destination ID, not a new ID on every heartbeat:
+
+```bash
+python3 scripts/radar-pr-review.py --format markdown --include-failed-log \
+  --delivery-scope "$CODEX_THREAD_ID"
+```
+
+`--delivery-scope` defaults to `CODEX_THREAD_ID`. An unavailable scope, missing
+store, or corrupt/unsupported store cannot suppress a review. Corrupt state is
+reported rather than silently replaced. `--delivery-state /absolute/path/state.sqlite3`
+overrides the path; use the same durable local path for checking and acknowledging.
+
+The caller must follow this sequence:
+
+1. Inspect the visible conversation for a prior substantive review not yet
+   acknowledged. A status-only response, plan, helper stdout, or intended future
+   final response is **not** delivery evidence. Recover its exact reviewed SHA
+   and message/turn reference; never substitute the current PR head for an old
+   review's SHA. If that evidence is unavailable, leave the review pending.
+2. Only after confirming that visible reply, acknowledge each covered PR using
+   its repository, destination, family, exact reviewed SHA, and visible-message
+   reference:
+
+```bash
+python3 scripts/radar-pr-review.py --repo mrAndreyIsachenko/architecture-radar \
+  --delivery-scope "$CODEX_THREAD_ID" --radar architecture \
+  --ack-delivered "$REVIEWED_PR" --head-sha "$REVIEWED_HEAD_SHA" \
+  --message-ref "$VISIBLE_REVIEW_MESSAGE_REF"
+```
+
+3. Run the review helper again. Inspect and send a substantive Russian review
+   for **every** `pending_reviews` entry, covering both families. Include the
+   reviewed SHA with the PR link so a later invocation can attest that revision.
+   Check `review_errors`, `validation_blockers`, and `operational_statuses` even
+   when no content review is pending.
+4. If the final reply cannot be acknowledged after it becomes visible in the
+   same invocation, perform step 1 on the next invocation. Never acknowledge
+   before sending to avoid losing the review after an interrupted response.
+   No additional user confirmation is required per report.
+
+Receipts are `caller_attested`: the CLI validates identity and reference syntax,
+not the chat platform or the truth of the caller's claim. Repeated acknowledgement
+is idempotent. A new SHA, repository, or conversation remains pending. Receipt
+loss can cause a duplicate review, which is preferable to suppressing an unseen
+one. `no_pending_review` does not mean no open PR exists, green CI, or successful
+research. Workflow failures and concrete check blockers remain independently
+reportable; a receipt never turns a PR mergeable.
+
+Adopting this protocol in a saved heartbeat prompt is a separate authorized
+configuration step. Installing the code alone does not update that prompt or
+prove live chat delivery. The unit fixture verifies interrupted rendering,
+explicit next-invocation acknowledgement, process restart, and a new SHA without
+creating real conversation receipts.
 
 ## Expected Failure Modes
 

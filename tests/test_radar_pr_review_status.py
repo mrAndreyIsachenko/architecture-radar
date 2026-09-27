@@ -68,6 +68,7 @@ def pr(*, title: str = "Architecture Radar 2026-08-11", head: str = "architectur
         "title": title,
         "url": "https://github.com/example/pull/42",
         "headRefName": head,
+        "headRefOid": "a" * 40,
         "baseRefName": "main",
         "createdAt": "2026-08-11T06:00:00Z",
         "updatedAt": "2026-08-11T06:00:00Z",
@@ -131,6 +132,21 @@ class RadarPrReviewStatusTest(unittest.TestCase):
         self.assertEqual(status["status"], "fresh_pr")
         self.assertEqual(status["notification"], "REVIEW")
         self.assertEqual(len(status["fresh_prs"]), 1)
+        self.assertEqual(status["fresh_prs"][0]["head_sha"], "a" * 40)
+        self.assertEqual(status["operational"]["status"], "waiting")
+
+    def test_open_pr_does_not_hide_failed_workflow(self) -> None:
+        status = self.build("2026-08-09T10:00:00Z", prs=[pr()],
+                            runs=[run(conclusion="failure")], include_failed_log=True,
+                            failed_excerpt=["validator mismatch"])
+        self.assertEqual(status["status"], "fresh_pr")
+        self.assertEqual(status["operational"]["status"], "failed_run")
+        self.assertEqual(status["operational"]["failed_log_excerpt"], ["validator mismatch"])
+
+    def test_idle_workflow_does_not_claim_no_open_pr(self) -> None:
+        status = self.build("2026-08-09T10:00:00Z", prs=[pr()], runs=[run()])
+        self.assertEqual(status["operational"]["status"], "idle")
+        self.assertNotIn("No fresh", status["operational"]["message"])
 
     def test_waits_before_due_time_on_cadence_day(self) -> None:
         status = self.build("2026-08-11T04:30:00Z")

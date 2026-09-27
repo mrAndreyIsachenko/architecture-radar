@@ -96,7 +96,7 @@ def newest_open_opportunity_pr(repo: str) -> str:
 
 
 def pr_view(repo: str, pr: str) -> dict[str, object]:
-    fields = "number,title,url,headRefName,baseRefName,isDraft,mergeable,statusCheckRollup,files"
+    fields = "number,title,url,headRefName,headRefOid,baseRefName,baseRefOid,isDraft,mergeable,statusCheckRollup,files"
     data = load_json_from_gh(["pr", "view", pr, "--repo", repo, "--json", fields])
     if not isinstance(data, dict):
         raise SystemExit("unexpected gh pr view response")
@@ -275,7 +275,18 @@ def fetch_file_text(repo: str, ref: str, path: str) -> str:
 
 def summarize_pr(repo: str, pr: str | None) -> dict[str, object]:
     pr_ref = pr or newest_open_opportunity_pr(repo)
-    view = pr_view(repo, pr_ref)
+    for _ in range(2):
+        view = pr_view(repo, pr_ref)
+        if not re.fullmatch(r"[0-9a-f]{40}", str(view.get("headRefOid") or "")):
+            raise SystemExit("missing or invalid PR head SHA; review remains pending")
+        summary = summarize_revision(repo, view)
+        after = pr_view(repo, pr_ref)
+        if all(view.get(key) == after.get(key) for key in ("headRefOid", "baseRefOid", "files")):
+            return summary
+    raise SystemExit("PR revision changed during review; retry before acknowledging delivery")
+
+
+def summarize_revision(repo: str, view: dict[str, object]) -> dict[str, object]:
     files = view.get("files") or []
     if not isinstance(files, list):
         files = []
@@ -289,7 +300,7 @@ def summarize_pr(repo: str, pr: str | None) -> dict[str, object]:
     report_summaries = []
 
     for path in changed["opportunity_reports"]:
-        text = fetch_file_text(repo, head, path)
+        text = fetch_file_text(repo, str(view["headRefOid"]), path)
         report_summaries.append(report_summary.summarize_report_text(text, path))
 
     summary = {
@@ -299,6 +310,7 @@ def summarize_pr(repo: str, pr: str | None) -> dict[str, object]:
         "title": view.get("title"),
         "url": view.get("url"),
         "head": head,
+        "head_sha": view["headRefOid"],
         "base": view.get("baseRefName"),
         "is_draft": view.get("isDraft"),
         "mergeable": view.get("mergeable"),
@@ -314,6 +326,7 @@ def emit_markdown(summary: dict[str, object]) -> None:
     print(f"PR: #{summary['number']} {summary['title']}")
     print(f"URL: {summary['url']}")
     print(f"Branch: {summary['head']} -> {summary['base']}")
+    print(f"Reviewed SHA: {summary.get('head_sha')}")
     print(f"Draft: {summary['is_draft']}")
     print(f"Mergeable: {summary['mergeable']}")
     recommendation = summary.get("review_recommendation") or {}

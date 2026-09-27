@@ -35,6 +35,7 @@ opportunity_pr_summary_helper = load_module(
     "summarize_opportunity_pr",
     ROOT / "scripts" / "summarize-opportunity-pr.py",
 )
+delivery = load_module("radar_review_delivery", ROOT / "scripts" / "radar-review-delivery.py")
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,7 +76,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--include-failed-log", action="store_true")
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
-    return parser.parse_args()
+    parser.add_argument("--delivery-state", type=Path, default=delivery.default_path())
+    parser.add_argument("--delivery-scope", default=os.environ.get("CODEX_THREAD_ID", ""))
+    parser.add_argument("--ack-delivered", type=int, metavar="PR", help="Attest an already visible substantive review, never helper stdout")
+    parser.add_argument("--head-sha")
+    parser.add_argument("--message-ref", help="Reference to the already delivered message or turn")
+    args = parser.parse_args()
+    if args.ack_delivered is not None:
+        if not args.head_sha or not args.message_ref or not args.delivery_scope or args.radar == "all":
+            parser.error("acknowledgement requires --head-sha, --message-ref, --delivery-scope (or CODEX_THREAD_ID), and one --radar")
+    elif args.head_sha or args.message_ref:
+        parser.error("--head-sha and --message-ref require --ack-delivered")
+    return args
 
 
 def status_args(args: argparse.Namespace) -> Namespace:
@@ -97,33 +109,76 @@ def status_args(args: argparse.Namespace) -> Namespace:
 
 def build_review(args: argparse.Namespace) -> dict[str, object]:
     status = status_helper.build_status(status_args(args))
+    scope = getattr(args, "delivery_scope", "")
     review: dict[str, object] = {
         "repo": args.repo,
         "status": status,
         "pr_overviews": [],
+        "delivery_scope": scope,
+        "pending_reviews": [],
+        "delivered_reviews": [],
+        "delivery_warnings": [],
+        "review_errors": [],
+        "validation_blockers": [],
     }
-
-    if status.get("status") != "fresh_pr":
-        return review
+    receipts = {}
+    if not scope:
+        review["delivery_warnings"].append("No delivery scope: reviews cannot be suppressed or acknowledged.")
+    else:
+        try:
+            receipts = delivery.read_receipts(getattr(args, "delivery_state", delivery.default_path()))
+        except delivery.DeliveryError as exc:
+            review["delivery_warnings"].append(str(exc))
 
     fresh_prs = status.get("fresh_prs") or []
     if not isinstance(fresh_prs, list):
         return review
+    if not fresh_prs:
+        review["operational_statuses"] = [profile.get("operational", profile) for profile in (status.get("radars") or [status])]
+        return review
 
-    overviews = []
     for pr in fresh_prs:
         if not isinstance(pr, dict) or not pr.get("number"):
             continue
         radar = str(pr.get("radar") or "architecture")
-        if radar == "opportunity":
-            overviews.append(opportunity_pr_summary_helper.summarize_pr(args.repo, str(pr["number"])))
+        summarizer = opportunity_pr_summary_helper if radar == "opportunity" else pr_summary_helper
+        try:
+            overview = dict(summarizer.summarize_pr(args.repo, str(pr["number"])))
+        except (SystemExit, ValueError) as exc:
+            review["pending_reviews"].append({**pr, "delivery_status": "pending", "acknowledgeable": False})
+            review["review_errors"].append(f"PR #{pr['number']}: {exc}; review remains pending")
+            continue
+        overview["radar"] = radar
+        item = {"repo": args.repo, "scope": scope, "number": pr["number"], "radar": radar,
+                "head_sha": overview.get("head_sha"), "url": overview.get("url")}
+        receipt = None
+        try:
+            key = delivery.identity(args.repo, scope, int(pr["number"]), str(item["head_sha"] or ""))
+            receipt = receipts.get(key)
+        except delivery.DeliveryError as exc:
+            review["delivery_warnings"].append(f"PR #{pr['number']}: {exc}")
+        recommendation = overview.get("review_recommendation") or {}
+        if recommendation.get("decision") in {"needs_manual_review", "needs_targeted_fix", "should_close"}:
+            review["validation_blockers"].append({**item, **recommendation})
+        if receipt:
+            review["delivered_reviews"].append({**item, "delivery_status": "delivered", "receipt": receipt})
         else:
-            overview = pr_summary_helper.summarize_pr(args.repo, str(pr["number"]))
-            if isinstance(overview, dict):
-                overview["radar"] = "architecture"
-            overviews.append(overview)
+            review["pending_reviews"].append({**item, "delivery_status": "pending"})
+            review["pr_overviews"].append(overview)
 
-    review["pr_overviews"] = overviews
+    # Receipt filtering changes content eligibility only, not run health.
+    profiles = status.get("radars") or [status]
+    operational = [profile.get("operational", profile) for profile in profiles]
+    review["operational_statuses"] = operational
+    if review["pending_reviews"]:
+        outcome = ("pending_review", "REVIEW", "Substantive reviews are pending; unchanged PR metadata is not delivery evidence.")
+    elif review["validation_blockers"] or review["delivery_warnings"]:
+        outcome = ("attention_required", "REPORT", "No pending content review, but blockers or delivery-state warnings remain.")
+    else:
+        problem = next((op for kind in ("failed_run", "missed_schedule", "waiting") for op in operational if op.get("status") == kind), None)
+        outcome = (problem["status"], problem["notification"], problem["message"]) if problem else (
+            "no_pending_review", "INFO", "No pending content review; open PRs may still exist.")
+    review["status"] = {**status, **dict(zip(("status", "notification", "message"), outcome))}
     return review
 
 
@@ -136,6 +191,21 @@ def emit_markdown(review: dict[str, object]) -> None:
     notification = status.get("notification")
     message = status.get("message")
 
+    print(f"Delivery scope: {review.get('delivery_scope') or 'unavailable'}")
+    for warning in review.get("delivery_warnings", []) + review.get("review_errors", []):
+        print(f"Warning: {warning}")
+    for item in review.get("pending_reviews", []):
+        print(f"Pending content review: #{item['number']} SHA={item.get('head_sha') or 'unknown'}")
+    for item in review.get("delivered_reviews", []):
+        print(f"Delivered content review: #{item['number']} SHA={item['head_sha']} ({item['receipt']['message_ref']}; caller_attested)")
+    for item in review.get("validation_blockers", []):
+        print(f"PR #{item['number']} blocker: {item.get('reason')}; next action: {item.get('next_action')}")
+    for op in review.get("operational_statuses", []):
+        run = (op.get("latest_completed_run") if op.get("status") == "failed_run" else op.get("latest_run")) or {}
+        print(f"Workflow {op.get('radar_label', '')}: {op.get('status')} {run.get('url', '')}")
+        for line in op.get("failed_log_excerpt", []):
+            print(f"- {line}")
+
     if notification == "DONT_NOTIFY":
         print(f"DONT_NOTIFY: {message}")
         return
@@ -145,7 +215,7 @@ def emit_markdown(review: dict[str, object]) -> None:
 
     radars = status.get("radars") or []
     if isinstance(radars, list) and radars:
-        print("Radar statuses:")
+        print("Radar discovery statuses (before delivery filtering):")
         for radar_status in radars:
             if isinstance(radar_status, dict):
                 print(
@@ -194,6 +264,14 @@ def emit_markdown(review: dict[str, object]) -> None:
 
 def main() -> None:
     args = parse_args()
+    if args.ack_delivered is not None:
+        try:
+            receipt = delivery.acknowledge(args.delivery_state, args.repo, args.delivery_scope,
+                                           args.ack_delivered, args.head_sha, args.radar, args.message_ref)
+        except delivery.DeliveryError as exc:
+            raise SystemExit(str(exc)) from exc
+        print(json.dumps({"delivery_status": "delivered", "receipt": receipt}, indent=2))
+        return
     review = build_review(args)
     if args.format == "json":
         print(json.dumps(review, indent=2, sort_keys=True))

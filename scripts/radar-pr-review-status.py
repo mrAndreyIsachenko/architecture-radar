@@ -190,7 +190,7 @@ def list_runs(repo: str, workflow: str, limit: int) -> list[dict[str, object]]:
 
 def list_prs(repo: str, limit: int) -> list[dict[str, object]]:
     fields = (
-        "number,title,url,headRefName,baseRefName,createdAt,updatedAt,"
+        "number,title,url,headRefName,headRefOid,baseRefName,createdAt,updatedAt,"
         "isDraft,mergeable,statusCheckRollup"
     )
     data = load_json_from_gh(["pr", "list", "--repo", repo, "--state", "open", "--limit", str(limit), "--json", fields])
@@ -239,6 +239,7 @@ def summarize_pr(pr: dict[str, object], profile: RadarProfile | None = None) -> 
         "title": pr.get("title"),
         "url": pr.get("url"),
         "head": pr.get("headRefName"),
+        "head_sha": pr.get("headRefOid"),
         "base": pr.get("baseRefName"),
         "created_at": pr.get("createdAt"),
         "updated_at": pr.get("updatedAt"),
@@ -393,10 +394,28 @@ def build_profile_status(args: argparse.Namespace, profile: RadarProfile) -> dic
         "message": "",
     }
 
+    operational = profile_operational_status(args, profile, dict(result), todays_schedule)
+    result["operational"] = operational
     if fresh_prs:
         result["status"] = "fresh_pr"
         result["notification"] = "REVIEW"
         result["message"] = f"Fresh {profile.label} PR found; inspect its diff before reporting."
+        return result
+
+    result.update(operational)
+    return result
+
+
+def profile_operational_status(args, profile, result, todays_schedule):
+    cadence = result["cadence"]
+    now = parse_datetime(result["now_utc"])
+    latest_completed = result["latest_completed_run"]
+    if latest_completed and latest_completed.get("conclusion") == "failure":
+        result["status"] = "failed_run"
+        result["notification"] = "REPORT"
+        result["message"] = f"Latest completed {profile.label} run failed."
+        if args.include_failed_log:
+            result["failed_log_excerpt"] = failed_log_excerpt(args.repo, latest_completed.get("databaseId"))
         return result
 
     scheduled_at = parse_datetime(str(cadence["scheduled_at_utc"]))
@@ -430,12 +449,10 @@ def build_profile_status(args: argparse.Namespace, profile: RadarProfile) -> dic
         result["message"] = "Today's scheduled cadence run is still queued or in progress."
         return result
 
-    if latest_completed and latest_completed.get("conclusion") == "failure":
-        result["status"] = "failed_run"
-        result["notification"] = "REPORT"
-        result["message"] = f"Latest completed {profile.label} run failed."
-        if args.include_failed_log:
-            result["failed_log_excerpt"] = failed_log_excerpt(args.repo, latest_completed.get("databaseId"))
+    if result["fresh_prs"]:
+        result["status"] = "idle"
+        result["notification"] = "INFO"
+        result["message"] = "No workflow alert; open PR content delivery is evaluated separately."
         return result
 
     result["status"] = "no_pr"
@@ -455,6 +472,7 @@ def build_combined_status(args: argparse.Namespace) -> dict[str, object]:
         status_fresh = status.get("fresh_prs") or []
         if isinstance(status_fresh, list):
             fresh_prs.extend([pr for pr in status_fresh if isinstance(pr, dict)])
+        status = status.get("operational", status)
         if status.get("status") == "failed_run":
             failed_runs.append(status)
         if status.get("status") == "missed_schedule":
