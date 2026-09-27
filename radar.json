@@ -1783,6 +1783,133 @@
       "decision_reason": "Source and tests show flowgraph flattening, lock/unlock reconfiguration, restart semantics, and binding coverage. The reusable runtime mechanism is clear, but the restart path still needs live workload validation under fault conditions.",
       "revisit_reason": "Review after live restart, scheduler fault, or reconfiguration validation changes materially.",
       "next_revisit_condition": "Revisit after a material change to restart semantics, lock/unlock behavior, or scheduler recreation."
+    },
+    {
+      "repository": "rmax-ai/durable-agent-runtime-lab",
+      "URL": "https://github.com/rmax-ai/durable-agent-runtime-lab",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/durable_agent_runtime/experiments/durable.py",
+        "src/durable_agent_runtime/orchestration/engine.py",
+        "src/durable_agent_runtime/persistence/event_store.py",
+        "src/durable_agent_runtime/boundary/service.py",
+        "src/durable_agent_runtime/experiments/fault_injection.py",
+        "tests/integration/test_e2e_runtime.py",
+        "tests/unit/test_fault_injection.py"
+      ],
+      "operational_blockers": [
+        "needs live process-kill and restart validation"
+      ],
+      "first_seen": "2026-09-22",
+      "last_reviewed": "2026-09-22",
+      "commit_reviewed": "e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "fault injection"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "deterministic proposal boundary",
+        "append-only hash-chained workflow ledger",
+        "event-triggered fault injection harness"
+      ],
+      "decision": "track",
+      "decision_reason": "The runtime cleanly separates workflow orchestration, proposal verification, execution, and append-only persistence, with deterministic fault injection and tests around the durable path. It is a strong reusable mechanism but still needs live restart validation before adoption.",
+      "revisit_reason": "Review after a material change to recovery, fault injection, or workflow persistence.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes process-kill, restart, or event-ledger semantics."
+    },
+    {
+      "repository": "EspiroFares/Autonomous-UAV",
+      "URL": "https://github.com/EspiroFares/Autonomous-UAV",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "software/drone_ws/src/drone_behavior/src/mission_manager_node.cpp",
+        "software/drone_ws/src/drone_control/src/follow_controller_node.cpp",
+        "software/drone_ws/src/drone_safety/include/drone_safety/hold_policy.hpp",
+        "software/drone_ws/src/drone_state/src/fcu_bridge_node.cpp",
+        "software/drone_ws/src/drone_state/src/mock_fcu_node.cpp",
+        "software/drone_ws/src/drone_safety/test/test_hold_policy.cpp",
+        "software/drone_ws/src/drone_safety/test/test_safety_checks.cpp"
+      ],
+      "operational_blockers": [
+        "needs longer SITL validation with repeated dropout and bridge restart"
+      ],
+      "first_seen": "2026-09-22",
+      "last_reviewed": "2026-09-22",
+      "commit_reviewed": "8df4f467332fcf7a93cf93dc596d5f8d78f94396",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission planning",
+        "failsafe",
+        "autonomy safety"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "canonical hold command",
+        "single flight-controller gateway",
+        "mission-state-driven follow gating"
+      ],
+      "decision": "track",
+      "decision_reason": "The stack cleanly separates mission state, control generation, and safety veto, and it normalizes all unsafe branches into one canonical hold path before actuation. The mechanism is reusable, but the SITL path still needs longer churn validation.",
+      "revisit_reason": "Review after SITL or bridge-restart behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to the hold policy, freshness gates, or FCU bridge semantics."
+    },
+    {
+      "repository": "nasa/HDTN",
+      "URL": "https://github.com/nasa/HDTN",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "module/router/src/router.cpp",
+        "module/egress/src/EgressAsync.cpp",
+        "module/storage/src/BundleStorageManagerBase.cpp",
+        "module/udp_delay_sim/src/UdpDelaySimRunner.cpp",
+        "module/cli/src/HdtnCliRunner.cpp",
+        "module/router/unit_tests/RouterTests.cpp",
+        "module/storage/unit_tests/BundleStorageManagerMtTests.cpp"
+      ],
+      "operational_blockers": [
+        "needs operational validation under contact-plan churn and storage pressure"
+      ],
+      "first_seen": "2026-09-22",
+      "last_reviewed": "2026-09-22",
+      "commit_reviewed": "7fbe90cdbe3c8c737efaacb5985f881f95fc7d2a",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "delay-tolerant networking",
+        "route recomputation",
+        "bundle storage"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "contact-plan driven route recomputation",
+        "storage-gated DTN forwarding",
+        "route-update fan-out to egress"
+      ],
+      "decision": "track",
+      "decision_reason": "The router, egress, and storage modules form a reusable delayed-connectivity control plane with explicit contact-plan, link-state, and storage interactions. It is a strong mechanism for satellites and DTN work, but it still needs live operational validation under churn and storage pressure.",
+      "revisit_reason": "Review after a material change to route recomputation, storage restore, or delay-simulation behavior.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes contact-plan handling, storage restore, or route-update propagation."
     }
   ]
 }
