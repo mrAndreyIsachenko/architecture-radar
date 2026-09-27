@@ -70,6 +70,7 @@ def pr_view() -> dict[str, object]:
         "title": "Architecture Radar 2026-08-11",
         "url": "https://github.com/example/pull/15",
         "headRefName": "architecture-radar/2026-08-11-42",
+        "headRefOid": "a" * 40,
         "baseRefName": "main",
         "isDraft": False,
         "mergeable": "MERGEABLE",
@@ -102,14 +103,14 @@ class SummarizeRadarPrTest(unittest.TestCase):
         self.assertEqual(changed["radar"], ["radar.json"])
         self.assertEqual(changed["readme"], ["README.md"])
 
-    def test_summarize_pr_fetches_changed_report_from_head_branch(self) -> None:
+    def test_summarize_pr_fetches_changed_report_from_head_sha(self) -> None:
         with (
             patch.object(summarizer, "pr_view", return_value=pr_view()),
             patch.object(summarizer, "fetch_file_text", return_value=REPORT) as fetch_file_text,
         ):
             summary = summarizer.summarize_pr("owner/repo", "15")
 
-        fetch_file_text.assert_called_once_with("owner/repo", "architecture-radar/2026-08-11-42", "reports/2026-08-11.md")
+        fetch_file_text.assert_called_once_with("owner/repo", "a" * 40, "reports/2026-08-11.md")
         self.assertEqual(summary["number"], 15)
         self.assertEqual(summary["changed_files"]["reports"], ["reports/2026-08-11.md"])
         self.assertEqual(summary["reports"][0]["candidate_count"], 20)

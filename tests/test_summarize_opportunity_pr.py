@@ -58,6 +58,7 @@ def pr_view() -> dict[str, object]:
         "title": "Opportunity Radar 2026-08-11",
         "url": "https://github.com/example/pull/50",
         "headRefName": "opportunity-radar/2026-08-11-42",
+        "headRefOid": "a" * 40,
         "baseRefName": "main",
         "isDraft": False,
         "mergeable": "MERGEABLE",
@@ -91,7 +92,7 @@ class SummarizeOpportunityPrTest(unittest.TestCase):
         self.assertEqual(changed["signals"], ["signals/2026-08-11-langgraph-signals.md"])
         self.assertEqual(changed["opportunities_state"], ["opportunities.json"])
 
-    def test_summarize_pr_fetches_changed_opportunity_report_from_head_branch(self) -> None:
+    def test_summarize_pr_fetches_changed_opportunity_report_from_head_sha(self) -> None:
         with (
             patch.object(summarizer, "pr_view", return_value=pr_view()),
             patch.object(summarizer, "fetch_file_text", return_value=REPORT) as fetch_file_text,
@@ -100,7 +101,7 @@ class SummarizeOpportunityPrTest(unittest.TestCase):
 
         fetch_file_text.assert_called_once_with(
             "owner/repo",
-            "opportunity-radar/2026-08-11-42",
+            "a" * 40,
             "opportunity-reports/2026-08-11.md",
         )
         self.assertEqual(summary["number"], 50)
