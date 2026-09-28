@@ -178,3 +178,45 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
+
+  - id: 2026-09-28-agentledger-failure-injection
+    family: ai-llm-systems
+    source_report: reports/2026-09-28.md
+    source_repository: yaogdu/AgentLedger
+    mechanism: evidence-carrying execution envelope with tool-ledger replay boundary
+    evidence_gap: Source and tests show replay, evidence export, and crash simulation, but not a live worker kill and restart on the same ledger with a real external side effect.
+    validation_type: failure-injection
+    proposed_validation: Start a run that dispatches an idempotent side effect, kill the worker after dispatch but before observation, restart the runtime, and confirm the run resumes from the ledger without duplicating the external effect or losing the evidence bundle.
+    success_condition: The resumed run reconstructs the same state from run_steps, the tool is not externally duplicated, and the exported evidence bundle still hashes identically.
+    priority: high
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28
+
+  - id: 2026-09-28-bumblebee-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-09-28.md
+    source_repository: Sri-Krishna-V/bumblebee
+    mechanism: chunk-streamed OCR pipeline with text-layer trust and bounded adaptive retry
+    evidence_gap: Source and GPU-free tests prove pipeline structure and resumability, but not a live mixed-quality corpus with actual GPU/OCR latency and memory pressure.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF batch with born-digital pages, scanned pages, and one intentionally slow OCR backend, then verify the batch still finishes, stats.json remains the completion marker, the retry budget is honored, and the text-layer fallback only applies when coverage threshold is met.
+    success_condition: No document hangs, page numbering stays stable, resumability skips completed outputs, and retry improves low-confidence regions without corrupting layout.json or content.md.
+    priority: medium
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28
+
+  - id: 2026-09-28-evm-indexer-operational
+    family: blockchain-intelligence
+    source_report: reports/2026-09-28.md
+    source_repository: eabz/evm-indexer
+    mechanism: reorg-safe materialization window with purge-and-reinsert module backfill
+    evidence_gap: Source and tests prove fork search, purge ordering, and backfill mechanics, but not a live HyperSync/ClickHouse run under real reorg churn and storage pressure.
+    validation_type: operational
+    proposed_validation: Run the indexer against a chain with live head movement, force a small reorg or gap-heal, and verify the purge/reinsert path, coverage floor, and ClickHouse epoch repair remain coherent while the fleet service continues writing.
+    success_condition: The live chain remains gap-free below the coverage floor, reorgs produce exactly one repaired epoch transition, and backfill does not double count or lose module rows.
+    priority: high
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28
