@@ -232,3 +232,9 @@ Sell-before-build. The paid workflow is already visible, the buyer is reachable,
 - M2 repeated pain: the current `tx-interpretation` migration work and indexer README still show boundary-work that teams have to wire by hand.
 - M3 competitor proof: the public mail announcement about the universal PRO API and the current deployment pages confirm that real buyers are still consuming the workflow in 2026.
 - No new paid pilot or inbound buyer request surfaced this week, so the opportunity stays sell-before-build rather than moving to selected-for-build.
+
+## 2026-09-29 Signal Check
+- M1 paid demand: the current DevPortal, PRO API blog, and `switch-to-the-blockscout-pro-api` post still expose explicit paid explorer and multichain API spend.
+- M2 repeated pain: the frontend migration issue and docs continue to show verification and boundary-work that teams wire by hand.
+- M3 competitor proof: the public API migration, deployment pages, and customer-facing docs confirm that the workflow remains actively sold in 2026.
+- No new paid pilot or inbound buyer request surfaced this week, so the opportunity remains sell-before-build rather than promoting to build.
