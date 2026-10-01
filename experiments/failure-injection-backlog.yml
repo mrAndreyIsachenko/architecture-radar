@@ -178,3 +178,59 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
+
+  - id: 2026-10-01-fusion-ocr-runtime-batch
+    family: document-ai-ocr
+    source_report: reports/2026-10-01.md
+    source_repository: hoyla/fusion-ocr
+    mechanism: recipe-fingerprinted resumable OCR/VLM pipeline
+    evidence_gap: The source and tests show deterministic geometry, VLM gating, and resumable snapshots, but the reviewed evidence does not validate a mixed real-world batch with both born-digital and OCR-heavy pages under live backend variability.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF batch that includes born-digital pages, scanned pages, and one intentionally malformed page, then confirm stage snapshots, per-page numbering, overlay provenance, and refusal gating survive the batch.
+    success_condition: The batch completes without losing page numbering or provenance, failed pages remain visible, and the recipe fingerprint still allows safe resume after interruption.
+    priority: medium
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-chain-indexer-reorg-failure-injection
+    family: blockchain-intelligence
+    source_report: reports/2026-10-01.md
+    source_repository: Layr-Labs/chain-indexer
+    mechanism: rollback-aware EVM poller with orphan pruning
+    evidence_gap: The source and tests show parent-hash validation and orphan rollback, but the reviewed evidence does not validate a live reorg or injected fork against a durable backend or recovery harness.
+    validation_type: failure-injection
+    proposed_validation: Force a real or simulated chain fork, then verify the poller deletes orphaned blocks, preserves the correct cursor, and replays downstream log handling without double-processing the reverted range.
+    success_condition: Reorged blocks are pruned, the cursor advances only on the surviving chain, and downstream handlers receive exactly one rollback signal for the orphaned range.
+    priority: high
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-droneserver-operational-flight
+    family: drones-robotics-autonomy
+    source_report: reports/2026-10-01.md
+    source_repository: PeterJBurke/droneserver
+    mechanism: server-enforced mission safety envelope
+    evidence_gap: The source and tests show guard ordering, audit logging, and mission checkpointing, but the reviewed evidence does not validate the same envelope against a live vehicle or field mission outside simulation.
+    validation_type: operational
+    proposed_validation: Run a field or hardware-in-the-loop mission that exercises the full tool guard pipeline, then restart the control plane mid-mission and confirm the checkpointed mission state and audit trail recover coherently.
+    success_condition: Unsafe calls remain blocked, mission checkpoints survive the restart, and the audit log reconstructs the mission timeline without losing guard decisions.
+    priority: high
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-ground-station-operational-observation
+    family: satellites-space-systems
+    source_report: reports/2026-10-01.md
+    source_repository: sgoudelis/ground-station
+    mechanism: internal observation session envelope
+    evidence_gap: The source and tests show internal-session isolation and tracker cleanup, but the reviewed evidence does not validate those paths against live SDR or rotator hardware with reconnect churn.
+    validation_type: operational
+    proposed_validation: Start and stop an internal observation on real or hardware-in-the-loop SDR equipment, then reconnect the backend and confirm the tracker restores ownership, session flags, and cleanup state without leaking into the user-session view.
+    success_condition: Internal observations remain isolated from user sessions, ownership maps recover after reconnect, and cleanup removes stale session state on the live hardware path.
+    priority: medium
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01

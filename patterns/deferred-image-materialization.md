@@ -3,7 +3,7 @@
 - Canonical name: Deferred Image Materialization
 - Aliases: lazy high-res page promotion, lowres-first page promotion, page-image promotion after structural parse, page crop promotion
 - Avoided duplicate names: eager rasterization, always-highres OCR, full-page first pass, blanket page rendering
-- Last updated: 2026-08-29
+- Last updated: 2026-10-01
 
 ## Problem
 
@@ -28,6 +28,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 - LiteParse: keeps structural parsing authoritative, then renders screenshots or emits classified blocks only when the caller asks for them; page numbering, geometry, and OCR merge stay stable whether the promoted artifacts are enabled or not.
 - Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
+- Fusion-OCR: keeps deterministic geometry canonical, promotes only OCR-bound pages into the expensive path, and resumes from per-stage snapshots keyed by a recipe fingerprint so promoted images do not erase the stable page overlay.
 
 ## Known Repositories
 
@@ -36,6 +37,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
 - `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
+- `hoyla/fusion-ocr` reviewed at `ebe76ec91a2c1c774ecd1ed36a1f1127c7b30f39`.
 
 ## Comparison Of Implementations
 
@@ -46,6 +48,8 @@ HURIDOCS sits closer to a document-conversion service than a library pipeline. I
 LiteParse sits between library and service. It keeps a shared structural decomposition, exposes the same block shape across Rust and the foreign bindings, and treats screenshots as an opt-in projection rather than the parse's primary output. Its promotion boundary is less about page-image caching than about preserving layout and page order across multiple output modes.
 
 Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps the gate pixel-free, uses the decision to decide whether layout and OCR can share work, and makes the reason for each page's promotion or skip auditable in metadata. The trade-off is that the gate thresholds still need corpus-specific tuning.
+
+Fusion-OCR applies the same boundary to mixed born-digital and OCR-heavy PDFs. It keeps the canonical geometry separate from the reading model, promotes only pages that need expensive reads, and preserves stage snapshots so a rerun can resume without collapsing the stable overlay into the VLM path.
 
 ## Failure Modes
 
@@ -101,3 +105,5 @@ Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps
 - E1 source verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:1-17,185-209,432-438` performs the pixel-free page gate and exports the per-page decision record.
 - E1 source verified: Xberg `crates/xberg/src/extractors/pdf/mod.rs:706-742,763-860` reuses or bypasses the layout path for OCR and writes gate decisions into metadata.
 - E2 test verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:475-670` covers the skip/promote boundary across prose, sparse pages, columns, tables, rules, graphics, and forms.
+- E1 source verified: Fusion-OCR `src/fusion_ocr/pipeline.py`, `stages/triage.py`, `stages/ocr_det.py`, `stages/vlm_read.py`, and `stages/fusion.py` keep deterministic geometry canonical while deferring expensive OCR/VLM reads to OCR-bound pages.
+- E2 test verified: Fusion-OCR `tests/test_pipeline.py`, `tests/test_eval_harness.py`, and `tests/test_routing.py` cover resumable pipeline execution, born-digital evaluation, and engine routing.
