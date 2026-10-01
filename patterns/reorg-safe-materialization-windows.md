@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-29
+- Last updated: 2026-10-01
 
 ## Problem
 
@@ -34,6 +34,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Liveness-capped sync worker: Blockbook keeps a resync loop around `SyncWorker`, separates `ResyncIndex`, `connectBlocks`, `BulkConnectBlocks`, and `ParallelConnectBlocks`, and restarts when a block hash disappears or the local tip forks.
 - Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
 - ExEx batcher: Shadow-index consumes reth `ChainCommitted`, `ChainReverted`, and `ChainReorged` notifications, transforms reverted and committed ranges with signed rows, and advances the cursor only after a successful ClickHouse flush.
+- Rollback-aware EVM poller: Chain-indexer keeps the live tip and derived block records separate, validates parent hashes while advancing, deletes orphaned blocks on reorg, and fans out log decoding through a concurrent batch fetch path.
 
 ## Known Repositories
 
@@ -44,6 +45,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `bitcoincore-dev/nakamoto-electrs` reviewed at `f9fc5ba17f38f6d45812e467a5299d194b086af8`.
 - `chaindexing/chaindexing-rs` reviewed at `90caa25f5e1f6abf68455e685956b69401d9bfb3`.
 - `bit2swaz/shadow-index` reviewed at `2757f31da1e4a6eb9acb6f2b69b924cb9b4cf729`.
+- `Layr-Labs/chain-indexer` reviewed at `7d774750b49b0d8b527edc2124bb6f248f56d006`.
 
 ## Comparison Of Implementations
 
@@ -60,6 +62,8 @@ Nakamoto-electrs shows the same family on the SPV/Electrum side. `NakamotoBlockS
 Chaindexing demonstrates the same boundary from a Postgres-first indexing stack. `ReorgMode` maps operational posture to indexing and side-effect finality, `sync_blocks` repairs canonical block and event tables at the fork point, and the outbox only dispatches once the finality posture allows it. That makes the invariant explicit for both the canonical chain view and its durable downstream effects.
 
 Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays historical blocks from the cursor, handles reverted and reorged ranges explicitly, and only advances the cursor after the batch is durably flushed. The trade-off is a tighter coupling to reth notifications and the ClickHouse sink model.
+
+Chain-indexer applies the same rule to an EVM poller and in-memory persistence layer. It compares parent hashes before committing a block, walks back orphaned records when a reorg appears, and keeps contract-discovery fanout separate from the tip cursor. The main gap is that the reviewed store is still in-memory, so the rollback window needs a durable backend before production adoption.
 
 ## Failure Modes
 
@@ -119,3 +123,5 @@ Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays 
 - E1 source verified: bit2swaz/shadow-index `src/db/writer.rs:15-198` retries ClickHouse writes, separates retryable from permanent errors, and trips a circuit breaker after bounded attempts.
 - E1 source verified: bit2swaz/shadow-index `src/utils/cursor.rs:11-65` persists the cursor with temp-rename updates and restartable load logic.
 - E2 test verified: bit2swaz/shadow-index `src/utils/cursor.rs:73-164` covers update/reload persistence and atomic cursor writes.
+- E1 source verified: Layr-Labs/chain-indexer `pkg/chainPollers/evm/evmChainPoller.go`, `pkg/clients/ethereum/client.go`, `pkg/chainPollers/persistence/memory/memory.go`, and `pkg/chainPollers/contractRegistry/inMemory.go` implement the live poll, parent-hash validation, orphan rollback, and dynamic fanout loop.
+- E2 test verified: Layr-Labs/chain-indexer `pkg/chainPollers/evm/evmChainPoller_test.go` and `pkg/chainPollers/evm/evmChainPoller_integration_test.go` cover reorg rollback, batch concurrency, and live-RPC log fetching.

@@ -1910,6 +1910,176 @@
       "decision_reason": "The router, egress, and storage modules form a reusable delayed-connectivity control plane with explicit contact-plan, link-state, and storage interactions. It is a strong mechanism for satellites and DTN work, but it still needs live operational validation under churn and storage pressure.",
       "revisit_reason": "Review after a material change to route recomputation, storage restore, or delay-simulation behavior.",
       "next_revisit_condition": "Revisit after a release or branch update that changes contact-plan handling, storage restore, or route-update propagation."
+    },
+    {
+      "repository": "hoyla/fusion-ocr",
+      "URL": "https://github.com/hoyla/fusion-ocr",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/fusion_ocr/pipeline.py",
+        "src/fusion_ocr/stages/triage.py",
+        "src/fusion_ocr/stages/layout.py",
+        "src/fusion_ocr/stages/ocr_det.py",
+        "src/fusion_ocr/stages/vlm_read.py",
+        "src/fusion_ocr/stages/fusion.py",
+        "tests/test_pipeline.py",
+        "tests/test_eval_harness.py",
+        "tests/test_routing.py"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on mixed born-digital and OCR-heavy batches"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "ebe76ec91a2c1c774ecd1ed36a1f1127c7b30f39",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "OCR",
+        "layout-aware extraction"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "provenance-carrying OCR overlay",
+        "recipe-fingerprinted resumable pipeline"
+      ],
+      "decision": "track",
+      "decision_reason": "The pipeline keeps deterministic geometry canonical, separates VLM reads from OCR-bound pages, and stores per-stage snapshots keyed by recipe fingerprint. The reusable mechanism is strong, but the reviewed evidence still needs a live mixed-batch runtime validation before adoption.",
+      "revisit_reason": "Review after mixed-batch runtime validation or material changes to stage snapshots, routing, or VLM refusal gating.",
+      "next_revisit_condition": "Revisit after a mixed born-digital/OCR batch run or a release that changes snapshot or fusion semantics."
+    },
+    {
+      "repository": "Layr-Labs/chain-indexer",
+      "URL": "https://github.com/Layr-Labs/chain-indexer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "pkg/chainPollers/evm/evmChainPoller.go",
+        "pkg/clients/ethereum/client.go",
+        "pkg/clients/ethereum/handlers.go",
+        "pkg/chainPollers/persistence/memory/memory.go",
+        "pkg/chainPollers/contractRegistry/inMemory.go",
+        "pkg/chainPollers/evm/evmChainPoller_test.go",
+        "pkg/chainPollers/evm/evmChainPoller_integration_test.go"
+      ],
+      "operational_blockers": [
+        "needs failure-injection validation against a live or durable reorg harness"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "7d774750b49b0d8b527edc2124bb6f248f56d006",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "transaction interpretation",
+        "incremental indexing",
+        "reorg recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "reorg-aware poller loop",
+        "dynamic contract-registry log fanout"
+      ],
+      "decision": "track",
+      "decision_reason": "The poller validates parent hashes, reconciles reorgs by removing orphaned blocks, and keeps log fanout separate from the tip cursor. The mechanism is reusable for transaction interpretation, but the reviewed store is still in-memory and needs a live reorg or fork-injection validation before adoption.",
+      "revisit_reason": "Review after durable-store support or a live reorg/fork injection run that changes rollback confidence.",
+      "next_revisit_condition": "Revisit after a material change to persistence, fork handling, or live reorg recovery behavior."
+    },
+    {
+      "repository": "PeterJBurke/droneserver",
+      "URL": "https://github.com/PeterJBurke/droneserver",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/droneserver/safety/config.py",
+        "src/droneserver/safety/audit.py",
+        "src/droneserver/safety/middleware.py",
+        "src/droneserver/safety/tiers.py",
+        "src/droneserver/tools/safety_ops.py",
+        "src/droneserver/missions/runner.py",
+        "tests/test_mission_ground_datum.py",
+        "docs/adversarial_results.md"
+      ],
+      "operational_blockers": [
+        "needs field or hardware-in-the-loop validation beyond SITL evidence"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "06b7d1a6a967553f1f8c025bb6b1fc79d346fd53",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission planning",
+        "command safety",
+        "restartable control plane"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "confirmation-token safety gate",
+        "append-only command audit log"
+      ],
+      "decision": "track",
+      "decision_reason": "The guard pipeline, audit log, and mission runner give a reusable server-side safety envelope for high-risk autonomy. The code and tests are strong, but adoption should wait for field or hardware-in-the-loop validation outside simulation.",
+      "revisit_reason": "Review after an operational flight or hardware-in-the-loop validation changes confidence in the safety envelope.",
+      "next_revisit_condition": "Revisit after a field validation, hardware-in-the-loop mission, or material change to guard and audit semantics."
+    },
+    {
+      "repository": "sgoudelis/ground-station",
+      "URL": "https://github.com/sgoudelis/ground-station",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "backend/session/service.py",
+        "backend/session/tracker.py",
+        "backend/common/appconfig.py",
+        "backend/tests/test_session_internal_observations.py",
+        "backend/tests/test_tracker_runner_slots.py",
+        "backend/tests/test_sdrtakeover.py"
+      ],
+      "operational_blockers": [
+        "needs live SDR or rotator validation for observation-session isolation"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "430d4aa774a58df46ed3290782dbcde8ea2f1e3f",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "ground station",
+        "session lifecycle",
+        "telemetry observability"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "internal observation session envelope",
+        "session-to-SDR ownership façade"
+      ],
+      "decision": "track",
+      "decision_reason": "The session service and tracker make internal observations first-class runtime objects with explicit SDR ownership and cleanup. That is a useful ground-station mechanism, but it still needs live hardware validation to prove reconnect and cleanup behavior under field conditions.",
+      "revisit_reason": "Review after live SDR or rotator validation changes confidence in the session tracker and cleanup envelope.",
+      "next_revisit_condition": "Revisit after hardware-backed observation sessions or a material change to session tracker semantics."
     }
   ]
 }
