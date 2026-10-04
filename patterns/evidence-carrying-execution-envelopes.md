@@ -46,6 +46,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Filesystem-native run ledger: PageLedger persists page-level provenance, quality, rerun, and verification evidence as plain files so rerun planning and audit checks can be replayed without a database.
 - Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 - Durable agent runtime envelope: `rmax-ai/durable-agent-runtime-lab` keeps the workflow ledger append-only with hash chaining, separates the state projection from the event log, and routes proposal generation, verification, execution, and commit through distinct runtime modules.
+- Replay-safe harness envelope: `deepseek-ai/deepseek-harness` ties CLI dispatch, exact-version plugin approvals, and JSONL session persistence together so interrupted semantic checkpoints can resume through the same durable boundary.
 
 ## Known Repositories
 
@@ -60,6 +61,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `peterbussch/pageledger` reviewed at `fd1c1da0fbdc366222170f24fb22890f8a19f8a0`.
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 - `rmax-ai/durable-agent-runtime-lab` reviewed at `e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3`.
+- `deepseek-ai/deepseek-harness` reviewed at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`.
 
 ## Comparison Of Implementations
 
@@ -78,6 +80,8 @@ Google AX is strongest for sidecar-backed conversational execution. Its controll
 Duragent is strongest for file-first session persistence. The dedicated session actor serializes mutations, while the file store keeps append-only history and atomic snapshots together. That makes replay and crash recovery easy to reason about, but it also means correctness still depends on filesystem durability and the replay discipline around malformed lines.
 
 `rmax-ai/durable-agent-runtime-lab` is strongest for a benchmark-friendly durable agent runtime. The workflow engine, boundary service, and fault injector separate proposal generation from durable commit, which makes it useful as a reference for deterministic failure injection, but it still needs live restart validation before adoption.
+
+DeepSeek Harness is strongest for replay-safe harnessing. The CLI dispatcher, exact-version plugin approvals, and JSONL session persistence keep the recovery boundary explicit, and the semantic-checkpoint fixture shows the resumed output stays anchored to the interrupted session. The remaining gap is a live process-kill and restart run on the same semantic checkpoint path.
 
 AgentFlow4J is strongest for governed checkpoint resumes. Its graph runtime treats approval gates, budgets, state writes, and checkpoint persistence as policy-aware state transitions, so a paused run can resume from the exact next node. The trade-off is stronger Spring/backend coupling and more policy interaction to validate.
 
@@ -101,6 +105,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Sidecar-backed runtimes can wedge on PID-file mismatches, readiness probes, or host-level process restarts.
 - Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
 - Benchmark-oriented durable runtimes can appear production-ready in unit tests while still lacking process-kill and restart evidence on the same code path.
+- Replay-safe harnesses can still hide recovery defects if fixture-based resume coverage is not matched by a live process-kill and restart test.
 
 ## Trade-Offs
 
@@ -129,6 +134,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - For durable agent entities, require recovery tests that cover nested workflows, external event waits, and backend rehydration.
 - For file-first session stores, require crash/restart tests that verify malformed replay lines are handled intentionally and not silently ignored in a way that hides corruption.
 - For workflow runtimes with fault injection, require a process-kill or restart test that confirms the ledger and projection replay without duplicate side effects.
+- For replay-safe harnesses, require a live process-kill and restart test that proves the resumed semantic checkpoint matches the interrupted session without duplicate side effects.
 
 ## Evidence References
 
@@ -171,3 +177,6 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/persistence/event_store.py:1-182` appends hash-chained JSONL events with fsync.
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/boundary/service.py:1-120` rejects malformed, duplicate, over-budget, or unsafe proposals before execution.
 - E2 test verified: `rmax-ai/durable-agent-runtime-lab/tests/unit/test_fault_injection.py` and `tests/integration/test_e2e_runtime.py` verify deterministic fault injection and the end-to-end runtime path.
+- E1 source verified: DeepSeek Harness `apps/cli/src/bin.ts:26-78` dispatches CLI modes and `apps/cli/src/plugin.ts:16-107` applies exact-version approval gates.
+- E1 source verified: DeepSeek Harness `packages/session/session-persistence-jsonl/src/index.ts:239-280` registers the JSONL backend and `packages/session/session-persistence-jsonl/src/storage.ts:79-315` enforces the single-writer chain and monotonic reads.
+- E2 test verified: DeepSeek Harness `apps/cli/tests/profiles/headless/tests/semantic-checkpoint.expected.e2e.ts:39-140` and `packages/session/session-persistence-jsonl/tests/lease.two-process.e2e.ts:33-69` verify resumed semantic output and lock takeover.

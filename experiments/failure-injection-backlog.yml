@@ -178,3 +178,31 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
+
+  - id: 2026-10-04-deepseek-harness-replay-restart
+    family: ai-llm-systems
+    source_report: reports/2026-10-04.md
+    source_repository: deepseek-ai/deepseek-harness
+    mechanism: replay-safe harness envelope with single-writer JSONL session persistence
+    evidence_gap: Source and tests show the replay fixture and the kernel lock takeover path, but the review did not validate a live process-kill and restart cycle on the same interrupted semantic-checkpoint session.
+    validation_type: replay
+    proposed_validation: Run a real profile session that performs one side effect, kill the process after the interrupted turn, restart the same profile, and confirm the resumed checkpoint matches the fixture without repeating the side effect or duplicating the tool call.
+    success_condition: The restarted harness resumes the interrupted semantic checkpoint, preserves the session ledger, and produces the same resumed output without duplicate side effects.
+    priority: high
+    status: open
+    created: 2026-10-04
+    last_updated: 2026-10-04
+
+  - id: 2026-10-04-tencentdb-agent-memory-restart-hydration
+    family: ai-llm-systems
+    source_report: reports/2026-10-04.md
+    source_repository: TencentCloud/TencentDB-Agent-Memory
+    mechanism: layered session recovery chain
+    evidence_gap: Source and tests show the L1/L2a/L2b recovery flow, but the review did not validate a live proxy restart with initialized sessions already persisted in both the durable repository and the binding store.
+    validation_type: restart-recovery
+    proposed_validation: Restart the proxy with live initialized sessions present, then verify hydration, L2a probing, and binding-backed rebuild restore the same session identity and memory injection state without re-running the initial form flow.
+    success_condition: After restart, initialized sessions rehydrate correctly, identity stays consistent, and the proxy continues with the same memory-routing semantics.
+    priority: high
+    status: open
+    created: 2026-10-04
+    last_updated: 2026-10-04

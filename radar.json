@@ -1910,6 +1910,97 @@
       "decision_reason": "The router, egress, and storage modules form a reusable delayed-connectivity control plane with explicit contact-plan, link-state, and storage interactions. It is a strong mechanism for satellites and DTN work, but it still needs live operational validation under churn and storage pressure.",
       "revisit_reason": "Review after a material change to route recomputation, storage restore, or delay-simulation behavior.",
       "next_revisit_condition": "Revisit after a release or branch update that changes contact-plan handling, storage restore, or route-update propagation."
+    },
+    {
+      "repository": "deepseek-ai/deepseek-harness",
+      "URL": "https://github.com/deepseek-ai/deepseek-harness",
+      "artifact_type": "repository",
+      "external_artifacts": [
+        "https://deepseek.com/harness/en/",
+        "https://github.com/awesome-dsh-plugin/awesome-dsh-plugin",
+        "https://github.com/dataelement/dsh-desktop"
+      ],
+      "runtime_paths": [
+        "apps/cli/src/bin.ts",
+        "apps/cli/src/plugin.ts",
+        "packages/session/session-persistence-jsonl/src/index.ts",
+        "packages/session/session-persistence-jsonl/src/storage.ts",
+        "apps/cli/tests/profiles/headless/tests/semantic-checkpoint.expected.e2e.ts",
+        "packages/session/session-persistence-jsonl/tests/lease.two-process.e2e.ts"
+      ],
+      "operational_blockers": [
+        "needs live process-kill and restart validation on the same semantic checkpoint path"
+      ],
+      "first_seen": "2026-10-04",
+      "last_reviewed": "2026-10-04",
+      "commit_reviewed": "5badb15009ae1756c3afe0ae0cef1faafc290ccc",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "session persistence"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "replay-safe session harness",
+        "exact-version plugin approval",
+        "single-writer JSONL session store"
+      ],
+      "decision": "track",
+      "decision_reason": "The CLI dispatcher, exact-version plugin approvals, and JSONL session persistence form a reusable replay-safe harness boundary, and the replay fixture plus lock-contention test show the resume path is intentional rather than incidental. It still needs a live process-kill and restart run on the same checkpoint path before adoption.",
+      "revisit_reason": "Review after a material change to recovery, plugin approval, or JSONL session persistence.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes session replay, lock takeover, or plugin approval semantics."
+    },
+    {
+      "repository": "TencentCloud/TencentDB-Agent-Memory",
+      "URL": "https://github.com/TencentCloud/TencentDB-Agent-Memory",
+      "artifact_type": "repository",
+      "external_artifacts": [
+        "https://github.com/TencentCloud/TencentDB-Agent-Memory/releases/tag/v2.0.1",
+        "https://github.com/kuaizhongqiang/TencentAgentMemoryBridge",
+        "https://github.com/mercuryLiu163/tdai-standard-hook"
+      ],
+      "runtime_paths": [
+        "MemoryProxy/src/server.ts",
+        "MemoryProxy/src/session/store.ts",
+        "MemoryProxy/src/db/sessionRepo.ts",
+        "MemoryProxy/src/db/binding-repo.ts",
+        "MemoryCore/src/gateway/chat-memory-handlers.ts",
+        "MemoryProxy/src/__tests__/opencode-user-input.test.ts",
+        "MemoryProxy/src/__tests__/opencode-reporting.test.ts"
+      ],
+      "operational_blockers": [
+        "needs live proxy restart validation of hydrated initialized sessions"
+      ],
+      "first_seen": "2026-10-04",
+      "last_reviewed": "2026-10-04",
+      "commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent memory",
+        "session recovery",
+        "gateway routing"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "layered session recovery chain",
+        "durable session promotion after rebuild",
+        "content-only memory clear"
+      ],
+      "decision": "track",
+      "decision_reason": "The proxy and memory core separate hot-cache state, durable session rows, and binding rows into a recoverable chain that survives restarts in source, and the tests show recalled memory is not mistaken for fresh user input. The restart path still needs a live hydration and recovery validation under persisted sessions.",
+      "revisit_reason": "Review after a material change to restart hydration, binding rebuild, or memory routing.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes layered recovery, restart hydration, or binding rebuild semantics."
     }
   ]
 }
