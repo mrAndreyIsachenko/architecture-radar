@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-10-06",
   "discovery_mode": "mixed",
   "selected": [
     {
@@ -175,7 +175,10 @@
       "existing_spend": "Public hiring and LangChain paid products show adjacent budget for agent infrastructure, but not direct spend on checkpoint audit reports.",
       "paid_experiment": "Do not sell a product yet; first ask reachable LangGraph teams for a paid manual checkpoint audit and require one paid request before promotion.",
       "source_classes": [
-        "github"
+        "github",
+        "docs",
+        "job",
+        "news"
       ],
       "money_evidence_type": "budget_adjacency",
       "money_evidence": "GitHub issues, public hiring, and LangChain paid products show pain and adjacent budget, but no direct paid checkpoint-audit request.",
@@ -293,7 +296,9 @@
       "paid_experiment": "Ask admins for a paid manual routing review only after finding direct evidence that teams buy this kind of pre-rollout diagnostic.",
       "source_classes": [
         "github",
-        "pricing"
+        "pricing",
+        "docs",
+        "product"
       ],
       "money_evidence_type": "budget_adjacency",
       "money_evidence": "Pricing pages and admin issue threads show adjacent budget and operational pain, not a direct paid diagnostic workflow.",
@@ -410,7 +415,8 @@
       "paid_experiment": "Ask for representative logs and willingness to pay only after finding direct operator demand or manual log-analysis spend.",
       "source_classes": [
         "forum",
-        "github"
+        "github",
+        "docs"
       ],
       "money_evidence_type": "no_money_evidence",
       "money_evidence": "Public issues and forum threads show technical pain and manual diagnosis, but no direct public spend for external telemetry diagnostics.",
@@ -527,7 +533,8 @@
       "existing_spend": "Teams already spend on OCR, parsing, cloud compute, and document-processing labor.",
       "paid_experiment": "Ask three reachable teams with failing PDFs whether they would pay for a manual extraction-quality report before proposing software.",
       "source_classes": [
-        "github"
+        "github",
+        "docs"
       ],
       "money_evidence_type": "no_money_evidence",
       "money_evidence": "Public issues show technical pain and manual diagnosis, but no direct public spend for an external extraction-quality report was found.",
