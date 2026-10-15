@@ -192,3 +192,241 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
+
+  - id: 2026-10-10-deepseek-harness-runtime
+    family: ai-llm-systems
+    source_report: reports/2026-10-10.md
+    source_repository: deepseek-ai/deepseek-harness
+    mechanism: session-normalized synchronous harness
+    evidence_gap: Tests cover fake runtime, bundled launch resolution, and subprocess cleanup, but the review did not execute a real packaged session against the bundled runtime on this host.
+    validation_type: runtime
+    proposed_validation: Launch the bundled runtime, run one real initialize/session_prompt turn, and confirm notifications, final response, and finish reason survive shutdown cleanly.
+    success_condition: Real bundled runtime boots, accepts initialize/session_prompt, returns the expected session events, and shuts down without orphaned processes or diagnostics loss.
+    priority: medium
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
+  - id: 2026-10-10-tencentdb-agent-memory-operational
+    family: ai-llm-systems
+    source_report: reports/2026-10-10.md
+    source_repository: TencentCloud/TencentDB-Agent-Memory
+    mechanism: marker-gated request rewrite pipeline
+    evidence_gap: Source and QA scripts cover route gating, memory injection, and reset behavior, but the review did not validate a live proxy deployment against a real upstream and persistent backend.
+    validation_type: operational
+    proposed_validation: Run the proxy with a live upstream and non-mocked storage backend, then exercise session init, memory injection, mem commands, and degraded health reporting under real traffic.
+    success_condition: Session-init, memory injection, and mem-command flows work end-to-end with a live backend, and the health endpoint only reports degraded storage when shared storage is actually unavailable.
+    priority: high
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
+  - id: 2026-10-10-cfs-cfdp-operational
+    family: satellites-space-systems
+    source_report: reports/2026-10-10.md
+    source_repository: nasa/cFS
+    mechanism: bounded CFDP transaction engine
+    evidence_gap: Source and unit tests cover CFDP codec, timers, and transaction helpers, but the review did not validate integrated cFS CFDP behavior under delayed acknowledgements or packet reordering.
+    validation_type: operational
+    proposed_validation: Run CFDP inside the integrated cFS bundle with delayed acknowledgements and out-of-order returns, then confirm chunk tracking, EOF completion, and cancellation behavior stay coherent.
+    success_condition: CFDP transactions complete or cancel correctly under delayed ACKs and reordering, with no stuck retries, stale gaps, or deadlock.
+    priority: high
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
+  - id: 2026-10-07-openocr-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-10-07.md
+    source_repository: Topdu/OpenOCR
+    mechanism: layout-aware document parsing pipeline
+    evidence_gap: The source and tests cover task dispatch and serialization helpers, but the doc pipeline still needs a mixed real-document runtime run to prove page-level provenance and serialized outputs survive partial failures.
+    validation_type: runtime
+    proposed_validation: Run the doc task over a mixed PDF corpus with tables, formulas, charts, and malformed pages, then compare `layout_det_res`, `parsing_res_list`, JSON output, and Markdown output against the expected page-level structure.
+    success_condition: The document task keeps page ordering, block provenance, and exporter output aligned even when a subset of pages or blocks fail.
+    priority: medium
+    status: open
+    created: 2026-10-07
+    last_updated: 2026-10-07
+
+  - id: 2026-10-07-dybervpn-reconnect-recovery
+    family: privacy-networking-vpn
+    source_report: reports/2026-10-07.md
+    source_repository: dyber-pqc/DyberVPN
+    mechanism: policy-guarded route reconciliation loop
+    evidence_gap: The source proves full-key policy enforcement and CRL hot reload, but the reconnect and reload path still needs live churn to prove policy and revocation stay coherent after disconnects.
+    validation_type: reconnect-recovery
+    proposed_validation: Run the tunnel through a disconnect/reconnect cycle while reloading policy and CRL updates, then confirm revoked peers stay blocked, reinstated peers recover, and no stale route or key-acceptance state survives the churn.
+    success_condition: Reconnects and reloads converge on the current policy and CRL state without reviving stale access.
+    priority: high
+    status: open
+    created: 2026-10-07
+    last_updated: 2026-10-07
+
+  - id: 2026-10-07-meshswarm-restart-recovery
+    family: drones-robotics-autonomy
+    source_report: reports/2026-10-07.md
+    source_repository: AkitaEngineering/MeshSwarm
+    mechanism: mission failsafe fallback state machine
+    evidence_gap: The source and tests show the control and failsafe loops, but the mesh and FCU path still needs real restart churn to prove ACK, telemetry, and RTL recovery remain stable.
+    validation_type: restart-recovery
+    proposed_validation: Run a live mesh with forced disconnects, command replay, and FCU restarts, then confirm the GCS reconnects, ACK state resynchronizes, and the drone converges back to the same canonical RTL path without duplicate stale commands.
+    success_condition: Restart churn does not break ACK sync, replay rejection, or RTL latching on the live mesh path.
+    priority: high
+    status: open
+    created: 2026-10-07
+    last_updated: 2026-10-07
+
+  - id: 2026-10-07-cfs-operational-bundle
+    family: satellites-space-systems
+    source_report: reports/2026-10-07.md
+    source_repository: nasa/cFS
+    mechanism: bundle-level command/telemetry loop
+    evidence_gap: The bundle and unit tests show command/telemetry plumbing, but the demo bundle still needs an operational run to prove the full command/telemetry loop behaves coherently outside the nominal build/run path.
+    validation_type: operational
+    proposed_validation: Run the bundle through a full operational harness with a real or emulated ground system, then confirm the command path, housekeeping loop, and telemetry forwarding stay coherent under startup and runtime churn.
+    success_condition: Command dispatch, housekeeping, and telemetry forwarding remain coherent under end-to-end bundle operation.
+    priority: medium
+    status: open
+    created: 2026-10-07
+    last_updated: 2026-10-07
+
+  - id: 2026-10-07-sam-fleet-mesh
+    family: ai-llm-systems
+    source_report: reports/2026-10-07.md
+    source_repository: google/sam
+    mechanism: sidecar-backed mesh agent envelope
+    evidence_gap: The source and integration tests cover the sidecar and mesh API, but the runtime still needs a live multi-node fleet run to prove discovery, auth, and tool calls survive mesh churn.
+    validation_type: fleet
+    proposed_validation: Run a multi-node mesh with one sam-node, one router, and at least one SDK member, then restart the sidecar and a peer mid-run to confirm discovery, auth, and remote tool calls recover without leaking or duplicating credentials.
+    success_condition: Discovery, auth, and remote tool invocation survive churn without credential leakage or duplicated requests.
+    priority: high
+    status: open
+    created: 2026-10-07
+    last_updated: 2026-10-07
+
+  - id: 2026-10-04-deepseek-harness-replay-restart
+    family: ai-llm-systems
+    source_report: reports/2026-10-04.md
+    source_repository: deepseek-ai/deepseek-harness
+    mechanism: replay-safe harness envelope with single-writer JSONL session persistence
+    evidence_gap: Source and tests show the replay fixture and the kernel lock takeover path, but the review did not validate a live process-kill and restart cycle on the same interrupted semantic-checkpoint session.
+    validation_type: replay
+    proposed_validation: Run a real profile session that performs one side effect, kill the process after the interrupted turn, restart the same profile, and confirm the resumed checkpoint matches the fixture without repeating the side effect or duplicating the tool call.
+    success_condition: The restarted harness resumes the interrupted semantic checkpoint, preserves the session ledger, and produces the same resumed output without duplicate side effects.
+    priority: high
+    status: open
+    created: 2026-10-04
+    last_updated: 2026-10-04
+
+  - id: 2026-10-04-tencentdb-agent-memory-restart-hydration
+    family: ai-llm-systems
+    source_report: reports/2026-10-04.md
+    source_repository: TencentCloud/TencentDB-Agent-Memory
+    mechanism: layered session recovery chain
+    evidence_gap: Source and tests show the L1/L2a/L2b recovery flow, but the review did not validate a live proxy restart with initialized sessions already persisted in both the durable repository and the binding store.
+    validation_type: restart-recovery
+    proposed_validation: Restart the proxy with live initialized sessions present, then verify hydration, L2a probing, and binding-backed rebuild restore the same session identity and memory injection state without re-running the initial form flow.
+    success_condition: After restart, initialized sessions rehydrate correctly, identity stays consistent, and the proxy continues with the same memory-routing semantics.
+    priority: high
+    status: open
+    created: 2026-10-04
+    last_updated: 2026-10-04
+
+  - id: 2026-10-01-fusion-ocr-runtime-batch
+    family: document-ai-ocr
+    source_report: reports/2026-10-01.md
+    source_repository: hoyla/fusion-ocr
+    mechanism: recipe-fingerprinted resumable OCR/VLM pipeline
+    evidence_gap: The source and tests show deterministic geometry, VLM gating, and resumable snapshots, but the reviewed evidence does not validate a mixed real-world batch with both born-digital and OCR-heavy pages under live backend variability.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF batch that includes born-digital pages, scanned pages, and one intentionally malformed page, then confirm stage snapshots, per-page numbering, overlay provenance, and refusal gating survive the batch.
+    success_condition: The batch completes without losing page numbering or provenance, failed pages remain visible, and the recipe fingerprint still allows safe resume after interruption.
+    priority: medium
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-chain-indexer-reorg-failure-injection
+    family: blockchain-intelligence
+    source_report: reports/2026-10-01.md
+    source_repository: Layr-Labs/chain-indexer
+    mechanism: rollback-aware EVM poller with orphan pruning
+    evidence_gap: The source and tests show parent-hash validation and orphan rollback, but the reviewed evidence does not validate a live reorg or injected fork against a durable backend or recovery harness.
+    validation_type: failure-injection
+    proposed_validation: Force a real or simulated chain fork, then verify the poller deletes orphaned blocks, preserves the correct cursor, and replays downstream log handling without double-processing the reverted range.
+    success_condition: Reorged blocks are pruned, the cursor advances only on the surviving chain, and downstream handlers receive exactly one rollback signal for the orphaned range.
+    priority: high
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-droneserver-operational-flight
+    family: drones-robotics-autonomy
+    source_report: reports/2026-10-01.md
+    source_repository: PeterJBurke/droneserver
+    mechanism: server-enforced mission safety envelope
+    evidence_gap: The source and tests show guard ordering, audit logging, and mission checkpointing, but the reviewed evidence does not validate the same envelope against a live vehicle or field mission outside simulation.
+    validation_type: operational
+    proposed_validation: Run a field or hardware-in-the-loop mission that exercises the full tool guard pipeline, then restart the control plane mid-mission and confirm the checkpointed mission state and audit trail recover coherently.
+    success_condition: Unsafe calls remain blocked, mission checkpoints survive the restart, and the audit log reconstructs the mission timeline without losing guard decisions.
+    priority: high
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-10-01-ground-station-operational-observation
+    family: satellites-space-systems
+    source_report: reports/2026-10-01.md
+    source_repository: sgoudelis/ground-station
+    mechanism: internal observation session envelope
+    evidence_gap: The source and tests show internal-session isolation and tracker cleanup, but the reviewed evidence does not validate those paths against live SDR or rotator hardware with reconnect churn.
+    validation_type: operational
+    proposed_validation: Start and stop an internal observation on real or hardware-in-the-loop SDR equipment, then reconnect the backend and confirm the tracker restores ownership, session flags, and cleanup state without leaking into the user-session view.
+    success_condition: Internal observations remain isolated from user sessions, ownership maps recover after reconnect, and cleanup removes stale session state on the live hardware path.
+    priority: medium
+    status: open
+    created: 2026-10-01
+    last_updated: 2026-10-01
+
+  - id: 2026-09-28-agentledger-failure-injection
+    family: ai-llm-systems
+    source_report: reports/2026-09-28.md
+    source_repository: yaogdu/AgentLedger
+    mechanism: evidence-carrying execution envelope with tool-ledger replay boundary
+    evidence_gap: Source and tests show replay, evidence export, and crash simulation, but not a live worker kill and restart on the same ledger with a real external side effect.
+    validation_type: failure-injection
+    proposed_validation: Start a run that dispatches an idempotent side effect, kill the worker after dispatch but before observation, restart the runtime, and confirm the run resumes from the ledger without duplicating the external effect or losing the evidence bundle.
+    success_condition: The resumed run reconstructs the same state from run_steps, the tool is not externally duplicated, and the exported evidence bundle still hashes identically.
+    priority: high
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28
+
+  - id: 2026-09-28-bumblebee-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-09-28.md
+    source_repository: Sri-Krishna-V/bumblebee
+    mechanism: chunk-streamed OCR pipeline with text-layer trust and bounded adaptive retry
+    evidence_gap: Source and GPU-free tests prove pipeline structure and resumability, but not a live mixed-quality corpus with actual GPU/OCR latency and memory pressure.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF batch with born-digital pages, scanned pages, and one intentionally slow OCR backend, then verify the batch still finishes, stats.json remains the completion marker, the retry budget is honored, and the text-layer fallback only applies when coverage threshold is met.
+    success_condition: No document hangs, page numbering stays stable, resumability skips completed outputs, and retry improves low-confidence regions without corrupting layout.json or content.md.
+    priority: medium
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28
+
+  - id: 2026-09-28-evm-indexer-operational
+    family: blockchain-intelligence
+    source_report: reports/2026-09-28.md
+    source_repository: eabz/evm-indexer
+    mechanism: reorg-safe materialization window with purge-and-reinsert module backfill
+    evidence_gap: Source and tests prove fork search, purge ordering, and backfill mechanics, but not a live HyperSync/ClickHouse run under real reorg churn and storage pressure.
+    validation_type: operational
+    proposed_validation: Run the indexer against a chain with live head movement, force a small reorg or gap-heal, and verify the purge/reinsert path, coverage floor, and ClickHouse epoch repair remain coherent while the fleet service continues writing.
+    success_condition: The live chain remains gap-free below the coverage floor, reorgs produce exactly one repaired epoch transition, and backfill does not double count or lose module rows.
+    priority: high
+    status: open
+    created: 2026-09-28
+    last_updated: 2026-09-28

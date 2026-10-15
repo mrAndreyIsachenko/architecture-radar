@@ -4,9 +4,9 @@
 - Review date: 2026-10-13
 - Current commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
 - Commit date: 2026-10-09T17:31:32+08:00
-- Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review at the current head; the current commit pulls together semantic session persistence, checkpoint-before-dispatch policy, sandbox-mode replay, and shell/workspace integration into one durable runtime boundary.
+- Branch: `master`
+- Previous commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
+- Material changes since previous review: no upstream commit change since 2026-10-10. This additional source review examines checkpoint-before-dispatch and sandbox-mode replay at the same pinned commit; the earlier review examined the synchronous SDK and bundled-runtime lifecycle.
 - Decision: track
 
 ## Problem Fit
@@ -35,7 +35,7 @@ Principal components:
 - Sandbox policy and shell integration that replay durable mode decisions.
 - Workspace registry that keeps durable session metadata and archived/pinned workspace state.
 
-Most interesting mechanism: the runtime treats flush-before-dispatch as the safety boundary. The system does not wait for the entire conversation to end; it checkpoints at the exact points where side effects can be triggered, so a failure before dispatch prevents duplicate action instead of trying to infer recovery from logs later.
+Most interesting mechanism: the runtime treats flush-before-dispatch as the safety boundary. The system does not wait for the entire conversation to end; a checkpoint failure prevents downstream dispatch. This does not establish at-most-once external execution: a crash after an external effect but before its result is persisted still requires idempotency or reconciliation on recovery.
 
 Baseline comparison: a simpler agent runtime would append logs asynchronously and let the shell or model adapter proceed on the assumption that a later flush will be fine. Deepseek Harness instead makes persistence a semantic precondition for model/tool dispatch and uses durable sandbox mode state to replay the same execution posture.
 
@@ -83,3 +83,7 @@ Kill the runtime after a request prefix or top-level tool call has been flushed,
 - `semantic checkpoint barrier before dispatch`
 - `durable sandbox-mode replay`
 - `single-owner session write lease`
+
+## Previous Reviews
+
+The [2026-10-10 report](../reports/2026-10-10.md) examined SDK transport, notification routing, and bundled-runtime cleanup at the same commit. The [2026-10-04 report](../reports/2026-10-04.md) examined CLI/plugin approvals and JSONL replay at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. The [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/d1fe321f3a0a08355405865a6407c86a683ed560/repositories/deepseek-ai-deepseek-harness.md) preserves those source references. Their open runtime and restart experiments remain in the backlog; this review does not mark them completed.

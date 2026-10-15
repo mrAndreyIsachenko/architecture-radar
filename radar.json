@@ -191,52 +191,6 @@
       "next_revisit_condition": "Revisit after a material change to the client status protobuf, relay state model, or DNS/SSH summary rendering."
     },
     {
-      "repository": "deepseek-ai/deepseek-harness",
-      "URL": "https://github.com/deepseek-ai/deepseek-harness",
-      "artifact_type": "repository",
-      "external_artifacts": [],
-      "runtime_paths": [
-        "packages/session/session-persistence/src/index.ts",
-        "packages/session/session-persistence-jsonl/src/index.ts",
-        "packages/session/session-checkpoint-policy/src/index.ts",
-        "packages/session/session-persistence-jsonl/src/lease.ts",
-        "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
-        "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
-        "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
-        "packages/sandbox/sandbox-policy/src/index.ts"
-      ],
-      "operational_blockers": [
-        "needs live process-kill and restart validation",
-        "flush-before-dispatch and lease semantics still need contention proof"
-      ],
-      "first_seen": "2026-10-13",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
-      "previous_commit_reviewed": null,
-      "categories": [
-        "agent runtime",
-        "durable workflows",
-        "session persistence",
-        "runtime recovery"
-      ],
-      "maturity": "track",
-      "novelty_score": 4,
-      "relevance_score": 5,
-      "evidence_quality": "high",
-      "extracted_patterns": [
-        "Evidence-Carrying Execution Envelopes"
-      ],
-      "candidate_patterns": [
-        "semantic checkpoint barrier before dispatch",
-        "durable sandbox-mode replay",
-        "single-owner session write lease"
-      ],
-      "decision": "track",
-      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
-      "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
-      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
-    },
-    {
       "repository": "PX4/PX4-Autopilot",
       "URL": "https://github.com/PX4/PX4-Autopilot",
       "artifact_type": "repository",
@@ -413,8 +367,22 @@
     {
       "repository": "Layr-Labs/chain-indexer",
       "URL": "https://github.com/Layr-Labs/chain-indexer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "pkg/chainPollers/evm/evmChainPoller.go",
+        "pkg/clients/ethereum/client.go",
+        "pkg/clients/ethereum/handlers.go",
+        "pkg/chainPollers/persistence/memory/memory.go",
+        "pkg/chainPollers/contractRegistry/inMemory.go",
+        "pkg/chainPollers/evm/evmChainPoller_test.go",
+        "pkg/chainPollers/evm/evmChainPoller_integration_test.go"
+      ],
+      "operational_blockers": [
+        "needs failure-injection validation against a live or durable reorg harness"
+      ],
       "first_seen": "2026-08-05",
-      "last_reviewed": "2026-08-05",
+      "last_reviewed": "2026-10-01",
       "commit_reviewed": "7d774750b49b0d8b527edc2124bb6f248f56d006",
       "previous_commit_reviewed": null,
       "categories": [
@@ -422,19 +390,21 @@
         "incremental indexing",
         "reorg recovery"
       ],
-      "maturity": "watch-mechanism",
+      "maturity": "track",
       "novelty_score": 4,
       "relevance_score": 5,
       "evidence_quality": "high",
-      "extracted_patterns": [],
-      "candidate_patterns": [
-        "reorg-safe block reconciliation",
-        "block-history pruning window"
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
       ],
-      "decision": "watch",
-      "decision_reason": "The poller, log decoding, and ancestor-walk reorg recovery path are directly relevant to blockchain interpretation, but the project still describes itself as testing-only.",
-      "revisit_reason": "Revisit if the reorg handling contract, persistence layer, or production readiness materially changes.",
-      "next_revisit_condition": "Revisit after a material change to reorg reconciliation, checkpoint persistence, or downstream sink semantics."
+      "candidate_patterns": [
+        "reorg-aware poller loop",
+        "dynamic contract-registry log fanout"
+      ],
+      "decision": "track",
+      "decision_reason": "The poller validates parent hashes, reconciles reorgs by removing orphaned blocks, and keeps log fanout separate from the tip cursor. The mechanism is reusable for transaction interpretation, but the reviewed store is still in-memory and needs a live reorg or fork-injection validation before adoption.",
+      "revisit_reason": "Review after durable-store support or a live reorg/fork injection run that changes rollback confidence.",
+      "next_revisit_condition": "Revisit after a material change to persistence, fork handling, or live reorg recovery behavior."
     },
     {
       "repository": "geiserx/tailscale-rs",
@@ -1972,6 +1942,557 @@
       "decision_reason": "The router, egress, and storage modules form a reusable delayed-connectivity control plane with explicit contact-plan, link-state, and storage interactions. It is a strong mechanism for satellites and DTN work, but it still needs live operational validation under churn and storage pressure.",
       "revisit_reason": "Review after a material change to route recomputation, storage restore, or delay-simulation behavior.",
       "next_revisit_condition": "Revisit after a release or branch update that changes contact-plan handling, storage restore, or route-update propagation."
+    },
+    {
+      "repository": "yaogdu/AgentLedger",
+      "URL": "https://github.com/yaogdu/AgentLedger",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/agentledger/runtime.py",
+        "src/agentledger/replay.py",
+        "src/agentledger/evidence.py",
+        "tests/test_runtime.py",
+        "tests/test_replay.py"
+      ],
+      "operational_blockers": [
+        "needs failure-injection validation for worker kill and restart against a real side effect"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "dd966e3b3d9eb54032c51701d30efcfbaa2379b0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable execution",
+        "evidence export"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "tool-ledger replay boundary",
+        "hash-chained evidence bundle",
+        "same-run resume after crash"
+      ],
+      "decision": "track",
+      "decision_reason": "The runtime, replay, and evidence modules expose a reusable mechanism for binding tool dispatch, evidence export, and crash recovery to the same ledger. The architecture is strong enough to track, but adoption should wait for live worker-kill validation against a real external side effect.",
+      "revisit_reason": "Review after a material change to worker lifecycle, evidence export format, or replay semantics.",
+      "next_revisit_condition": "Revisit after a material change to process restart handling, evidence hashing, or external-effect idempotency."
+    },
+    {
+      "repository": "Sri-Krishna-V/bumblebee",
+      "URL": "https://github.com/Sri-Krishna-V/bumblebee",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/bumblebee/pipeline.py",
+        "src/bumblebee/textlayer.py",
+        "src/bumblebee/runs.py",
+        "tests/test_pipeline.py",
+        "tests/test_storage.py"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on a mixed PDF corpus with OCR latency and memory pressure"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "c108cd33664b57ee64fa80b47a89e1c943749a80",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document AI",
+        "OCR pipeline",
+        "layout preservation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "text-layer trust gating",
+        "completion-marker resumability",
+        "bounded adaptive OCR retry"
+      ],
+      "decision": "track",
+      "decision_reason": "The pipeline and text-layer checks provide a reusable deferred-rendering mechanism for document AI, with resumable batch outputs and coverage-based fallback logic. It is useful but still needs runtime evidence across real mixed-quality PDFs before stronger adoption.",
+      "revisit_reason": "Review after a material change to batching, OCR fallback thresholds, or resumable output markers.",
+      "next_revisit_condition": "Revisit after a material change to retry thresholds, mixed-corpus performance, or layout preservation behavior."
+    },
+    {
+      "repository": "eabz/evm-indexer",
+      "URL": "https://github.com/eabz/evm-indexer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/reorg/mod.rs",
+        "src/reorg/fork.rs",
+        "src/pipeline/backfill.rs",
+        "src/reorg/tests.rs",
+        "src/pipeline/sync_tests.rs"
+      ],
+      "operational_blockers": [
+        "needs operational validation under live reorg churn and ClickHouse storage pressure"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "e4ca46486837b85aadccd009ca742f1799801a67",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg handling",
+        "materialized backfill"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "purge-and-reinsert backfill",
+        "fork-search reversal window",
+        "coverage-floor gating"
+      ],
+      "decision": "track",
+      "decision_reason": "The reorg and backfill modules implement a reusable purge-and-reinsert materialization window for blockchain indexing. It is strong source evidence, but adoption should wait for live operational validation under reorg churn and storage pressure.",
+      "revisit_reason": "Review after a material change to reorg handling, cursor persistence, or ClickHouse sink behavior.",
+      "next_revisit_condition": "Revisit after a material release that changes reorg handling, fork search, or backfill persistence."
+    },
+    {
+      "repository": "hoyla/fusion-ocr",
+      "URL": "https://github.com/hoyla/fusion-ocr",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/fusion_ocr/pipeline.py",
+        "src/fusion_ocr/stages/triage.py",
+        "src/fusion_ocr/stages/layout.py",
+        "src/fusion_ocr/stages/ocr_det.py",
+        "src/fusion_ocr/stages/vlm_read.py",
+        "src/fusion_ocr/stages/fusion.py",
+        "tests/test_pipeline.py",
+        "tests/test_eval_harness.py",
+        "tests/test_routing.py"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on mixed born-digital and OCR-heavy batches"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "ebe76ec91a2c1c774ecd1ed36a1f1127c7b30f39",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "OCR",
+        "layout-aware extraction"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "provenance-carrying OCR overlay",
+        "recipe-fingerprinted resumable pipeline"
+      ],
+      "decision": "track",
+      "decision_reason": "The pipeline keeps deterministic geometry canonical, separates VLM reads from OCR-bound pages, and stores per-stage snapshots keyed by recipe fingerprint. The reusable mechanism is strong, but the reviewed evidence still needs a live mixed-batch runtime validation before adoption.",
+      "revisit_reason": "Review after mixed-batch runtime validation or material changes to stage snapshots, routing, or VLM refusal gating.",
+      "next_revisit_condition": "Revisit after a mixed born-digital/OCR batch run or a release that changes snapshot or fusion semantics."
+    },
+    {
+      "repository": "PeterJBurke/droneserver",
+      "URL": "https://github.com/PeterJBurke/droneserver",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/droneserver/safety/config.py",
+        "src/droneserver/safety/audit.py",
+        "src/droneserver/safety/middleware.py",
+        "src/droneserver/safety/tiers.py",
+        "src/droneserver/tools/safety_ops.py",
+        "src/droneserver/missions/runner.py",
+        "tests/test_mission_ground_datum.py",
+        "docs/adversarial_results.md"
+      ],
+      "operational_blockers": [
+        "needs field or hardware-in-the-loop validation beyond SITL evidence"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "06b7d1a6a967553f1f8c025bb6b1fc79d346fd53",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission planning",
+        "command safety",
+        "restartable control plane"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "confirmation-token safety gate",
+        "append-only command audit log"
+      ],
+      "decision": "track",
+      "decision_reason": "The guard pipeline, audit log, and mission runner give a reusable server-side safety envelope for high-risk autonomy. The code and tests are strong, but adoption should wait for field or hardware-in-the-loop validation outside simulation.",
+      "revisit_reason": "Review after an operational flight or hardware-in-the-loop validation changes confidence in the safety envelope.",
+      "next_revisit_condition": "Revisit after a field validation, hardware-in-the-loop mission, or material change to guard and audit semantics."
+    },
+    {
+      "repository": "sgoudelis/ground-station",
+      "URL": "https://github.com/sgoudelis/ground-station",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "backend/session/service.py",
+        "backend/session/tracker.py",
+        "backend/common/appconfig.py",
+        "backend/tests/test_session_internal_observations.py",
+        "backend/tests/test_tracker_runner_slots.py",
+        "backend/tests/test_sdrtakeover.py"
+      ],
+      "operational_blockers": [
+        "needs live SDR or rotator validation for observation-session isolation"
+      ],
+      "first_seen": "2026-10-01",
+      "last_reviewed": "2026-10-01",
+      "commit_reviewed": "430d4aa774a58df46ed3290782dbcde8ea2f1e3f",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "ground station",
+        "session lifecycle",
+        "telemetry observability"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "internal observation session envelope",
+        "session-to-SDR ownership façade"
+      ],
+      "decision": "track",
+      "decision_reason": "The session service and tracker make internal observations first-class runtime objects with explicit SDR ownership and cleanup. That is a useful ground-station mechanism, but it still needs live hardware validation to prove reconnect and cleanup behavior under field conditions.",
+      "revisit_reason": "Review after live SDR or rotator validation changes confidence in the session tracker and cleanup envelope.",
+      "next_revisit_condition": "Revisit after hardware-backed observation sessions or a material change to session tracker semantics."
+    },
+    {
+      "repository": "deepseek-ai/deepseek-harness",
+      "URL": "https://github.com/deepseek-ai/deepseek-harness",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "packages/session/session-persistence/src/index.ts",
+        "packages/session/session-persistence-jsonl/src/index.ts",
+        "packages/session/session-checkpoint-policy/src/index.ts",
+        "packages/session/session-persistence-jsonl/src/lease.ts",
+        "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
+        "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
+        "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
+        "packages/sandbox/sandbox-policy/src/index.ts"
+      ],
+      "operational_blockers": [
+        "needs live process-kill and restart validation",
+        "flush-before-dispatch and lease semantics still need contention proof",
+        "needs a real packaged session against the bundled runtime",
+        "needs live process-kill and restart validation on the same semantic checkpoint path"
+      ],
+      "first_seen": "2026-10-04",
+      "last_reviewed": "2026-10-13",
+      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "categories": [
+        "agent runtime",
+        "durable workflows",
+        "session persistence",
+        "runtime recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "semantic checkpoint barrier before dispatch",
+        "durable sandbox-mode replay",
+        "single-owner session write lease",
+        "session-normalized synchronous harness",
+        "bundled runtime resolution guardrail",
+        "notification-tree subscription",
+        "bounded subprocess shutdown",
+        "replay-safe session harness",
+        "exact-version plugin approval",
+        "single-writer JSONL session store"
+      ],
+      "decision": "track",
+      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
+      "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
+      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
+    },
+    {
+      "repository": "TencentCloud/TencentDB-Agent-Memory",
+      "URL": "https://github.com/TencentCloud/TencentDB-Agent-Memory",
+      "artifact_type": "runtime",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "MemoryProxy/src/index.ts",
+        "MemoryProxy/src/server.ts",
+        "MemoryProxy/src/injection/pipeline.ts",
+        "MemoryProxy/src/pipeline/stages/session-init-orchestrate.ts",
+        "MemoryProxy/src/pipeline/stages/mem-command.ts",
+        "MemoryProxy/src/storage/sqlite-storage.ts",
+        "MemoryProxy/src/storage/fs-storage.ts"
+      ],
+      "operational_blockers": [
+        "needs live proxy validation against a real upstream and persistent backend",
+        "needs live proxy restart validation of hydrated initialized sessions"
+      ],
+      "first_seen": "2026-10-04",
+      "last_reviewed": "2026-10-10",
+      "commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
+      "previous_commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
+      "categories": [
+        "context engineering",
+        "proxy orchestration",
+        "memory injection"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "marker-gated request rewrite pipeline",
+        "session-scoped memory injection stage",
+        "degraded storage health gate",
+        "session-init recovery orchestrator",
+        "atomic prefix-backed proxy KV",
+        "layered session recovery chain",
+        "durable session promotion after rebuild",
+        "content-only memory clear"
+      ],
+      "decision": "track",
+      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
+      "revisit_reason": "Revisit after a live backend run or a material pipeline/storage refactor.",
+      "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the pipeline/storage contract changes materially."
+    },
+    {
+      "repository": "Topdu/OpenOCR",
+      "URL": "https://github.com/Topdu/OpenOCR",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "openocr.py",
+        "tools/infer_doc.py",
+        "test_openocr.py",
+        "configs/",
+        "docs/"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on mixed real-document corpora and partial-failure serialization"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "1ccfc6ee6161f7133b192e16af3a9265273997ba",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR provenance"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "layout-aware extraction pipeline",
+        "structured document output serialization"
+      ],
+      "decision": "track",
+      "decision_reason": "The doc pipeline, layout parsing, and doc-specific serializers are source-backed and reusable, but the reviewed source does not yet prove mixed-document runtime behavior under partial failure.",
+      "revisit_reason": "Review after runtime corpus validation or a material doc-pipeline change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes doc parsing, layout handling, or output serialization."
+    },
+    {
+      "repository": "dyber-pqc/DyberVPN",
+      "URL": "https://github.com/dyber-pqc/DyberVPN",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "crates/dybervpn-tunnel/src/policy.rs",
+        "crates/dybervpn-tunnel/src/revocation.rs",
+        "crates/dybervpn-tunnel/src/daemon.rs",
+        "crates/dybervpn-cli/src/main.rs"
+      ],
+      "operational_blockers": [
+        "needs live reconnect and reload validation under policy and revocation churn"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "943cf5012dc370a5768550eab6a0b7a3c71711c7",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN control plane",
+        "policy enforcement",
+        "key revocation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Policy-Guarded Route Reconciliation Loop"
+      ],
+      "candidate_patterns": [
+        "full-key policy and revocation gate"
+      ],
+      "decision": "track",
+      "decision_reason": "The policy and CRL loop is source-backed and reusable, but live reconnect and reload churn still needs proof before the mechanism is safe to adopt.",
+      "revisit_reason": "Review after reconnect/reload validation or a material policy/revocation change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes policy reload, CRL handling, or reconnect logic."
+    },
+    {
+      "repository": "AkitaEngineering/MeshSwarm",
+      "URL": "https://github.com/AkitaEngineering/MeshSwarm",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "gcs_app.py",
+        "meshtastic_control.py",
+        "main/main.cpp",
+        "tests/test_gcs_app.py",
+        "tests/test_qa_simulator.py"
+      ],
+      "operational_blockers": [
+        "needs restart and operational validation on real mesh hardware and a real flight-controller path"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "bd7f2d1a5791f06abcc6254279b42b79d69a7219",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "drone telemetry",
+        "mesh command control",
+        "failsafe recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "encrypted mesh ACK sequencing"
+      ],
+      "decision": "track",
+      "decision_reason": "The mesh control, ACK replay handling, and RTL latching are source-backed and reusable, but the live restart path still needs operational proof on real hardware.",
+      "revisit_reason": "Review after restart-recovery validation or a material control-loop change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes mesh control, ACK handling, or failsafe latching."
+    },
+    {
+      "repository": "nasa/cFS",
+      "URL": "https://github.com/nasa/cFS",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "apps/cf/fsw/src/cf_app.c",
+        "apps/cf/fsw/src/cf_cfdp.c",
+        "apps/cf/fsw/src/cf_cfdp_r.c",
+        "apps/cf/fsw/src/cf_cfdp_s.c",
+        "apps/cf/unit-test/cf_cfdp_tests.c"
+      ],
+      "operational_blockers": [
+        "needs integrated CFDP validation with delayed acknowledgements and packet reordering",
+        "needs operational validation beyond the demo build/telemetry path"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-10",
+      "commit_reviewed": "ca14a5cce6954c1cbc464c536ea681b6798d3b44",
+      "previous_commit_reviewed": "13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b",
+      "categories": [
+        "CFDP",
+        "delayed connectivity",
+        "transaction recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "bounded CFDP transaction engine",
+        "chunked delayed-transfer state machine",
+        "table-driven CFDP configuration",
+        "gap-tracked file receive path",
+        "bundle-level command/telemetry loop",
+        "table-driven telemetry subscription management"
+      ],
+      "decision": "track",
+      "decision_reason": "The CF app and CFDP modules form a reusable delayed-connectivity transfer engine with explicit timer, ack/nak, and gap-tracking behavior. The unit tests are strong, but the operational bundle still needs live delayed-ACK and reordering validation.",
+      "revisit_reason": "Revisit after integrated CFDP validation or a material change to the transaction engine.",
+      "next_revisit_condition": "Revisit when integrated CFDP behavior is validated or the send/receive transaction model changes materially."
+    },
+    {
+      "repository": "google/sam",
+      "URL": "https://github.com/google/sam",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "cmd/sam-node/main.go",
+        "internal/node/mcp.go",
+        "internal/node/mcp_handlers.go",
+        "internal/node/sidecar.go",
+        "internal/node/sidecar_test.go",
+        "tests/integration/sdk_mesh_test.go"
+      ],
+      "operational_blockers": [
+        "needs live multi-node fleet validation across discovery, auth, and tool invocation"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "12dea1138cc40df0d440830d8c93de4408f95986",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "mesh discovery",
+        "sidecar runtime"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "readiness-gated sidecar runtime"
+      ],
+      "decision": "track",
+      "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
+      "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
     }
   ]
 }
