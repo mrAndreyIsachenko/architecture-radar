@@ -3,7 +3,7 @@
 - Canonical name: Deferred Image Materialization
 - Aliases: lazy high-res page promotion, lowres-first page promotion, page-image promotion after structural parse, page crop promotion
 - Avoided duplicate names: eager rasterization, always-highres OCR, full-page first pass, blanket page rendering
-- Last updated: 2026-08-29
+- Last updated: 2026-09-28
 
 ## Problem
 
@@ -28,6 +28,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 - LiteParse: keeps structural parsing authoritative, then renders screenshots or emits classified blocks only when the caller asks for them; page numbering, geometry, and OCR merge stay stable whether the promoted artifacts are enabled or not.
 - Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
+- Bumblebee: streams pages through render, layout, crop, OCR, and format in page chunks, trusts embedded text only when page coverage is high enough, and rerenders low-confidence regions once at 2x DPI without breaking resumability.
 
 ## Known Repositories
 
@@ -36,6 +37,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
 - `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
+- `Sri-Krishna-V/bumblebee` reviewed at `c108cd33664b57ee64fa80b47a89e1c943749a80`.
 
 ## Comparison Of Implementations
 
@@ -47,6 +49,8 @@ LiteParse sits between library and service. It keeps a shared structural decompo
 
 Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps the gate pixel-free, uses the decision to decide whether layout and OCR can share work, and makes the reason for each page's promotion or skip auditable in metadata. The trade-off is that the gate thresholds still need corpus-specific tuning.
 
+Bumblebee applies the same pattern as a streaming batch runtime rather than a pure layout pre-screen. It keeps OCR and layout in flight per page chunk, uses the embedded text layer only when the page-level coverage policy says the text is trustworthy, and applies bounded adaptive retry to low-confidence regions. The trade-off is that the confidence threshold and 10% retry budget need corpus-specific tuning, and the GPU path still needs real latency validation.
+
 ## Failure Modes
 
 - Misclassifying a page as lowres-only can hide math, tables, or diagrams.
@@ -56,6 +60,7 @@ Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps
 - If failed pages are not retained, page numbering breaks downstream.
 - Rendering picture segments only when they exist can still miss image-heavy tables if upstream segmentation under-classifies them.
 - OCR/layout reuse can become unsafe if gate metadata or page rotations drift from the rendered page set.
+- A retry budget that is too generous can hide bad OCR while still consuming the memory savings the pattern was meant to preserve.
 
 ## Trade-Offs
 
@@ -77,6 +82,7 @@ Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps
 - Verify that fallback OCR or crop extraction does not re-render already accepted content.
 - Verify that temporary input files are cleaned up on the default path and that a keep-file flag is the only way to retain them.
 - Verify that layout reuse is disabled when page rotations or gate metadata make the OCR path incompatible.
+- Validate the streaming pipeline on a real mixed-quality corpus with actual OCR latency and memory pressure.
 
 ## Evidence References
 
@@ -101,3 +107,7 @@ Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps
 - E1 source verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:1-17,185-209,432-438` performs the pixel-free page gate and exports the per-page decision record.
 - E1 source verified: Xberg `crates/xberg/src/extractors/pdf/mod.rs:706-742,763-860` reuses or bypasses the layout path for OCR and writes gate decisions into metadata.
 - E2 test verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:475-670` covers the skip/promote boundary across prose, sparse pages, columns, tables, rules, graphics, and forms.
+- E1 source verified: Bumblebee `src/bumblebee/pipeline.py:115-140,170-217,305-377` streams page chunks through render, layout, text-layer, crop, OCR, and bounded adaptive retry.
+- E1 source verified: Bumblebee `src/bumblebee/textlayer.py:41-105` trusts embedded text only when page coverage crosses the threshold.
+- E1 source verified: Bumblebee `src/bumblebee/runs.py:53-80` writes `stats.json` last as the completion marker and refilters completed documents from the target storage.
+- E2 test verified: Bumblebee `tests/test_pipeline.py:103-260` covers the end-to-end stream, image cleanup, chunking, failures, and adaptive retry.
