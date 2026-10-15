@@ -2181,31 +2181,27 @@
     {
       "repository": "deepseek-ai/deepseek-harness",
       "URL": "https://github.com/deepseek-ai/deepseek-harness",
-      "artifact_type": "repository",
-      "external_artifacts": [
-        "https://deepseek.com/harness/en/",
-        "https://github.com/awesome-dsh-plugin/awesome-dsh-plugin",
-        "https://github.com/dataelement/dsh-desktop"
-      ],
+      "artifact_type": "runtime",
+      "external_artifacts": [],
       "runtime_paths": [
-        "apps/cli/src/bin.ts",
-        "apps/cli/src/plugin.ts",
-        "packages/session/session-persistence-jsonl/src/index.ts",
-        "packages/session/session-persistence-jsonl/src/storage.ts",
-        "apps/cli/tests/profiles/headless/tests/semantic-checkpoint.expected.e2e.ts",
-        "packages/session/session-persistence-jsonl/tests/lease.two-process.e2e.ts"
+        "python/sdk/src/deepseek_harness/api.py",
+        "python/sdk/src/deepseek_harness/client.py",
+        "python/sdk/src/deepseek_harness/office.py",
+        "python/sdk/tests/test_client.py",
+        "python/sdk/tests/test_bundled_runtime.py"
       ],
       "operational_blockers": [
+        "needs a real packaged session against the bundled runtime",
         "needs live process-kill and restart validation on the same semantic checkpoint path"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-04",
-      "commit_reviewed": "5badb15009ae1756c3afe0ae0cef1faafc290ccc",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-10-10",
+      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "previous_commit_reviewed": "5badb15009ae1756c3afe0ae0cef1faafc290ccc",
       "categories": [
         "agent runtime",
-        "durable workflows",
-        "session persistence"
+        "tool use",
+        "session orchestration"
       ],
       "maturity": "track",
       "novelty_score": 4,
@@ -2215,44 +2211,45 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
+        "session-normalized synchronous harness",
+        "bundled runtime resolution guardrail",
+        "notification-tree subscription",
+        "bounded subprocess shutdown",
         "replay-safe session harness",
         "exact-version plugin approval",
         "single-writer JSONL session store"
       ],
       "decision": "track",
-      "decision_reason": "The CLI dispatcher, exact-version plugin approvals, and JSONL session persistence form a reusable replay-safe harness boundary, and the replay fixture plus lock-contention test show the resume path is intentional rather than incidental. It still needs a live process-kill and restart run on the same checkpoint path before adoption.",
-      "revisit_reason": "Review after a material change to recovery, plugin approval, or JSONL session persistence.",
-      "next_revisit_condition": "Revisit after a release or branch update that changes session replay, lock takeover, or plugin approval semantics."
+      "decision_reason": "The repository defines a synchronous SDK around a stateful JSON-RPC runtime subprocess, preserves session notifications, and separates bundled-runtime resolution from session execution. Tests cover launch, failure, and interruption paths, so the mechanism is reusable even though a real packaged session still needs validation.",
+      "revisit_reason": "Revisit after live packaged-session validation or a material change to bundled-runtime packaging.",
+      "next_revisit_condition": "Revisit when a packaged runtime session is validated or the launch/runtime contract changes materially."
     },
     {
       "repository": "TencentCloud/TencentDB-Agent-Memory",
       "URL": "https://github.com/TencentCloud/TencentDB-Agent-Memory",
-      "artifact_type": "repository",
-      "external_artifacts": [
-        "https://github.com/TencentCloud/TencentDB-Agent-Memory/releases/tag/v2.0.1",
-        "https://github.com/kuaizhongqiang/TencentAgentMemoryBridge",
-        "https://github.com/mercuryLiu163/tdai-standard-hook"
-      ],
+      "artifact_type": "runtime",
+      "external_artifacts": [],
       "runtime_paths": [
+        "MemoryProxy/src/index.ts",
         "MemoryProxy/src/server.ts",
-        "MemoryProxy/src/session/store.ts",
-        "MemoryProxy/src/db/sessionRepo.ts",
-        "MemoryProxy/src/db/binding-repo.ts",
-        "MemoryCore/src/gateway/chat-memory-handlers.ts",
-        "MemoryProxy/src/__tests__/opencode-user-input.test.ts",
-        "MemoryProxy/src/__tests__/opencode-reporting.test.ts"
+        "MemoryProxy/src/injection/pipeline.ts",
+        "MemoryProxy/src/pipeline/stages/session-init-orchestrate.ts",
+        "MemoryProxy/src/pipeline/stages/mem-command.ts",
+        "MemoryProxy/src/storage/sqlite-storage.ts",
+        "MemoryProxy/src/storage/fs-storage.ts"
       ],
       "operational_blockers": [
+        "needs live proxy validation against a real upstream and persistent backend",
         "needs live proxy restart validation of hydrated initialized sessions"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-04",
-      "commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-10-10",
+      "commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
+      "previous_commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
       "categories": [
-        "agent memory",
-        "session recovery",
-        "gateway routing"
+        "context engineering",
+        "proxy orchestration",
+        "memory injection"
       ],
       "maturity": "track",
       "novelty_score": 4,
@@ -2260,14 +2257,19 @@
       "evidence_quality": "high",
       "extracted_patterns": [],
       "candidate_patterns": [
+        "marker-gated request rewrite pipeline",
+        "session-scoped memory injection stage",
+        "degraded storage health gate",
+        "session-init recovery orchestrator",
+        "atomic prefix-backed proxy KV",
         "layered session recovery chain",
         "durable session promotion after rebuild",
         "content-only memory clear"
       ],
       "decision": "track",
-      "decision_reason": "The proxy and memory core separate hot-cache state, durable session rows, and binding rows into a recoverable chain that survives restarts in source, and the tests show recalled memory is not mistaken for fresh user input. The restart path still needs a live hydration and recovery validation under persisted sessions.",
-      "revisit_reason": "Review after a material change to restart hydration, binding rebuild, or memory routing.",
-      "next_revisit_condition": "Revisit after a release or branch update that changes layered recovery, restart hydration, or binding rebuild semantics."
+      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
+      "revisit_reason": "Revisit after a live backend run or a material pipeline/storage refactor.",
+      "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the pipeline/storage contract changes materially."
     },
     {
       "repository": "Topdu/OpenOCR",
@@ -2390,38 +2392,42 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "apps/sc/fsw/src/sc_app.c",
-        "apps/to_lab/fsw/src/to_lab_app.c",
-        "apps/hk/fsw/src/hk_app.c",
-        "apps/sc/unit-test/sc_rtsrq_tests.c",
-        "apps/hk/unit-test/hk_cmds_tests.c",
-        "README.md"
+        "apps/cf/fsw/src/cf_app.c",
+        "apps/cf/fsw/src/cf_cfdp.c",
+        "apps/cf/fsw/src/cf_cfdp_r.c",
+        "apps/cf/fsw/src/cf_cfdp_s.c",
+        "apps/cf/unit-test/cf_cfdp_tests.c"
       ],
       "operational_blockers": [
+        "needs integrated CFDP validation with delayed acknowledgements and packet reordering",
         "needs operational validation beyond the demo build/telemetry path"
       ],
       "first_seen": "2026-10-07",
-      "last_reviewed": "2026-10-07",
-      "commit_reviewed": "13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-10-10",
+      "commit_reviewed": "ca14a5cce6954c1cbc464c536ea681b6798d3b44",
+      "previous_commit_reviewed": "13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b",
       "categories": [
-        "flight software framework",
-        "command/telemetry",
-        "ground-system integration"
+        "CFDP",
+        "delayed connectivity",
+        "transaction recovery"
       ],
       "maturity": "track",
-      "novelty_score": 3,
-      "relevance_score": 4,
+      "novelty_score": 4,
+      "relevance_score": 5,
       "evidence_quality": "high",
       "extracted_patterns": [],
       "candidate_patterns": [
+        "bounded CFDP transaction engine",
+        "chunked delayed-transfer state machine",
+        "table-driven CFDP configuration",
+        "gap-tracked file receive path",
         "bundle-level command/telemetry loop",
         "table-driven telemetry subscription management"
       ],
       "decision": "track",
-      "decision_reason": "The bundle-level command and telemetry loops are source-backed and useful, but the demo bundle still needs operational validation before it can be treated as a flight distribution.",
-      "revisit_reason": "Review after an operational bundle run or a mission-relevant cFS change.",
-      "next_revisit_condition": "Revisit after a release or branch update that changes command/telemetry plumbing or ground-system integration."
+      "decision_reason": "The CF app and CFDP modules form a reusable delayed-connectivity transfer engine with explicit timer, ack/nak, and gap-tracking behavior. The unit tests are strong, but the operational bundle still needs live delayed-ACK and reordering validation.",
+      "revisit_reason": "Revisit after integrated CFDP validation or a material change to the transaction engine.",
+      "next_revisit_condition": "Revisit when integrated CFDP behavior is validated or the send/receive transaction model changes materially."
     },
     {
       "repository": "google/sam",

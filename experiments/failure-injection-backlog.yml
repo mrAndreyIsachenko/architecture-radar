@@ -179,6 +179,48 @@ items:
     created: 2026-09-22
     last_updated: 2026-09-22
 
+  - id: 2026-10-10-deepseek-harness-runtime
+    family: ai-llm-systems
+    source_report: reports/2026-10-10.md
+    source_repository: deepseek-ai/deepseek-harness
+    mechanism: session-normalized synchronous harness
+    evidence_gap: Tests cover fake runtime, bundled launch resolution, and subprocess cleanup, but the review did not execute a real packaged session against the bundled runtime on this host.
+    validation_type: runtime
+    proposed_validation: Launch the bundled runtime, run one real initialize/session_prompt turn, and confirm notifications, final response, and finish reason survive shutdown cleanly.
+    success_condition: Real bundled runtime boots, accepts initialize/session_prompt, returns the expected session events, and shuts down without orphaned processes or diagnostics loss.
+    priority: medium
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
+  - id: 2026-10-10-tencentdb-agent-memory-operational
+    family: ai-llm-systems
+    source_report: reports/2026-10-10.md
+    source_repository: TencentCloud/TencentDB-Agent-Memory
+    mechanism: marker-gated request rewrite pipeline
+    evidence_gap: Source and QA scripts cover route gating, memory injection, and reset behavior, but the review did not validate a live proxy deployment against a real upstream and persistent backend.
+    validation_type: operational
+    proposed_validation: Run the proxy with a live upstream and non-mocked storage backend, then exercise session init, memory injection, mem commands, and degraded health reporting under real traffic.
+    success_condition: Session-init, memory injection, and mem-command flows work end-to-end with a live backend, and the health endpoint only reports degraded storage when shared storage is actually unavailable.
+    priority: high
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
+  - id: 2026-10-10-cfs-cfdp-operational
+    family: satellites-space-systems
+    source_report: reports/2026-10-10.md
+    source_repository: nasa/cFS
+    mechanism: bounded CFDP transaction engine
+    evidence_gap: Source and unit tests cover CFDP codec, timers, and transaction helpers, but the review did not validate integrated cFS CFDP behavior under delayed acknowledgements or packet reordering.
+    validation_type: operational
+    proposed_validation: Run CFDP inside the integrated cFS bundle with delayed acknowledgements and out-of-order returns, then confirm chunk tracking, EOF completion, and cancellation behavior stay coherent.
+    success_condition: CFDP transactions complete or cancel correctly under delayed ACKs and reordering, with no stuck retries, stale gaps, or deadlock.
+    priority: high
+    status: open
+    created: 2026-10-10
+    last_updated: 2026-10-10
+
   - id: 2026-10-07-openocr-runtime
     family: document-ai-ocr
     source_report: reports/2026-10-07.md
