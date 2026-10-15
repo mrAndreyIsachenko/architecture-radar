@@ -30,6 +30,8 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
 - Fusion-OCR: keeps deterministic geometry canonical, promotes only OCR-bound pages into the expensive path, and resumes from per-stage snapshots keyed by a recipe fingerprint so promoted images do not erase the stable page overlay.
 
+- Bumblebee: streams pages through render, layout, crop, OCR, and format in page chunks, trusts embedded text only when page coverage is high enough, and rerenders low-confidence regions once at 2x DPI without breaking resumability.
+
 ## Known Repositories
 
 - `datalab-to/marker` reviewed at `e1a6226adfaab4cd573cfa96e12d60905ee38036`.
@@ -38,6 +40,8 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
 - `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
 - `hoyla/fusion-ocr` reviewed at `ebe76ec91a2c1c774ecd1ed36a1f1127c7b30f39`.
+
+- `Sri-Krishna-V/bumblebee` reviewed at `c108cd33664b57ee64fa80b47a89e1c943749a80`.
 
 ## Comparison Of Implementations
 
@@ -51,6 +55,8 @@ Xberg pushes the same deferred-promotion shape earlier in the pipeline. It keeps
 
 Fusion-OCR applies the same boundary to mixed born-digital and OCR-heavy PDFs. It keeps the canonical geometry separate from the reading model, promotes only pages that need expensive reads, and preserves stage snapshots so a rerun can resume without collapsing the stable overlay into the VLM path.
 
+Bumblebee applies the same pattern as a streaming batch runtime rather than a pure layout pre-screen. It keeps OCR and layout in flight per page chunk, uses the embedded text layer only when the page-level coverage policy says the text is trustworthy, and applies bounded adaptive retry to low-confidence regions. The trade-off is that the confidence threshold and 10% retry budget need corpus-specific tuning, and the GPU path still needs real latency validation.
+
 ## Failure Modes
 
 - Misclassifying a page as lowres-only can hide math, tables, or diagrams.
@@ -60,6 +66,7 @@ Fusion-OCR applies the same boundary to mixed born-digital and OCR-heavy PDFs. I
 - If failed pages are not retained, page numbering breaks downstream.
 - Rendering picture segments only when they exist can still miss image-heavy tables if upstream segmentation under-classifies them.
 - OCR/layout reuse can become unsafe if gate metadata or page rotations drift from the rendered page set.
+- A retry budget that is too generous can hide bad OCR while still consuming the memory savings the pattern was meant to preserve.
 
 ## Trade-Offs
 
@@ -81,6 +88,7 @@ Fusion-OCR applies the same boundary to mixed born-digital and OCR-heavy PDFs. I
 - Verify that fallback OCR or crop extraction does not re-render already accepted content.
 - Verify that temporary input files are cleaned up on the default path and that a keep-file flag is the only way to retain them.
 - Verify that layout reuse is disabled when page rotations or gate metadata make the OCR path incompatible.
+- Validate the streaming pipeline on a real mixed-quality corpus with actual OCR latency and memory pressure.
 
 ## Evidence References
 
@@ -107,3 +115,8 @@ Fusion-OCR applies the same boundary to mixed born-digital and OCR-heavy PDFs. I
 - E2 test verified: Xberg `crates/xberg/src/pdf/layout_gate.rs:475-670` covers the skip/promote boundary across prose, sparse pages, columns, tables, rules, graphics, and forms.
 - E1 source verified: Fusion-OCR `src/fusion_ocr/pipeline.py`, `stages/triage.py`, `stages/ocr_det.py`, `stages/vlm_read.py`, and `stages/fusion.py` keep deterministic geometry canonical while deferring expensive OCR/VLM reads to OCR-bound pages.
 - E2 test verified: Fusion-OCR `tests/test_pipeline.py`, `tests/test_eval_harness.py`, and `tests/test_routing.py` cover resumable pipeline execution, born-digital evaluation, and engine routing.
+
+- E1 source verified: Bumblebee `src/bumblebee/pipeline.py:115-140,170-217,305-377` streams page chunks through render, layout, text-layer, crop, OCR, and bounded adaptive retry.
+- E1 source verified: Bumblebee `src/bumblebee/textlayer.py:41-105` trusts embedded text only when page coverage crosses the threshold.
+- E1 source verified: Bumblebee `src/bumblebee/runs.py:53-80` writes `stats.json` last as the completion marker and refilters completed documents from the target storage.
+- E2 test verified: Bumblebee `tests/test_pipeline.py:103-260` covers the end-to-end stream, image cleanup, chunking, failures, and adaptive retry.

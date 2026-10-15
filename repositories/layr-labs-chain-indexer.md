@@ -1,83 +1,87 @@
 # Layr-Labs/chain-indexer
 
 - Repository: https://github.com/Layr-Labs/chain-indexer
-- Review date: 2026-08-05
+- Review date: 2026-10-01
 - Current commit reviewed: `7d774750b49b0d8b527edc2124bb6f248f56d006`
-- Commit date: 2026-07-31T09:05:32+03:00
+- Commit date: 2026-04-24T17:33:58-05:00
 - Branch: `master`
+- Tag: `v0.3.1`
 - Previous commit reviewed: none
 - Material changes since previous review: first review
-- Decision: watch
+- Decision: track
 
 ## Problem Fit
 
-This repository informs `blockchain-intelligence`, specifically transaction interpretation, incremental indexing, and reorg recovery. The reusable mechanism is the block poller and reorg reconciliation path, not the convenience README or sample usage.
+This repository informs `blockchain-intelligence`, especially incremental indexing, reorg recovery, event decoding, and contract-registry fanout. The reusable mechanism is a block poller that treats reorgs as a first-class rollback condition and keeps derived storage separate from the live chain cursor.
 
 ## Verified Flow
 
-`EVMChainPoller.Start` -> last processed block lookup in persistence -> initial genesis/latest block bootstrap if needed -> `processNextBlock` fetches canonical blocks in order -> `processBlockLogs` fetches logs, decodes them, passes them to the block handler, stores the block, and prunes old history -> `reconcileReorg` and `findOrphanedBlocks` walk backward to the common ancestor and delete orphaned blocks -> tests verify no reorg, simple reorg, and max-depth reorg behavior.
+`NewEVMChainPoller` normalizes config defaults and wires the chain client, log parser, contract store, persistence store, and block handler -> `Start` loads the last processed block or seeds from genesis/latest and persists the starting point -> `pollForBlocks` wakes on a ticker and calls `processNextBlock` -> `processNextBlock` compares the stored tip to the latest chain block, fetches each intervening block, and checks parent hashes -> a parent mismatch triggers `reconcileReorg`, which calls `findOrphanedBlocks`, deletes orphaned records from persistence, and notifies the block handler through `HandleReorgBlock` -> a matched block flows into `processBlockLogs`, which fetches logs in concurrent batches, decodes them, invokes `HandleLog`, and then persists the block record and prunes old history -> the in-memory persistence store maintains the latest processed block plus per-block records.
 
-- E1 source verified: `pkg/chainPollers/evm/evmChainPoller.go`, `Start` bootstraps the poller from stored state or a genesis/latest block and persists the first block record.
-- E1 source verified: `pkg/chainPollers/evm/evmChainPoller.go`, `processNextBlock` fetches canonical blocks in order, detects parent-hash mismatches, and routes reorgs to reconciliation.
-- E1 source verified: `pkg/chainPollers/evm/evmChainPoller.go`, `processBlockLogs` decodes logs, calls the block handler, writes block records, and prunes old history using `BlockHistorySize`.
-- E1 source verified: `pkg/chainPollers/evm/evmChainPoller.go`, `findOrphanedBlocks` walks backward toward a common ancestor, backfills missing canonical blocks into storage, and returns orphaned block records.
-- E1 source verified: `pkg/chainPollers/persistence/memory/memory.go`, the in-memory store keeps last-processed blocks and block records behind a mutex and supports close semantics.
-- E2 test verified: `pkg/chainPollers/evm/evmChainPoller_test.go::TestFindOrphanedBlocks_NoReorg_AllBlocksMatch` verifies the no-reorg path.
-- E2 test verified: `pkg/chainPollers/evm/evmChainPoller_test.go::TestFindOrphanedBlocks_SimpleReorg_FindsOrphanedAndAncestor` verifies ancestor discovery and orphaned-block detection.
-- E2 test verified: `pkg/chainPollers/evm/evmChainPoller_test.go::TestFindOrphanedBlocks_DeepReorg_HitsMaxDepth` verifies bounded reorg depth behavior.
-- E2 test verified: `pkg/chainPollers/persistence/test_suite.go` exercises persistence lifecycle and concurrent access for any store implementation.
+- E1 source verified: `pkg/chainPollers/evm/evmChainPoller.go::Start`, `processNextBlock`, `processBlockLogs`, `reconcileReorg`, and `findOrphanedBlocks` implement the live poll / detect / reconcile / persist loop.
+- E1 source verified: `pkg/clients/ethereum/client.go::GetLatestBlock`, `GetBlockByNumber`, and `GetLogsForAddresses` provide the RPC surface the poller uses.
+- E1 source verified: `pkg/clients/ethereum/handlers.go` defines the request/response parsers for block, receipt, and log calls.
+- E1 source verified: `pkg/chainPollers/persistence/memory/memory.go` stores per-chain tips and block records behind a mutex-backed in-memory persistence layer.
+- E1 source verified: `pkg/chainPollers/contractRegistry/inMemory.go` keeps a concurrent contract registry that can be updated while the poller is running.
+- E2 test verified: `pkg/chainPollers/evm/evmChainPoller_test.go` covers no-reorg, simple reorg, deep-reorg, dynamic contract registration, and batch concurrency cases.
+- E2 test verified: `pkg/chainPollers/evm/evmChainPoller_integration_test.go` exercises Base Sepolia log fetching, contract-registry fanout, and the factory-style dynamic registration path against a live RPC endpoint when `BASE_RPC_URL` is present.
+- E2 test verified: `pkg/chainPollers/persistence/memory/memory_test.go` and the contract-registry tests cover store and registry behavior in isolation.
 
 ## Architecture
 
 Principal components:
 
-- `EVMChainPoller`: block polling, reorg detection, log fetching, and block-handler dispatch.
-- Persistence interface: last-processed block and block-record storage.
-- Contract store and transaction log parser: address selection and log decoding.
+- `EVMChainPoller` for live head polling, reorg reconciliation, and block log processing.
+- `ethereum.Client` for RPC request construction and response parsing.
+- `IChainPollerPersistence` and the in-memory store for tip/block state.
+- `IContractRegistry` for dynamic contract discovery and fanout.
+- `IBlockHandler` for downstream interpretation of decoded logs and reorg notices.
 
-Most interesting mechanism: the poller does not merely advance a head pointer. It preserves enough block history to walk back to a common ancestor, backfills missing canonical blocks, and deletes orphaned records explicitly when a reorg is detected.
+Most interesting mechanism: the indexer keeps the live cursor and the derived materialization separate. A reorg does not mutate the final output in place; it walks back through stored block records, deletes orphaned blocks, and lets downstream handlers react to the reorg explicitly.
 
-Baseline comparison: a forward-only indexer would trust block number monotonicity and lose correctness on chain reorgs. This implementation makes parent-hash checks and orphan cleanup part of the normal control flow.
+Baseline comparison: a naive indexer would poll the chain head and write logs directly to the sink without a rollback window or a block record store. This repo instead has explicit parent-hash validation, orphan collection, and concurrent log batching.
 
 ## Reuse Guidance
 
 Reusable:
 
-- Use parent-hash validation plus backward ancestor search as the default reorg recovery path.
-- Keep a bounded block-history window and prune old materializations after successful processing.
-- Make persistence an interface so the reorg logic can be tested with in-memory stores.
+- Keep a reversible window near the head and store block hashes alongside the cursor.
+- Separate live poll, orphan detection, and downstream log handling into distinct interfaces.
+- Treat contract discovery as a separate registry so the poller can fan out new addresses without rewriting the whole pipeline.
+- Batch RPC log fetches, but keep the batch size and timeout configurable.
 
 Do not copy:
 
-- Do not copy the README’s production implications literally; the project itself says it is still under active development and not audited.
-- Do not rely on forward-only block numbers as a correctness signal.
-- Do not assume the in-memory store is a production recovery backend.
+- Do not adopt the in-memory store as-is for production durability.
+- Do not assume the current integration coverage proves a real chain reorg in the wild.
+- Do not let log decoding failures silently advance the cursor.
 
 ## Quality, Limits, And Adoption Conditions
 
 Production-quality signals:
 
-- Clear test coverage for reorg scenarios and persistence lifecycle.
-- Simple persistence interface that makes the reorg logic testable.
-- The control flow is explicit and easy to reason about.
+- The reorg path is directly tested at the poller level.
+- The registry and persistence layers are separated from the poller logic.
+- The dynamic contract-registration path is exercised in integration tests against a live RPC endpoint.
 
 Experimental or incomplete for our needs:
 
-- The repository explicitly says it is under active development and not audited.
-- The live poller only processes one chain-specific stream at a time and depends on external Ethereum RPC behavior.
-- The review did not run the local test suite.
+- The shipped store is in-memory, so production persistence still needs an external backend.
+- Live RPC tests depend on an environment variable and a reachable testnet endpoint.
+- A deep reorg is covered in tests, but not by an operational rollback harness in this repository.
 
 Hidden costs and failure modes:
 
-- Reorg recovery depends on a sufficient history window; a deep enough reorg will hit `MaxReorgDepth`.
-- Log fetching is parallelized and can fail as a batch even when some batches succeed.
-- The persistence contract has to survive process restarts and concurrent access to remain useful.
+- A bad RPC endpoint or a slow log batch can block the poller loop.
+- Reorg recovery depends on the downstream handler being able to tolerate explicit rollback notifications.
+- The history pruning path can leave old records in storage if deletion fails and the caller ignores the warning.
 
 Adoption experiment:
 
-Build a tiny chain monitor that intentionally injects a parent-hash mismatch and confirm that orphaned blocks are removed, missing ancestor blocks are backfilled, and downstream handlers do not see a duplicated canonical event stream.
+Run the poller against a real chain feed with a forced reorg or equivalent replay harness, then confirm the orphaned blocks are removed, the block handler receives explicit rollback notices, and the cursor only advances after decoded logs are handed off.
 
 ## Candidate Patterns
 
-- `reorg-safe block reconciliation`
-- `block-history pruning window`
+- `Reorg-Safe Materialization Windows`
+- `reorg-aware poller loop`
+- `dynamic contract-registry log fanout`

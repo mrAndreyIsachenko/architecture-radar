@@ -49,6 +49,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Mission safety envelope: `PeterJBurke/droneserver` wraps every tool call in a server-side guard pipeline, carries audit flags into append-only JSONL records, and checkpoints mission state so reconnects do not lose the command context.
 - Internal observation envelope: `sgoudelis/ground-station` keeps internal observations, SDR ownership, VFO selection, and cleanup state in a dedicated session tracker so automated observation runs stay isolated from human sessions.
 
+- Agent-ledger envelope: `yaogdu/AgentLedger` keeps a step-scoped runtime ledger, policy and sandbox gates, replay-safe evidence bundles, and inspector exports together so agent work stays auditable after crash or restart.
+
 ## Known Repositories
 
 - `langchain-ai/langgraph` reviewed at `b2926a0ff9589c28c7e01fe7cdbb337b86d5a4b4`.
@@ -64,6 +66,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `rmax-ai/durable-agent-runtime-lab` reviewed at `e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3`.
 - `PeterJBurke/droneserver` reviewed at `06b7d1a6a967553f1f8c025bb6b1fc79d346fd53`.
 - `sgoudelis/ground-station` reviewed at `430d4aa774a58df46ed3290782dbcde8ea2f1e3f`.
+
+- `yaogdu/AgentLedger` reviewed at `dd966e3b3d9eb54032c51701d30efcfbaa2379b0`.
 
 ## Comparison Of Implementations
 
@@ -93,6 +97,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 
 `mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
 
+`yaogdu/AgentLedger` is strongest when the runtime boundary itself must govern tool dispatch, replay, and evidence export. It is broader than the checkpoint-only variants because the bundle is a first-class runtime artifact, not an after-the-fact export, but it still needs a live process-kill / restart proof on the same ledger before the crash boundary can be treated as production-safe.
+
 ## Failure Modes
 
 - Valid envelopes can contain false claims if producers emit bad data.
@@ -111,6 +117,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Benchmark-oriented durable runtimes can appear production-ready in unit tests while still lacking process-kill and restart evidence on the same code path.
 - Mission-safety envelopes can still be simulation-heavy when real-aircraft or field hardware validation is missing.
 - Session isolation envelopes can still leak ownership if the runtime tracker is not exercised against live SDR or observation hardware.
+
+- Evidence-exported runtimes can still lose trust if the replay path is only simulated and not validated against a real side effect.
 
 ## Trade-Offs
 
@@ -141,6 +149,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - For workflow runtimes with fault injection, require a process-kill or restart test that confirms the ledger and projection replay without duplicate side effects.
 - For server-enforced mission safety, require an operational or field validation run that exercises the full guard pipeline outside simulation.
 - For internal observation trackers, require hardware-backed session start/stop tests that prove tracker cleanup and SDR ownership reset after reconnects.
+
+- For evidence-led agent runtimes, require a crash / restart run that preserves the exported bundle hash and prevents duplicate external side effects.
 
 ## Evidence References
 
@@ -187,3 +197,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E3 maintainer stated: `PeterJBurke/droneserver/docs/adversarial_results.md` records 29/29 SITL adversarial cases covering confirmation tokens, geofence rejection, rate limiting, and state-precondition behavior.
 - E1 source verified: `sgoudelis/ground-station/backend/session/service.py`, `backend/session/tracker.py`, and `backend/common/appconfig.py` coordinate internal observation sessions, SDR ownership, and runtime configuration.
 - E2 test verified: `sgoudelis/ground-station/backend/tests/test_session_internal_observations.py`, `backend/tests/test_tracker_runner_slots.py`, and `backend/tests/test_sdrtakeover.py` verify isolation, slot accounting, and cleanup behavior.
+
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/runtime.py:120-187` claims the step lease, appends `agent_started`, and commits the pending state patch while classifying retryable failures.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/replay.py:25-62` replays stored events and artifacts without invoking providers or tools again.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/evidence.py:29-155` exports the run, steps, tool ledger, approvals, artifacts, and checksum-stable evidence bundle.
+- E2 test verified: `yaogdu/AgentLedger/tests/test_runtime.py:262-305` and `:414-447` cover crash retry, replay non-execution, high-risk tool denial, evidence export, and inspector round-tripping.
