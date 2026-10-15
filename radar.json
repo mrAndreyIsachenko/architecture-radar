@@ -193,10 +193,23 @@
     {
       "repository": "PX4/PX4-Autopilot",
       "URL": "https://github.com/PX4/PX4-Autopilot",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/modules/commander/Commander.cpp",
+        "src/modules/commander/Commander.hpp",
+        "test/test_mavlink_param_validation.py",
+        "test/mavsdk_tests/test_multicopter_failsafe.cpp",
+        "test/mavsdk_tests/autopilot_tester.cpp"
+      ],
+      "operational_blockers": [
+        "needs live SITL validation",
+        "command/mode semantics still depend on simulator fidelity"
+      ],
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-09-19",
-      "commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
-      "previous_commit_reviewed": "43cccdea0e57cf92a58562d2d7a1cba0854395f7",
+      "last_reviewed": "2026-10-13",
+      "commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
+      "previous_commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -209,10 +222,11 @@
       "extracted_patterns": [],
       "candidate_patterns": [
         "failsafe command acknowledgment matrix",
-        "mission sensor-loss recovery"
+        "mission sensor-loss recovery",
+        "parameter-slot mission validation gate"
       ],
       "decision": "track",
-      "decision_reason": "Commander, RC update, parameter validation, and MAVSDK integration tests form a reusable safety model for high-risk autonomy transitions and failure recovery. The refreshed head keeps that mechanism intact, so the decision remains track.",
+      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The refreshed head remains highly reusable, but adoption still depends on live SITL validation.",
       "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
       "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
     },
@@ -1721,21 +1735,21 @@
         "hscontrol/state/state.go",
         "hscontrol/state/node_store.go",
         "hscontrol/state/connect_test.go",
-        "hscontrol/state/primaries_property_test.go",
-        "hscontrol/servertest/routes_test.go",
-        "hscontrol/servertest/policy_test.go",
-        "hscontrol/servertest/ha_health_test.go",
-        "hscontrol/state/persist_test.go"
+        "hscontrol/state/auth_tagged_expiry_test.go",
+        "hscontrol/policy/v2/node_recompute_test.go",
+        "hscontrol/state/node_health_test.go",
+        "hscontrol/db/api_key.go",
+        "hscontrol/types/api_key.go"
       ],
       "operational_blockers": [
         "needs live reconnect-storm validation",
         "needs multi-node HA churn validation",
-        "policy reload and route election still need multi-node operational proof"
+        "tagged-node restart and reauth churn still need operational proof"
       ],
       "first_seen": "2026-09-13",
-      "last_reviewed": "2026-09-16",
-      "commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
-      "previous_commit_reviewed": "4087d1fee9d34d042b279262ffbdaf1030ffd5e8",
+      "last_reviewed": "2026-10-13",
+      "commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
+      "previous_commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
       "categories": [
         "privacy networking",
         "policy control",
@@ -1753,10 +1767,12 @@
         "reconnect-safe route approval propagation",
         "session-epoch gated reconnect recovery",
         "atomic HA primary-election batch",
-        "policy-driven peer-recompute gate"
+        "policy-driven peer-recompute gate",
+        "tagged-node reauthentication guard",
+        "API-key ownership projection"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, approved-route persistence, and batched primary-election updates. The reusable control-plane mechanism is strong, but it still needs live reconnect and HA churn validation before adoption.",
+      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
       "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
       "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
     },
@@ -2181,27 +2197,33 @@
     {
       "repository": "deepseek-ai/deepseek-harness",
       "URL": "https://github.com/deepseek-ai/deepseek-harness",
-      "artifact_type": "runtime",
+      "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "python/sdk/src/deepseek_harness/api.py",
-        "python/sdk/src/deepseek_harness/client.py",
-        "python/sdk/src/deepseek_harness/office.py",
-        "python/sdk/tests/test_client.py",
-        "python/sdk/tests/test_bundled_runtime.py"
+        "packages/session/session-persistence/src/index.ts",
+        "packages/session/session-persistence-jsonl/src/index.ts",
+        "packages/session/session-checkpoint-policy/src/index.ts",
+        "packages/session/session-persistence-jsonl/src/lease.ts",
+        "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
+        "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
+        "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
+        "packages/sandbox/sandbox-policy/src/index.ts"
       ],
       "operational_blockers": [
+        "needs live process-kill and restart validation",
+        "flush-before-dispatch and lease semantics still need contention proof",
         "needs a real packaged session against the bundled runtime",
         "needs live process-kill and restart validation on the same semantic checkpoint path"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-10",
+      "last_reviewed": "2026-10-13",
       "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
-      "previous_commit_reviewed": "5badb15009ae1756c3afe0ae0cef1faafc290ccc",
+      "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
       "categories": [
         "agent runtime",
-        "tool use",
-        "session orchestration"
+        "durable workflows",
+        "session persistence",
+        "runtime recovery"
       ],
       "maturity": "track",
       "novelty_score": 4,
@@ -2211,6 +2233,9 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
+        "semantic checkpoint barrier before dispatch",
+        "durable sandbox-mode replay",
+        "single-owner session write lease",
         "session-normalized synchronous harness",
         "bundled runtime resolution guardrail",
         "notification-tree subscription",
@@ -2220,9 +2245,9 @@
         "single-writer JSONL session store"
       ],
       "decision": "track",
-      "decision_reason": "The repository defines a synchronous SDK around a stateful JSON-RPC runtime subprocess, preserves session notifications, and separates bundled-runtime resolution from session execution. Tests cover launch, failure, and interruption paths, so the mechanism is reusable even though a real packaged session still needs validation.",
-      "revisit_reason": "Revisit after live packaged-session validation or a material change to bundled-runtime packaging.",
-      "next_revisit_condition": "Revisit when a packaged runtime session is validated or the launch/runtime contract changes materially."
+      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
+      "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
+      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
     },
     {
       "repository": "TencentCloud/TencentDB-Agent-Memory",
