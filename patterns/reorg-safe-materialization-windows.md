@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-08-29
+- Last updated: 2026-09-28
 
 ## Problem
 
@@ -34,6 +34,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Liveness-capped sync worker: Blockbook keeps a resync loop around `SyncWorker`, separates `ResyncIndex`, `connectBlocks`, `BulkConnectBlocks`, and `ParallelConnectBlocks`, and restarts when a block hash disappears or the local tip forks.
 - Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
 - ExEx batcher: Shadow-index consumes reth `ChainCommitted`, `ChainReverted`, and `ChainReorged` notifications, transforms reverted and committed ranges with signed rows, and advances the cursor only after a successful ClickHouse flush.
+- HyperSync / ClickHouse backfill indexer: `eabz/evm-indexer` scans stored logs, compares decoded module rows, purges only the changed module range with a new epoch, and reinserts the repaired rows without re-syncing the chain.
 
 ## Known Repositories
 
@@ -44,6 +45,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `bitcoincore-dev/nakamoto-electrs` reviewed at `f9fc5ba17f38f6d45812e467a5299d194b086af8`.
 - `chaindexing/chaindexing-rs` reviewed at `90caa25f5e1f6abf68455e685956b69401d9bfb3`.
 - `bit2swaz/shadow-index` reviewed at `2757f31da1e4a6eb9acb6f2b69b924cb9b4cf729`.
+- `eabz/evm-indexer` reviewed at `e4ca46486837b85aadccd009ca742f1799801a67`.
 
 ## Comparison Of Implementations
 
@@ -61,6 +63,8 @@ Chaindexing demonstrates the same boundary from a Postgres-first indexing stack.
 
 Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays historical blocks from the cursor, handles reverted and reorged ranges explicitly, and only advances the cursor after the batch is durably flushed. The trade-off is a tighter coupling to reth notifications and the ClickHouse sink model.
 
+`eabz/evm-indexer` shows the same boundary as a module-scoped backfill loop on top of HyperSync and ClickHouse. It keeps the coverage floor explicit, compares stored logs against decoded module rows before mutating anything, then purges and reinserts only the changed module range under a new epoch. The trade-off is a strong dependence on ClickHouse repair semantics and a live operational run that still needs to prove the repair path under real reorg churn.
+
 ## Failure Modes
 
 - Misconfigured thresholds can push provisional data into the finalized path too early.
@@ -71,6 +75,7 @@ Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays 
 - Liveness caps can hide a backend that is too slow to catch up if operators only look for hard failures.
 - Hash-probe retries can over-disconnect on load-balanced or lagging backends when the probe target is not the canonical node.
 - A cursor that advances before a sink flush can corrupt replay after restart.
+- A module repair path can silently double count if the epoch floor is wrong or the backfill is run against the wrong coverage window.
 
 ## Trade-Offs
 
@@ -92,6 +97,7 @@ Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays 
 - Add reorg-injection tests and restart tests that prove replay does not corrupt downstream state.
 - Require idempotent or deduplicated downstream writes.
 - Require that cursor advancement happens only after the sink batch is confirmed durable.
+- Validate the repair path in a live operational run with actual chain churn and storage pressure.
 
 ## Evidence References
 
@@ -119,3 +125,7 @@ Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays 
 - E1 source verified: bit2swaz/shadow-index `src/db/writer.rs:15-198` retries ClickHouse writes, separates retryable from permanent errors, and trips a circuit breaker after bounded attempts.
 - E1 source verified: bit2swaz/shadow-index `src/utils/cursor.rs:11-65` persists the cursor with temp-rename updates and restartable load logic.
 - E2 test verified: bit2swaz/shadow-index `src/utils/cursor.rs:73-164` covers update/reload persistence and atomic cursor writes.
+- E1 source verified: `eabz/evm-indexer/src/reorg/mod.rs:1-27,73-145,159-260` defines the fork search, purge primitive, epoch model, and insert-only repair contract.
+- E1 source verified: `eabz/evm-indexer/src/reorg/fork.rs:1-108,110-196` implements the bounded growing-window fork-point search.
+- E1 source verified: `eabz/evm-indexer/src/pipeline/backfill.rs:1-33,61-218` scans stored logs, compares decoded rows, purges only changed module rows, and reinserts the repaired rows.
+- E2 test verified: `eabz/evm-indexer/src/reorg/tests.rs:67-200` and `src/pipeline/sync_tests.rs:1-240` cover shallow/deep forks, holes, start-block floors, and restart / failure behavior.

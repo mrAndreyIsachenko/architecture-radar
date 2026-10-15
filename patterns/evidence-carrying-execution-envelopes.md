@@ -49,6 +49,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Durable agent runtime envelope: `rmax-ai/durable-agent-runtime-lab` keeps the workflow ledger append-only with hash chaining, separates the state projection from the event log, and routes proposal generation, verification, execution, and commit through distinct runtime modules.
 - Sidecar-backed mesh agent envelope: `google/sam` keeps mesh discovery, tool invocation, socket/token auth, and readiness gating inside a sidecar boundary so the local runtime can be resumed and audited independently of the mesh transport.
 
+- Agent-ledger envelope: `yaogdu/AgentLedger` keeps a step-scoped runtime ledger, policy and sandbox gates, replay-safe evidence bundles, and inspector exports together so agent work stays auditable after crash or restart.
+
 ## Known Repositories
 
 - `langchain-ai/langgraph` reviewed at `b2926a0ff9589c28c7e01fe7cdbb337b86d5a4b4`.
@@ -63,6 +65,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 - `rmax-ai/durable-agent-runtime-lab` reviewed at `e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3`.
 - `google/sam` reviewed at `12dea1138cc40df0d440830d8c93de4408f95986`.
+
+- `yaogdu/AgentLedger` reviewed at `dd966e3b3d9eb54032c51701d30efcfbaa2379b0`.
 
 ## Comparison Of Implementations
 
@@ -90,6 +94,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 
 `mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
 
+`yaogdu/AgentLedger` is strongest when the runtime boundary itself must govern tool dispatch, replay, and evidence export. It is broader than the checkpoint-only variants because the bundle is a first-class runtime artifact, not an after-the-fact export, but it still needs a live process-kill / restart proof on the same ledger before the crash boundary can be treated as production-safe.
+
 ## Failure Modes
 
 - Valid envelopes can contain false claims if producers emit bad data.
@@ -107,6 +113,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
 - Benchmark-oriented durable runtimes can appear production-ready in unit tests while still lacking process-kill and restart evidence on the same code path.
 - Sidecar-gated agent runtimes can leak or duplicate credentials if header stripping and local-socket boundaries are not tested across reconnects.
+
+- Evidence-exported runtimes can still lose trust if the replay path is only simulated and not validated against a real side effect.
 
 ## Trade-Offs
 
@@ -136,6 +144,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - For file-first session stores, require crash/restart tests that verify malformed replay lines are handled intentionally and not silently ignored in a way that hides corruption.
 - For workflow runtimes with fault injection, require a process-kill or restart test that confirms the ledger and projection replay without duplicate side effects.
 - For sidecar-backed mesh runtimes, require a multi-node fleet test that confirms discovery, auth, and tool invocation survive churn without credential leakage.
+
+- For evidence-led agent runtimes, require a crash / restart run that preserves the exported bundle hash and prevents duplicate external side effects.
 
 ## Evidence References
 
@@ -181,3 +191,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E1 source verified: `google/sam/internal/node/sidecar.go::StartSidecarServer` and `withAuth` mount socket/token/mTLS-gated local APIs, egress, and MCP routes.
 - E1 source verified: `google/sam/internal/node/mcp.go` and `internal/node/mcp_handlers.go` implement service discovery and remote tool invocation across the mesh.
 - E2 test verified: `google/sam/internal/node/sidecar_test.go` and `tests/integration/sdk_mesh_test.go::TestNativeSDKsMesh` verify readiness gating, auth enforcement, discovery, and tool calls across a real mesh.
+
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/runtime.py:120-187` claims the step lease, appends `agent_started`, and commits the pending state patch while classifying retryable failures.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/replay.py:25-62` replays stored events and artifacts without invoking providers or tools again.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/evidence.py:29-155` exports the run, steps, tool ledger, approvals, artifacts, and checksum-stable evidence bundle.
+- E2 test verified: `yaogdu/AgentLedger/tests/test_runtime.py:262-305` and `:414-447` cover crash retry, replay non-execution, high-risk tool denial, evidence export, and inspector round-tripping.
