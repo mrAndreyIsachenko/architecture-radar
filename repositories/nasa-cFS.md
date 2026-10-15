@@ -5,8 +5,8 @@
 - Current commit reviewed: `ca14a5cce6954c1cbc464c536ea681b6798d3b44`
 - Commit date: 2026-10-09T06:58:22-04:00
 - Branch: `dev`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b`
+- Material changes since previous review: The earlier review covered command/telemetry app loops; this review examines the CFDP file-transfer transaction engine.
 - Decision: track
 
 ## Problem Fit
@@ -83,3 +83,9 @@ Run the CFDP app inside the integrated cFS bundle with delayed acknowledgements 
 - `chunked delayed-transfer state machine`
 - `table-driven CFDP configuration`
 - `gap-tracked file receive path`
+
+## Previous Review
+
+The earlier review covered command/telemetry app loops; this review examines the CFDP file-transfer transaction engine.
+
+Earlier evidence remains pinned to `13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b` in the [report for 2026-10-07](../reports/2026-10-07.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/nasa-cFS.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.

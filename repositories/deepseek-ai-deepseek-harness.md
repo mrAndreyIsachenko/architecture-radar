@@ -5,8 +5,8 @@
 - Current commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
 - Commit date: 2026-10-09T17:31:32+08:00
 - Branch: `master`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `5badb15009ae1756c3afe0ae0cef1faafc290ccc`
+- Material changes since previous review: The earlier review covered CLI/plugin approvals and JSONL replay; this review examines the synchronous SDK, notification routing, and bundled-runtime lifecycle.
 - Decision: track
 
 ## Problem Fit
@@ -84,3 +84,9 @@ Run one real packaged session against the bundled runtime, confirm `initialize` 
 - `bundled runtime resolution guardrail`
 - `notification-tree subscription`
 - `bounded subprocess shutdown`
+
+## Previous Review
+
+The earlier review covered CLI/plugin approvals and JSONL replay; this review examines the synchronous SDK, notification routing, and bundled-runtime lifecycle.
+
+Earlier evidence remains pinned to `5badb15009ae1756c3afe0ae0cef1faafc290ccc` in the [report for 2026-10-04](../reports/2026-10-04.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/deepseek-ai-deepseek-harness.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.

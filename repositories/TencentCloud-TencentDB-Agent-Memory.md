@@ -5,8 +5,8 @@
 - Current commit reviewed: `274e549069ad780e411d70e6fff51f6a977d81d3`
 - Commit date: 2026-10-10T10:31:39+08:00
 - Branch: `feat/server_team`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `8b86874a2daea49e3ff0fb53d699203146c5c77d`
+- Material changes since previous review: The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
 - Decision: track
 
 ## Problem Fit
@@ -89,3 +89,9 @@ Run the proxy against a real upstream and a real persistent backend, then valida
 - `degraded storage health gate`
 - `session-init recovery orchestrator`
 - `atomic prefix-backed proxy KV`
+
+## Previous Review
+
+The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
+
+Earlier evidence remains pinned to `8b86874a2daea49e3ff0fb53d699203146c5c77d` in the [report for 2026-10-04](../reports/2026-10-04.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/TencentCloud-TencentDB-Agent-Memory.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
