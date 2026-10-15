@@ -3,7 +3,7 @@
 - Canonical name: Evidence-Carrying Execution Envelopes
 - Aliases: evidence envelope, provenance envelope, lineage event envelope, checkpoint envelope, episode evidence envelope
 - Avoided duplicate names: execution graph events, trace wrappers, provenance records, lineage packets
-- Last updated: 2026-10-01
+- Last updated: 2026-10-07
 
 ## Problem
 
@@ -32,6 +32,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Runtime recovery metadata and semantic interpretation metadata should be separable fields.
 - LLM-derived facts must be distinguishable from source-verified facts.
 - The envelope must be usable outside a single proprietary runtime.
+- Sidecar and mesh-gateway state should also stay envelope-shaped when the runtime is split across local-socket auth, remote discovery, and resumable tool invocation.
 
 ## Implementation Variants
 
@@ -46,6 +47,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Filesystem-native run ledger: PageLedger persists page-level provenance, quality, rerun, and verification evidence as plain files so rerun planning and audit checks can be replayed without a database.
 - Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 - Durable agent runtime envelope: `rmax-ai/durable-agent-runtime-lab` keeps the workflow ledger append-only with hash chaining, separates the state projection from the event log, and routes proposal generation, verification, execution, and commit through distinct runtime modules.
+- Sidecar-backed mesh agent envelope: `google/sam` keeps mesh discovery, tool invocation, socket/token auth, and readiness gating inside a sidecar boundary so the local runtime can be resumed and audited independently of the mesh transport.
+
 - Replay-safe harness envelope: `deepseek-ai/deepseek-harness` ties CLI dispatch, exact-version plugin approvals, and JSONL session persistence together so interrupted semantic checkpoints can resume through the same durable boundary.
 
 - Mission safety envelope: `PeterJBurke/droneserver` wraps every tool call in a server-side guard pipeline, carries audit flags into append-only JSONL records, and checkpoints mission state so reconnects do not lose the command context.
@@ -66,6 +69,8 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `peterbussch/pageledger` reviewed at `fd1c1da0fbdc366222170f24fb22890f8a19f8a0`.
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 - `rmax-ai/durable-agent-runtime-lab` reviewed at `e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3`.
+- `google/sam` reviewed at `12dea1138cc40df0d440830d8c93de4408f95986`.
+
 - `deepseek-ai/deepseek-harness` reviewed at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`.
 
 - `PeterJBurke/droneserver` reviewed at `06b7d1a6a967553f1f8c025bb6b1fc79d346fd53`.
@@ -90,6 +95,8 @@ Google AX is strongest for sidecar-backed conversational execution. Its controll
 Duragent is strongest for file-first session persistence. The dedicated session actor serializes mutations, while the file store keeps append-only history and atomic snapshots together. That makes replay and crash recovery easy to reason about, but it also means correctness still depends on filesystem durability and the replay discipline around malformed lines.
 
 `rmax-ai/durable-agent-runtime-lab` is strongest for a benchmark-friendly durable agent runtime. The workflow engine, boundary service, and fault injector separate proposal generation from durable commit, which makes it useful as a reference for deterministic failure injection, but it still needs live restart validation before adoption.
+
+`google/sam` is strongest for a sidecar-backed mesh agent runtime. The sidecar gates local API access, the MCP layer separates discovery from tool invocation, and the integration mesh test shows the runtime as something the local process can resume and audit independently of the mesh transport. It is promising, but the fleet-scale recovery path still needs live validation.
 
 DeepSeek Harness is strongest for replay-safe harnessing. The CLI dispatcher, exact-version plugin approvals, and JSONL session persistence keep the recovery boundary explicit, and the semantic-checkpoint fixture shows the resumed output stays anchored to the interrupted session. The remaining gap is a live process-kill and restart run on the same semantic checkpoint path.
 
@@ -121,6 +128,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Sidecar-backed runtimes can wedge on PID-file mismatches, readiness probes, or host-level process restarts.
 - Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
 - Benchmark-oriented durable runtimes can appear production-ready in unit tests while still lacking process-kill and restart evidence on the same code path.
+- Sidecar-gated agent runtimes can leak or duplicate credentials if header stripping and local-socket boundaries are not tested across reconnects.
+
 - Replay-safe harnesses can still hide recovery defects if fixture-based resume coverage is not matched by a live process-kill and restart test.
 
 - Mission-safety envelopes can still be simulation-heavy when real-aircraft or field hardware validation is missing.
@@ -155,6 +164,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - For durable agent entities, require recovery tests that cover nested workflows, external event waits, and backend rehydration.
 - For file-first session stores, require crash/restart tests that verify malformed replay lines are handled intentionally and not silently ignored in a way that hides corruption.
 - For workflow runtimes with fault injection, require a process-kill or restart test that confirms the ledger and projection replay without duplicate side effects.
+- For sidecar-backed mesh runtimes, require a multi-node fleet test that confirms discovery, auth, and tool invocation survive churn without credential leakage.
+
 - For replay-safe harnesses, require a live process-kill and restart test that proves the resumed semantic checkpoint matches the interrupted session without duplicate side effects.
 
 - For server-enforced mission safety, require an operational or field validation run that exercises the full guard pipeline outside simulation.
@@ -203,6 +214,10 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/persistence/event_store.py:1-182` appends hash-chained JSONL events with fsync.
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/boundary/service.py:1-120` rejects malformed, duplicate, over-budget, or unsafe proposals before execution.
 - E2 test verified: `rmax-ai/durable-agent-runtime-lab/tests/unit/test_fault_injection.py` and `tests/integration/test_e2e_runtime.py` verify deterministic fault injection and the end-to-end runtime path.
+- E1 source verified: `google/sam/internal/node/sidecar.go::StartSidecarServer` and `withAuth` mount socket/token/mTLS-gated local APIs, egress, and MCP routes.
+- E1 source verified: `google/sam/internal/node/mcp.go` and `internal/node/mcp_handlers.go` implement service discovery and remote tool invocation across the mesh.
+- E2 test verified: `google/sam/internal/node/sidecar_test.go` and `tests/integration/sdk_mesh_test.go::TestNativeSDKsMesh` verify readiness gating, auth enforcement, discovery, and tool calls across a real mesh.
+
 - E1 source verified: DeepSeek Harness `apps/cli/src/bin.ts:26-78` dispatches CLI modes and `apps/cli/src/plugin.ts:16-107` applies exact-version approval gates.
 - E1 source verified: DeepSeek Harness `packages/session/session-persistence-jsonl/src/index.ts:239-280` registers the JSONL backend and `packages/session/session-persistence-jsonl/src/storage.ts:79-315` enforces the single-writer chain and monotonic reads.
 - E2 test verified: DeepSeek Harness `apps/cli/tests/profiles/headless/tests/semantic-checkpoint.expected.e2e.ts:39-140` and `packages/session/session-persistence-jsonl/tests/lease.two-process.e2e.ts:33-69` verify resumed semantic output and lock takeover.

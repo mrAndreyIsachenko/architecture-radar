@@ -2268,6 +2268,200 @@
       "decision_reason": "The proxy and memory core separate hot-cache state, durable session rows, and binding rows into a recoverable chain that survives restarts in source, and the tests show recalled memory is not mistaken for fresh user input. The restart path still needs a live hydration and recovery validation under persisted sessions.",
       "revisit_reason": "Review after a material change to restart hydration, binding rebuild, or memory routing.",
       "next_revisit_condition": "Revisit after a release or branch update that changes layered recovery, restart hydration, or binding rebuild semantics."
+    },
+    {
+      "repository": "Topdu/OpenOCR",
+      "URL": "https://github.com/Topdu/OpenOCR",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "openocr.py",
+        "tools/infer_doc.py",
+        "test_openocr.py",
+        "configs/",
+        "docs/"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on mixed real-document corpora and partial-failure serialization"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "1ccfc6ee6161f7133b192e16af3a9265273997ba",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "layout-aware extraction",
+        "OCR provenance"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "layout-aware extraction pipeline",
+        "structured document output serialization"
+      ],
+      "decision": "track",
+      "decision_reason": "The doc pipeline, layout parsing, and doc-specific serializers are source-backed and reusable, but the reviewed source does not yet prove mixed-document runtime behavior under partial failure.",
+      "revisit_reason": "Review after runtime corpus validation or a material doc-pipeline change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes doc parsing, layout handling, or output serialization."
+    },
+    {
+      "repository": "dyber-pqc/DyberVPN",
+      "URL": "https://github.com/dyber-pqc/DyberVPN",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "crates/dybervpn-tunnel/src/policy.rs",
+        "crates/dybervpn-tunnel/src/revocation.rs",
+        "crates/dybervpn-tunnel/src/daemon.rs",
+        "crates/dybervpn-cli/src/main.rs"
+      ],
+      "operational_blockers": [
+        "needs live reconnect and reload validation under policy and revocation churn"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "943cf5012dc370a5768550eab6a0b7a3c71711c7",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "VPN control plane",
+        "policy enforcement",
+        "key revocation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Policy-Guarded Route Reconciliation Loop"
+      ],
+      "candidate_patterns": [
+        "full-key policy and revocation gate"
+      ],
+      "decision": "track",
+      "decision_reason": "The policy and CRL loop is source-backed and reusable, but live reconnect and reload churn still needs proof before the mechanism is safe to adopt.",
+      "revisit_reason": "Review after reconnect/reload validation or a material policy/revocation change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes policy reload, CRL handling, or reconnect logic."
+    },
+    {
+      "repository": "AkitaEngineering/MeshSwarm",
+      "URL": "https://github.com/AkitaEngineering/MeshSwarm",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "gcs_app.py",
+        "meshtastic_control.py",
+        "main/main.cpp",
+        "tests/test_gcs_app.py",
+        "tests/test_qa_simulator.py"
+      ],
+      "operational_blockers": [
+        "needs restart and operational validation on real mesh hardware and a real flight-controller path"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "bd7f2d1a5791f06abcc6254279b42b79d69a7219",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "drone telemetry",
+        "mesh command control",
+        "failsafe recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "encrypted mesh ACK sequencing"
+      ],
+      "decision": "track",
+      "decision_reason": "The mesh control, ACK replay handling, and RTL latching are source-backed and reusable, but the live restart path still needs operational proof on real hardware.",
+      "revisit_reason": "Review after restart-recovery validation or a material control-loop change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes mesh control, ACK handling, or failsafe latching."
+    },
+    {
+      "repository": "nasa/cFS",
+      "URL": "https://github.com/nasa/cFS",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "apps/sc/fsw/src/sc_app.c",
+        "apps/to_lab/fsw/src/to_lab_app.c",
+        "apps/hk/fsw/src/hk_app.c",
+        "apps/sc/unit-test/sc_rtsrq_tests.c",
+        "apps/hk/unit-test/hk_cmds_tests.c",
+        "README.md"
+      ],
+      "operational_blockers": [
+        "needs operational validation beyond the demo build/telemetry path"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "flight software framework",
+        "command/telemetry",
+        "ground-system integration"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "bundle-level command/telemetry loop",
+        "table-driven telemetry subscription management"
+      ],
+      "decision": "track",
+      "decision_reason": "The bundle-level command and telemetry loops are source-backed and useful, but the demo bundle still needs operational validation before it can be treated as a flight distribution.",
+      "revisit_reason": "Review after an operational bundle run or a mission-relevant cFS change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes command/telemetry plumbing or ground-system integration."
+    },
+    {
+      "repository": "google/sam",
+      "URL": "https://github.com/google/sam",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "cmd/sam-node/main.go",
+        "internal/node/mcp.go",
+        "internal/node/mcp_handlers.go",
+        "internal/node/sidecar.go",
+        "internal/node/sidecar_test.go",
+        "tests/integration/sdk_mesh_test.go"
+      ],
+      "operational_blockers": [
+        "needs live multi-node fleet validation across discovery, auth, and tool invocation"
+      ],
+      "first_seen": "2026-10-07",
+      "last_reviewed": "2026-10-07",
+      "commit_reviewed": "12dea1138cc40df0d440830d8c93de4408f95986",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "mesh discovery",
+        "sidecar runtime"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "readiness-gated sidecar runtime"
+      ],
+      "decision": "track",
+      "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
+      "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
     }
   ]
 }
