@@ -1910,6 +1910,129 @@
       "decision_reason": "The router, egress, and storage modules form a reusable delayed-connectivity control plane with explicit contact-plan, link-state, and storage interactions. It is a strong mechanism for satellites and DTN work, but it still needs live operational validation under churn and storage pressure.",
       "revisit_reason": "Review after a material change to route recomputation, storage restore, or delay-simulation behavior.",
       "next_revisit_condition": "Revisit after a release or branch update that changes contact-plan handling, storage restore, or route-update propagation."
+    },
+    {
+      "repository": "yaogdu/AgentLedger",
+      "URL": "https://github.com/yaogdu/AgentLedger",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/agentledger/runtime.py",
+        "src/agentledger/replay.py",
+        "src/agentledger/evidence.py",
+        "tests/test_runtime.py",
+        "tests/test_replay.py"
+      ],
+      "operational_blockers": [
+        "needs failure-injection validation for worker kill and restart against a real side effect"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "dd966e3b3d9eb54032c51701d30efcfbaa2379b0",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "durable execution",
+        "evidence export"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes"
+      ],
+      "candidate_patterns": [
+        "tool-ledger replay boundary",
+        "hash-chained evidence bundle",
+        "same-run resume after crash"
+      ],
+      "decision": "track",
+      "decision_reason": "The runtime, replay, and evidence modules expose a reusable mechanism for binding tool dispatch, evidence export, and crash recovery to the same ledger. The architecture is strong enough to track, but adoption should wait for live worker-kill validation against a real external side effect.",
+      "revisit_reason": "Review after a material change to worker lifecycle, evidence export format, or replay semantics.",
+      "next_revisit_condition": "Revisit after a material change to process restart handling, evidence hashing, or external-effect idempotency."
+    },
+    {
+      "repository": "Sri-Krishna-V/bumblebee",
+      "URL": "https://github.com/Sri-Krishna-V/bumblebee",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/bumblebee/pipeline.py",
+        "src/bumblebee/textlayer.py",
+        "src/bumblebee/runs.py",
+        "tests/test_pipeline.py",
+        "tests/test_storage.py"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on a mixed PDF corpus with OCR latency and memory pressure"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "c108cd33664b57ee64fa80b47a89e1c943749a80",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document AI",
+        "OCR pipeline",
+        "layout preservation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "text-layer trust gating",
+        "completion-marker resumability",
+        "bounded adaptive OCR retry"
+      ],
+      "decision": "track",
+      "decision_reason": "The pipeline and text-layer checks provide a reusable deferred-rendering mechanism for document AI, with resumable batch outputs and coverage-based fallback logic. It is useful but still needs runtime evidence across real mixed-quality PDFs before stronger adoption.",
+      "revisit_reason": "Review after a material change to batching, OCR fallback thresholds, or resumable output markers.",
+      "next_revisit_condition": "Revisit after a material change to retry thresholds, mixed-corpus performance, or layout preservation behavior."
+    },
+    {
+      "repository": "eabz/evm-indexer",
+      "URL": "https://github.com/eabz/evm-indexer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/reorg/mod.rs",
+        "src/reorg/fork.rs",
+        "src/pipeline/backfill.rs",
+        "src/reorg/tests.rs",
+        "src/pipeline/sync_tests.rs"
+      ],
+      "operational_blockers": [
+        "needs operational validation under live reorg churn and ClickHouse storage pressure"
+      ],
+      "first_seen": "2026-09-28",
+      "last_reviewed": "2026-09-28",
+      "commit_reviewed": "e4ca46486837b85aadccd009ca742f1799801a67",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg handling",
+        "materialized backfill"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "purge-and-reinsert backfill",
+        "fork-search reversal window",
+        "coverage-floor gating"
+      ],
+      "decision": "track",
+      "decision_reason": "The reorg and backfill modules implement a reusable purge-and-reinsert materialization window for blockchain indexing. It is strong source evidence, but adoption should wait for live operational validation under reorg churn and storage pressure.",
+      "revisit_reason": "Review after a material change to reorg handling, cursor persistence, or ClickHouse sink behavior.",
+      "next_revisit_condition": "Revisit after a material release that changes reorg handling, fork search, or backfill persistence."
     }
   ]
 }
