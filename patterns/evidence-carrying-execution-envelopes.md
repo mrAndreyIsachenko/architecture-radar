@@ -3,7 +3,7 @@
 - Canonical name: Evidence-Carrying Execution Envelopes
 - Aliases: evidence envelope, provenance envelope, lineage event envelope, checkpoint envelope, episode evidence envelope
 - Avoided duplicate names: execution graph events, trace wrappers, provenance records, lineage packets
-- Last updated: 2026-09-22
+- Last updated: 2026-09-28
 
 ## Problem
 
@@ -46,6 +46,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - Filesystem-native run ledger: PageLedger persists page-level provenance, quality, rerun, and verification evidence as plain files so rerun planning and audit checks can be replayed without a database.
 - Structured command evidence envelope: `mavsdk_drone_show` persists command identity, lifecycle phase, per-target evidence, and append-only events in a durable SQLite journal, while `ReadOnlyEvidenceBundle` packages sanitized read-only answer evidence with source refs and confidence for operator follow-up.
 - Durable agent runtime envelope: `rmax-ai/durable-agent-runtime-lab` keeps the workflow ledger append-only with hash chaining, separates the state projection from the event log, and routes proposal generation, verification, execution, and commit through distinct runtime modules.
+- Agent-ledger envelope: `yaogdu/AgentLedger` keeps a step-scoped runtime ledger, policy and sandbox gates, replay-safe evidence bundles, and inspector exports together so agent work stays auditable after crash or restart.
 
 ## Known Repositories
 
@@ -60,6 +61,7 @@ The envelope is then projected into a graph, trace, checkpoint store, or knowled
 - `peterbussch/pageledger` reviewed at `fd1c1da0fbdc366222170f24fb22890f8a19f8a0`.
 - `alireza787b/mavsdk_drone_show` reviewed at `39ce5601e9d47eafdd3a6ccffd3c1caba3f08cad`.
 - `rmax-ai/durable-agent-runtime-lab` reviewed at `e6beca0f0f0bf7095fee4f1d271e9076c68fb0c3`.
+- `yaogdu/AgentLedger` reviewed at `dd966e3b3d9eb54032c51701d30efcfbaa2379b0`.
 
 ## Comparison Of Implementations
 
@@ -85,6 +87,8 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 
 `mavsdk_drone_show` is strongest for command-lifecycle evidence. The journal separates command state, per-target evidence, and callback capability state, so restart recovery can rebuild the live tracker without collapsing everything into a mutable status blob. The read-only evidence bundle then gives operator-facing answers a compact provenance container that can be audited and routed without re-parsing markdown.
 
+`yaogdu/AgentLedger` is strongest when the runtime boundary itself must govern tool dispatch, replay, and evidence export. It is broader than the checkpoint-only variants because the bundle is a first-class runtime artifact, not an after-the-fact export, but it still needs a live process-kill / restart proof on the same ledger before the crash boundary can be treated as production-safe.
+
 ## Failure Modes
 
 - Valid envelopes can contain false claims if producers emit bad data.
@@ -101,6 +105,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - Sidecar-backed runtimes can wedge on PID-file mismatches, readiness probes, or host-level process restarts.
 - Filesystem-native ledgers can be tampered with if callers skip the verification pass or treat the run directory as immutable without enforcement.
 - Benchmark-oriented durable runtimes can appear production-ready in unit tests while still lacking process-kill and restart evidence on the same code path.
+- Evidence-exported runtimes can still lose trust if the replay path is only simulated and not validated against a real side effect.
 
 ## Trade-Offs
 
@@ -129,6 +134,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - For durable agent entities, require recovery tests that cover nested workflows, external event waits, and backend rehydration.
 - For file-first session stores, require crash/restart tests that verify malformed replay lines are handled intentionally and not silently ignored in a way that hides corruption.
 - For workflow runtimes with fault injection, require a process-kill or restart test that confirms the ledger and projection replay without duplicate side effects.
+- For evidence-led agent runtimes, require a crash / restart run that preserves the exported bundle hash and prevents duplicate external side effects.
 
 ## Evidence References
 
@@ -171,3 +177,7 @@ PageLedger is strongest for filesystem-native rerun evidence. Its manifests, rou
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/persistence/event_store.py:1-182` appends hash-chained JSONL events with fsync.
 - E1 source verified: `rmax-ai/durable-agent-runtime-lab/src/durable_agent_runtime/boundary/service.py:1-120` rejects malformed, duplicate, over-budget, or unsafe proposals before execution.
 - E2 test verified: `rmax-ai/durable-agent-runtime-lab/tests/unit/test_fault_injection.py` and `tests/integration/test_e2e_runtime.py` verify deterministic fault injection and the end-to-end runtime path.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/runtime.py:120-187` claims the step lease, appends `agent_started`, and commits the pending state patch while classifying retryable failures.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/replay.py:25-62` replays stored events and artifacts without invoking providers or tools again.
+- E1 source verified: `yaogdu/AgentLedger/src/agentledger/evidence.py:29-155` exports the run, steps, tool ledger, approvals, artifacts, and checksum-stable evidence bundle.
+- E2 test verified: `yaogdu/AgentLedger/tests/test_runtime.py:262-305` and `:414-447` cover crash retry, replay non-execution, high-risk tool denial, evidence export, and inspector round-tripping.
