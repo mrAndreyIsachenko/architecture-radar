@@ -1,12 +1,12 @@
 # TencentCloud/TencentDB-Agent-Memory
 
 - Repository: https://github.com/TencentCloud/TencentDB-Agent-Memory
-- Review date: 2026-10-10
-- Current commit reviewed: `274e549069ad780e411d70e6fff51f6a977d81d3`
-- Commit date: 2026-10-10T10:31:39+08:00
+- Review date: 2026-10-16
+- Current commit reviewed: `e9a82935b52741e0c798c75326e90b7144eb4d5f`
+- Commit date: 2026-10-15T20:24:35+08:00
 - Branch: `feat/server_team`
-- Previous commit reviewed: `8b86874a2daea49e3ff0fb53d699203146c5c77d`
-- Material changes since previous review: The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
+- Previous commit reviewed: `274e549069ad780e411d70e6fff51f6a977d81d3`
+- Material changes since previous review: The earlier review covered marker-gated request rewriting and session-init orchestration; this review adds the `dsh` agent-prefix gate, which lets the proxy resolve auxiliary routes that were previously dropped.
 - Decision: track
 
 ## Problem Fit
@@ -15,16 +15,18 @@ This repository informs `ai-llm-systems`, especially agent memory, context engin
 
 ## Verified Flow
 
-`src/index.ts` parses config, initializes logging, tracing, auth, storage, and optional control-plane features -> `createApp()` in `src/server.ts` installs marker gates, health checks, bridge routes, and agent-prefixed endpoints -> `InjectionPipeline.process()` parses the request body into an agent context, resolves the agent profile from URL identity, executes hooks, and serializes the modified body -> `stageSessionInitOrchestrate()` recovers or initializes the session state machine, decides whether to intercept, and normalizes the response path -> `stageMemCommand()` recognizes `mem:` commands, executes them, and returns the intercepted response envelope -> `SqliteStorage` and `FsStorage` provide atomic KV persistence, CAS writes, prefix deletion, and TTL behavior for the proxy state.
+`src/index.ts` parses config, initializes logging, tracing, auth, storage, and optional control-plane features -> `createApp()` in `src/server.ts` installs marker gates, health checks, bridge routes, and agent-prefixed endpoints -> `src/routes/whitelist.ts` admits `dsh` into the agent-prefix registry so the `/dsh/:spaceId/...` routes remain reachable -> `InjectionPipeline.process()` parses the request body into an agent context, resolves the agent profile from URL identity, executes hooks, and serializes the modified body -> `stageSessionInitOrchestrate()` recovers or initializes the session state machine, decides whether to intercept, and normalizes the response path -> `stageMemCommand()` recognizes `mem:` commands, executes them, and returns the intercepted response envelope -> `SqliteStorage` and `FsStorage` provide atomic KV persistence, CAS writes, prefix deletion, and TTL behavior for the proxy state.
 
 - E1 source verified: `MemoryProxy/src/index.ts:1-118` initializes the proxy subsystems, request-preparation lifecycle, and graceful shutdown path.
 - E1 source verified: `MemoryProxy/src/server.ts:1-260` registers the marker gates, health endpoint, bridge routes, session-management endpoints, and agent-prefixed protocol routes.
+- E1 source verified: `MemoryProxy/src/routes/whitelist.ts:1-80` extends the agent-prefix whitelist with `dsh`, which keeps the auxiliary route family under the same control-plane gate.
 - E1 source verified: `MemoryProxy/src/injection/pipeline.ts:1-260` implements adapter parsing, agent-profile lookup, hook execution, observer callbacks, and safe continuation on hook failures.
 - E1 source verified: `MemoryProxy/src/pipeline/stages/session-init-orchestrate.ts:1-230` factors the shared session-init recovery/state-machine logic into a parameterized orchestration stage.
 - E1 source verified: `MemoryProxy/src/pipeline/stages/mem-command.ts:1-121` isolates `mem:` command parsing and execution from the protocol handlers.
 - E1 source verified: `MemoryProxy/src/storage/sqlite-storage.ts:19-134` and `MemoryProxy/src/storage/fs-storage.ts:19-164` implement the persistence backends with atomic writes, CAS semantics, prefix deletion, and TTL sweeps or cleanup.
 - E2 test verified: `MemoryProxy/scripts/qa/p1-api-test.sh:61-220` exercises model gating, header preselection, session-init, and memory-command paths.
 - E2 test verified: `MemoryProxy/scripts/qa/p1-dump-verify.py:1-220` captures outbound requests to prove injection is present in the final body rather than only in intermediate logs.
+- E2 test verified: `MemoryProxy/scripts/qa/p0-smoke.sh:1-120` now covers `/dsh/$SPACE/v1/chat/completions`, proving the newly whitelisted prefix is exercised in QA.
 - E2 test verified: `MemoryProxy/scripts/qa/cc-session-reset-smoke.py:1-110` exercises the real CLI reset flow and the re-prompt behavior after reset.
 
 ## Architecture
@@ -38,7 +40,7 @@ Principal components:
 - Pluggable storage backends with SQLite, filesystem, memory, and COS-style behavior.
 - QA scripts that validate route gating, outbound rewrite, and reset recovery.
 
-Most interesting mechanism: marker-gated request rewriting with session-scoped recovery. A request can be gated, prewarmed, rewritten, or bypassed based on URL shape and headers, while the session-init stage recovers previously bound state and the memory-command stage can short-circuit to a dedicated response path.
+Most interesting mechanism: marker-gated request rewriting with session-scoped recovery. A request can be gated, prewarmed, rewritten, or bypassed based on URL shape and headers, while the session-init stage recovers previously bound state and the memory-command stage can short-circuit to a dedicated response path. The `dsh` addition shows the prefix registry is meant to be extended by mechanism, not by one-off route exceptions.
 
 Baseline comparison: a generic proxy would forward the request and perhaps add one static system prompt. This proxy carries a much richer control plane, including identity selection, per-request injection, session recovery, health degradation, and command interception.
 
@@ -56,6 +58,7 @@ Do not copy:
 - Do not copy the large protocol matrix without the same operational needs.
 - Do not assume header preselection or agent identity can be implicit.
 - Do not treat process-local storage as acceptable in multi-instance deployments.
+- Do not assume an unlisted agent prefix will inherit the right path treatment without updating the registry first.
 
 ## Quality, Limits, And Adoption Conditions
 
@@ -89,9 +92,10 @@ Run the proxy against a real upstream and a real persistent backend, then valida
 - `degraded storage health gate`
 - `session-init recovery orchestrator`
 - `atomic prefix-backed proxy KV`
+- `agent-prefix route registry`
 
 ## Previous Review
 
-The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
+The earlier review covered layered session recovery and outbound-body verification; this review updates the same proxy mechanism with the `dsh` prefix gate and its corresponding QA coverage.
 
-Earlier evidence remains pinned to `8b86874a2daea49e3ff0fb53d699203146c5c77d` in the [report for 2026-10-04](../reports/2026-10-04.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/TencentCloud-TencentDB-Agent-Memory.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
+Earlier evidence remains pinned to `274e549069ad780e411d70e6fff51f6a977d81d3` in the [report for 2026-10-10](../reports/2026-10-10.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/TencentCloud-TencentDB-Agent-Memory.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
