@@ -389,6 +389,20 @@ items:
     created: 2026-10-01
     last_updated: 2026-10-01
 
+  - id: 2026-10-16-blockbook-eth-pseudo-transfer-replay
+    family: blockchain-intelligence
+    source_report: reports/2026-10-16.md
+    source_repository: trezor/blockbook
+    mechanism: reorg-safe materialization with pseudo-token transfer suppression
+    evidence_gap: Source and tests now show Ethereum pseudo-token transfer suppression for Polygon `0x...1010` and EIP-7708 system-address flows, but the reviewed evidence does not replay a representative chain window to prove the suppression does not hide legitimate transfers.
+    validation_type: replay
+    proposed_validation: Replay a Polygon or EIP-7708 token-transfer window through the indexer, compare token-transfer output before and after the filter, and confirm native and internal transfers still materialize correctly.
+    success_condition: Pseudo-token transfers are excluded from token-transfer output while legitimate token, native, and internal transfers remain intact after replay.
+    priority: high
+    status: open
+    created: 2026-10-16
+    last_updated: 2026-10-16
+
   - id: 2026-09-28-agentledger-failure-injection
     family: ai-llm-systems
     source_report: reports/2026-09-28.md

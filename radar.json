@@ -784,12 +784,13 @@
       "operational_blockers": [
         "Load-balanced or lagging RPC backends can produce false-positive fork probes",
         "Needs chain-specific live backend validation before production use",
-        "Retry and stall knobs require operator tuning"
+        "Retry and stall knobs require operator tuning",
+        "Needs replay validation of Ethereum pseudo-token suppression"
       ],
       "first_seen": "2026-08-11",
-      "last_reviewed": "2026-08-11",
-      "commit_reviewed": "6ce54d0b22cccccabf09aea3b096197195b5bb5a",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-10-16",
+      "commit_reviewed": "c6d8d181fb7645a15c655c5371bb7205af5f9086",
+      "previous_commit_reviewed": "6ce54d0b22cccccabf09aea3b096197195b5bb5a",
       "categories": [
         "blockchain indexing",
         "reorg recovery",
@@ -805,12 +806,13 @@
       ],
       "candidate_patterns": [
         "liveness-capped chain probe",
-        "abort-aware worker ring"
+        "abort-aware worker ring",
+        "pseudo-token transfer suppression gate"
       ],
       "decision": "track",
-      "decision_reason": "SyncWorker keeps blockchain projection recoverable with hash probes, fork disconnects, a stall cap, and separate bulk/parallel paths, making it a strong reuse baseline for reorg-safe indexing.",
-      "revisit_reason": "Revisit after a material change to retry thresholds, fork handling, or bulk/parallel sync semantics.",
-      "next_revisit_condition": "Material change to retry thresholds, fork handling, or bulk/parallel sync semantics."
+      "decision_reason": "SyncWorker keeps blockchain projection recoverable with hash probes, fork disconnects, a stall cap, and separate bulk/parallel paths, and the current head adds Ethereum pseudo-token suppression in the parser layer. The mechanism is strong, but replay validation is still needed before treating the new filter as production-safe.",
+      "revisit_reason": "Revisit after a replay validation of the Ethereum pseudo-token filter or a material sync-worker change.",
+      "next_revisit_condition": "Revisit when the pseudo-token suppression filter is replay-validated or the sync/reorg model changes materially."
     },
     {
       "repository": "mem0ai/mem0",
@@ -2268,9 +2270,9 @@
         "needs live proxy restart validation of hydrated initialized sessions"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-10",
-      "commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
-      "previous_commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
+      "last_reviewed": "2026-10-16",
+      "commit_reviewed": "e9a82935b52741e0c798c75326e90b7144eb4d5f",
+      "previous_commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
       "categories": [
         "context engineering",
         "proxy orchestration",
@@ -2289,12 +2291,13 @@
         "atomic prefix-backed proxy KV",
         "layered session recovery chain",
         "durable session promotion after rebuild",
-        "content-only memory clear"
+        "content-only memory clear",
+        "agent-prefix route registry"
       ],
       "decision": "track",
-      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
+      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages, and the current head extends the agent-prefix registry with dsh so auxiliary routes remain under the same control-plane gate. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
       "revisit_reason": "Revisit after a live backend run or a material pipeline/storage refactor.",
-      "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the pipeline/storage contract changes materially."
+      "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the prefix registry changes materially."
     },
     {
       "repository": "Topdu/OpenOCR",
@@ -2471,9 +2474,9 @@
         "needs live multi-node fleet validation across discovery, auth, and tool invocation"
       ],
       "first_seen": "2026-10-07",
-      "last_reviewed": "2026-10-07",
-      "commit_reviewed": "12dea1138cc40df0d440830d8c93de4408f95986",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-10-16",
+      "commit_reviewed": "03a374cd4097f2e291004053075f880bcd282fff",
+      "previous_commit_reviewed": "12dea1138cc40df0d440830d8c93de4408f95986",
       "categories": [
         "agent runtime",
         "mesh discovery",
@@ -2487,12 +2490,13 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
-        "readiness-gated sidecar runtime"
+        "readiness-gated sidecar runtime",
+        "silent-bootstrap retention normalization"
       ],
       "decision": "track",
-      "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
-      "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
-      "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
+      "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, and the current head adds retention normalization for nodes that enter the control plane without a last-seen instant. Fleet-scale churn still needs proof before adoption.",
+      "revisit_reason": "Review after fleet validation or a material sidecar/control-plane change.",
+      "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, mesh tool invocation, or retention normalization."
     }
   ]
 }
