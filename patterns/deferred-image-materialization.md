@@ -25,6 +25,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 
 - Marker: `DocumentBuilder.build_document` creates lowres pages and per-page lazy loaders, then `render_highres` promotes only pages that `page_needs_highres`; `TableProcessor` crops and OCRs only unresolved tables or forms.
 - Docling: `StandardPdfPipeline._assemble_document` delays page and element image generation until after structural assembly, then crops only `PictureItem` and `TableItem` regions using `prov` metadata; failed pages are backfilled to keep numbering stable.
+- Docpipe: `docpipe.py` delays expensive backend reads until page-quality routing and schema extraction need them, then preserves preprocessing history and confidence priors in the same document record.
 - HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 - LiteParse: keeps structural parsing authoritative, then renders screenshots or emits classified blocks only when the caller asks for them; page numbering, geometry, and OCR merge stay stable whether the promoted artifacts are enabled or not.
 - Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
@@ -36,6 +37,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 
 - `datalab-to/marker` reviewed at `e1a6226adfaab4cd573cfa96e12d60905ee38036`.
 - `docling-project/docling` reviewed at `8050c42be2b179504445cb8f3c75655e27cbb662`.
+- `utkarsh5026/Docpipe` reviewed at `5b97ea634c289f9cf98ce5d37786612600376057`.
 - `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
 - `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
@@ -48,6 +50,8 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 Marker is more explicit about the promotion boundary. It starts with lowres page objects, attaches a page-local highres loader, and decides promotion from layout or OCR state plus block type. Docling is broader: it assembles pages first, then emits page images or cropped element images only when the output format or downstream processor asks for them. Docling's failure retention is stronger; Marker’s per-page lazy loader is sharper.
 
 HURIDOCS sits closer to a document-conversion service than a library pipeline. It keeps the structural pass cheap, promotes only when tables, formulas, or pictures need richer pixels, and deletes the temporary PDF unless the caller explicitly asks to keep it. That makes it a practical late-promotion variant, but the markup conversion path is more service-specific than Marker or Docling.
+
+Docpipe is the more explicit page-quality variant. It routes each page independently, carries preprocessing history forward, and uses calibrated confidence as part of the extraction result, which makes the promotion decision auditable instead of hidden inside a backend call.
 
 LiteParse sits between library and service. It keeps a shared structural decomposition, exposes the same block shape across Rust and the foreign bindings, and treats screenshots as an opt-in projection rather than the parse's primary output. Its promotion boundary is less about page-image caching than about preserving layout and page order across multiple output modes.
 
@@ -96,6 +100,8 @@ Bumblebee applies the same pattern as a streaming batch runtime rather than a pu
 - E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` `StandardPdfPipeline._add_failed_pages_to_document` preserves missing page numbers after partial failures.
 - E2 test verified: `tests/test_failed_pages.py::test_failed_pages_added_to_document_1page` and `::test_failed_pages_added_to_document_2pages` verify page-number retention under partial failure.
 - E2 test verified: `tests/test_threaded_pipeline.py::test_threaded_pipeline_stage_shutdown_timeout` verifies stage shutdown and abandonment behavior when a blocking stage hangs.
+- E1 source verified: `docpipe.py` `ingest_*`, `preprocess`, `default_router`, `read`, `extract`, `page_quality_prior`, `EvalSuite`, and `Pipeline` implement ingest, adaptive preprocessing, backend routing, confidence fusion, evaluation, and one-call execution.
+- E2 test verified: `tests/test_integration.py::test_degraded_scan_survives_the_whole_pipeline`, `::test_preprocessing_history_is_a_full_audit_trail`, `::test_native_text_is_read_free_and_exactly`, `::test_mixed_attachments_land_in_one_document`, `::test_each_page_is_routed_on_its_own_merits`, and `::test_a_degraded_page_lowers_confidence_for_the_same_answer` verify the structural-first flow.
 - E1 source verified: `marker/builders/document.py` `DocumentBuilder.build_document` creates lowres pages, attaches a per-page highres loader, and `render_highres` promotes only pages that need it.
 - E1 source verified: `marker/processors/table.py` `TableProcessor.run_ocr_fallback` renders highres crops only for unresolved tables and forms.
 - E2 test verified: `tests/builders/test_document_builder.py::test_document_builder_inline_eq` verifies the pdftext-first path and embedded text layer.
