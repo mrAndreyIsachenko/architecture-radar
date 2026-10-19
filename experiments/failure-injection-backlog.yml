@@ -235,6 +235,48 @@ items:
     created: 2026-10-10
     last_updated: 2026-10-10
 
+  - id: 2026-10-19-docpipe-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-10-19.md
+    source_repository: utkarsh5026/Docpipe
+    mechanism: adaptive page-quality-driven preprocessing with provenance and calibrated confidence
+    evidence_gap: Source and tests prove the adaptive pipeline, audit trail, and confidence fusion, but not a live mixed corpus with real OCR/VLM backends and partial failures.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF/image/email corpus through at least one OCR backend and one VLM backend, inject blur, noise, skew, and malformed pages, and verify provenance, confidence, and page history remain stable.
+    success_condition: Promoted pages keep stable provenance and page numbers, and low-confidence fields remain reviewable under real backend failures.
+    priority: high
+    status: open
+    created: 2026-10-19
+    last_updated: 2026-10-19
+
+  - id: 2026-10-19-voryn-operational
+    family: blockchain-intelligence
+    source_report: reports/2026-10-19.md
+    source_repository: drillcoder/voryn
+    mechanism: strict ordered chain commit with version-gated worker cursors
+    evidence_gap: Source and tests prove ordered commit and reorg rewind, but not a live chain or forked-chain run with RPC churn, restart pressure, and storage stress.
+    validation_type: operational
+    proposed_validation: Run head, fetch, sequencer, and reaction workers against a live RPC endpoint or forked chain with induced reorgs, storage pressure, and process restarts.
+    success_condition: Committed chain cursor and worker cursors recover coherently after churn, with no duplicate materialization or stale cursor advancement.
+    priority: high
+    status: open
+    created: 2026-10-19
+    last_updated: 2026-10-19
+
+  - id: 2026-10-19-stm32-ccsds-node-runtime
+    family: satellites-space-systems
+    source_report: reports/2026-10-19.md
+    source_repository: JosefHobler/stm32-ccsds-node
+    mechanism: watchdog-gated TM/TC task set with byte-slip framing
+    evidence_gap: Source and tests prove framing and watchdog logic, but not a flashed-board run with UART noise, reboot, and watchdog recovery on hardware.
+    validation_type: runtime
+    proposed_validation: Flash the firmware to the STM32F411RE, connect the Python ground station, inject bad frames, partial frames, and reboot commands, and confirm watchdog and resynchronization behavior on hardware.
+    success_condition: The command/telemetry loop remains stable on real hardware and malformed frames recover by slip resync without deadlocking the watchdog.
+    priority: high
+    status: open
+    created: 2026-10-19
+    last_updated: 2026-10-19
+
   - id: 2026-10-07-openocr-runtime
     family: document-ai-ocr
     source_report: reports/2026-10-07.md

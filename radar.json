@@ -2493,6 +2493,141 @@
       "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
       "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
       "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
+    },
+    {
+      "repository": "utkarsh5026/Docpipe",
+      "URL": "https://github.com/utkarsh5026/Docpipe",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "docpipe.py",
+        "tests/test_integration.py",
+        "tests/test_backends.py",
+        "tests/test_extract.py",
+        "tests/test_eval.py",
+        "tests/test_confidence.py"
+      ],
+      "operational_blockers": [
+        "needs live mixed-corpus validation with real OCR/VLM backends",
+        "confidence behavior still needs runtime proof under partial failures"
+      ],
+      "first_seen": "2026-10-19",
+      "last_reviewed": "2026-10-19",
+      "commit_reviewed": "5b97ea634c289f9cf98ce5d37786612600376057",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "document parsing",
+        "OCR routing",
+        "confidence calibration"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "adaptive page-quality-driven preprocessing",
+        "calibrated confidence fusion",
+        "page-history provenance ledger"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a reusable structural-first document pipeline with page-quality routing, preprocessing history, and calibrated confidence. The mechanism is strong, but live mixed-corpus behavior with actual OCR/VLM backends still needs runtime validation before adoption.",
+      "revisit_reason": "Revisit after runtime validation on a mixed corpus or after a material backend/evaluation change.",
+      "next_revisit_condition": "Revisit when a mixed corpus has been run through real OCR/VLM backends or the preprocessing/confidence model changes materially."
+    },
+    {
+      "repository": "drillcoder/voryn",
+      "URL": "https://github.com/drillcoder/voryn",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/services/head-service.ts",
+        "src/services/fetch-service.ts",
+        "src/services/sequencer-service.ts",
+        "src/services/reaction-service.ts",
+        "src/repositories/postgres/worker-cursors-repository.ts",
+        "test/integration/services/reaction-history-gap.test.ts",
+        "test/integration/services/transactional-reactions.test.ts",
+        "test/unit/services/sequencer-service.test.ts",
+        "test/unit/repositories/postgres/worker-cursors-repository.test.ts",
+        "test/unit/postgres/leader-lock.test.ts"
+      ],
+      "operational_blockers": [
+        "needs live RPC or forked-chain validation",
+        "restart and storage-stress behavior still needs operational proof"
+      ],
+      "first_seen": "2026-10-19",
+      "last_reviewed": "2026-10-19",
+      "commit_reviewed": "9cd57337332258c4019b4e7bfecfe21301b41450",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "blockchain indexing",
+        "reorg recovery",
+        "durable workflows"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "strict ordered chain commit",
+        "worker-cursor reorg rewind",
+        "singleton leader lock"
+      ],
+      "decision": "track",
+      "decision_reason": "The source and tests show a reusable ordered commit pipeline with reorg-version gating and cursor rewind. It is a strong mechanism for incremental indexing, but the live RPC and restart envelope still needs operational proof.",
+      "revisit_reason": "Revisit after live chain or forked-chain validation, or if the cursor/version model changes materially.",
+      "next_revisit_condition": "Revisit when the pipeline has been exercised against real RPC churn, storage pressure, or a material commit/reorg model change."
+    },
+    {
+      "repository": "JosefHobler/stm32-ccsds-node",
+      "URL": "https://github.com/JosefHobler/stm32-ccsds-node",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "Core/Src/app.c",
+        "Core/Src/telecommand_task.c",
+        "Core/Src/telemetry_task.c",
+        "Core/Src/ccsds.c",
+        "ground/gs.py",
+        "ground/ccsds_codec.py",
+        "cpp/tests/conformance_test.cpp",
+        "cpp/tests/framer_test.cpp",
+        "cpp/tests/differential_test.cpp",
+        "cpp/tests/codec_test.cpp"
+      ],
+      "operational_blockers": [
+        "needs flashed-board validation",
+        "UART noise and watchdog recovery still need hardware proof"
+      ],
+      "first_seen": "2026-10-19",
+      "last_reviewed": "2026-10-19",
+      "commit_reviewed": "838f4d5b5a800489ccf33b0e7b00c7124652e680",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "telemetry",
+        "command/telemetry loop",
+        "fault recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "watchdog-gated TM/TC loop",
+        "byte-slip frame resynchronization",
+        "cross-implementation packet conformance"
+      ],
+      "decision": "track",
+      "decision_reason": "The source and tests show a reusable watchdog-gated TM/TC loop with byte-slip recovery and cross-implementation packet conformance. The design is strong, but the hardware runtime path still needs validation before adoption.",
+      "revisit_reason": "Revisit after flashed-board runtime validation or if the CCSDS task/watchdog model changes materially.",
+      "next_revisit_condition": "Revisit when hardware noise/reboot recovery has been exercised on target or the framing/watchdog model changes materially."
     }
   ]
 }

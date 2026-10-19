@@ -35,6 +35,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
 - ExEx batcher: Shadow-index consumes reth `ChainCommitted`, `ChainReverted`, and `ChainReorged` notifications, transforms reverted and committed ranges with signed rows, and advances the cursor only after a successful ClickHouse flush.
 - Rollback-aware EVM poller: Chain-indexer keeps the live tip and derived block records separate, validates parent hashes while advancing, deletes orphaned blocks on reorg, and fans out log decoding through a concurrent batch fetch path.
+- Ordered commit worker pipeline: Voryn keeps head polling, fetch, sequencer, and reaction stages separate; version-gated worker cursors stop stale batches from advancing after a reorg.
 
 - HyperSync / ClickHouse backfill indexer: `eabz/evm-indexer` scans stored logs, compares decoded module rows, purges only the changed module range with a new epoch, and reinserts the repaired rows without re-syncing the chain.
 
@@ -50,6 +51,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `Layr-Labs/chain-indexer` reviewed at `7d774750b49b0d8b527edc2124bb6f248f56d006`.
 
 - `eabz/evm-indexer` reviewed at `e4ca46486837b85aadccd009ca742f1799801a67`.
+- `drillcoder/voryn` reviewed at `9cd57337332258c4019b4e7bfecfe21301b41450`.
 
 ## Comparison Of Implementations
 
@@ -70,6 +72,8 @@ Shadow-index shows the same boundary in an ExEx and ClickHouse sink. It replays 
 Chain-indexer applies the same rule to an EVM poller and in-memory persistence layer. It compares parent hashes before committing a block, walks back orphaned records when a reorg appears, and keeps contract-discovery fanout separate from the tip cursor. The main gap is that the reviewed store is still in-memory, so the rollback window needs a durable backend before production adoption.
 
 `eabz/evm-indexer` shows the same boundary as a module-scoped backfill loop on top of HyperSync and ClickHouse. It keeps the coverage floor explicit, compares stored logs against decoded module rows before mutating anything, then purges and reinserts only the changed module range under a new epoch. The trade-off is a strong dependence on ClickHouse repair semantics and a live operational run that still needs to prove the repair path under real reorg churn.
+
+Voryn applies the same boundary inside a PostgreSQL worker pipeline. `HeadService` rebases the cursor when the safe floor moves, `SequencerService` verifies parent hashes before commit, and `ReactionService` only advances when the reorg version matches. The trade-off is operational complexity: the safety model is explicit, but it also depends on leader locks, cursor versioning, and transactional deletes staying coherent under restart.
 
 ## Failure Modes
 
@@ -138,3 +142,5 @@ Chain-indexer applies the same rule to an EVM poller and in-memory persistence l
 - E1 source verified: `eabz/evm-indexer/src/reorg/fork.rs:1-108,110-196` implements the bounded growing-window fork-point search.
 - E1 source verified: `eabz/evm-indexer/src/pipeline/backfill.rs:1-33,61-218` scans stored logs, compares decoded rows, purges only changed module rows, and reinserts the repaired rows.
 - E2 test verified: `eabz/evm-indexer/src/reorg/tests.rs:67-200` and `src/pipeline/sync_tests.rs:1-240` cover shallow/deep forks, holes, start-block floors, and restart / failure behavior.
+- E1 source verified: `drillcoder/voryn/src/services/head-service.ts`, `src/services/fetch-service.ts`, `src/services/sequencer-service.ts`, `src/services/reaction-service.ts`, and `src/repositories/postgres/worker-cursors-repository.ts` implement head rebasing, job claiming, ordered commit, reorg rewind, and version-gated cursor advancement.
+- E2 test verified: `drillcoder/voryn/test/integration/services/reaction-history-gap.test.ts`, `test/integration/services/transactional-reactions.test.ts`, `test/unit/services/sequencer-service.test.ts`, `test/unit/repositories/postgres/worker-cursors-repository.test.ts`, and `test/unit/postgres/leader-lock.test.ts` cover gap recovery, transactional progress, parent-hash rollback, cursor rewind, and leader-lock behavior.
