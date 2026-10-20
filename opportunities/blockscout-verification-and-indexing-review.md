@@ -240,6 +240,13 @@ Sell-before-build. The paid workflow is already visible, the buyer is reachable,
 - M4 workaround evidence: teams still have to combine docs, API keys, framework verification paths, and indexer settings by hand.
 - Decision: carried-forward sell-before-build; no new paid pilot, inbound buyer request, or procurement signal surfaced on 2026-10-13.
 
+## 2026-10-20 Signal Check
+- M1 paid demand: the current `Going PRO`, `News: API Discovery`, and `Switch to the Blockscout Pro API` pages still expose a paid multichain explorer/API workflow with explicit pricing and migration guidance.
+- M2 repeated pain: the live issue feed still shows indexing gaps, websocket drops, and new rollout failures such as missing blocks while indexing-status reports 100%.
+- M3 competitor proof: Blockscout continues to market hosted explorer deployment, multichain APIs, and managed hosting as the default path rather than one-off internal wiring.
+- M4 workaround evidence: teams still combine docs, API keys, framework verification paths, and indexer settings by hand.
+- Decision: carried-forward sell-before-build; no new paid pilot, inbound buyer request, or procurement signal surfaced on 2026-10-20.
+
 ## 2026-09-29 Signal Check
 - M1 paid demand: the current DevPortal, PRO API blog, and `switch-to-the-blockscout-pro-api` post still expose explicit paid explorer and multichain API spend.
 - M2 repeated pain: the frontend migration issue and docs continue to show verification and boundary-work that teams wire by hand.
