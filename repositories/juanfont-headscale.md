@@ -1,59 +1,65 @@
 # juanfont/headscale
 
 - Repository: https://github.com/juanfont/headscale
-- Review date: 2026-10-13
-- Current commit reviewed: `cee9066e91156d51e47fad3ca6c6bbda743750f0`
-- Commit date: 2026-10-13T05:01:46Z
+- Review date: 2026-10-22
+- Current commit reviewed: `cc66979b16cfbdc76b1d582b028108bb8b823354`
+- Commit date: 2026-10-20T11:55:11+02:00
 - Branch: `main`
-- Previous commit reviewed: `c90ba0f0d6f82fe79fc2da82d95561f0e2780628`
-- Material changes since previous review: adds tagged-node reauth expiry guards, reused-user-preauth-key recovery, API-key prefix/expiry/user-assignment handling, and refreshed reconnect/health tests while keeping the bounded peer-recompute gate intact.
+- Previous commit reviewed: `cee9066e91156d51e47fad3ca6c6bbda743750f0`
+- Material changes since previous review: adds authoritative ACME DNS challenge publication and propagation waits, expands the peer-map index benchmark surface, and refreshes TLS/DNS/policy tests while keeping the reconnect and peer-recompute gates intact.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `privacy-networking-vpn`, especially reconnect recovery, route approval, tagged-node reauthentication, and control-plane behavior when policy or node health changes. The reusable mechanism is the combination of policy compilation, node-store snapshots, auth-path ownership handling, and session-aware connect/disconnect logic that keeps peer recomputation bounded.
+This repository informs `privacy-networking-vpn`, especially reconnect recovery, route approval, tagged-node reauthentication, and DNS-certificate issuance under churn. The reusable mechanism is the combination of policy compilation, authoritative challenge propagation, node-store snapshots, auth-path ownership handling, and session-aware connect/disconnect logic that keeps peer recomputation bounded.
 
 ## Verified Flow
 
-`PolicyManager::NewPolicyManager` parses and validates policy, resolves user references, compiles filter and grant structures, and caches the derived peer/filter artifacts -> `HandleNodeFromAuthPath` loads the cached registration, resolves the user, serializes by machine key, and either updates the existing node or creates a new one while preserving tag ownership and policy refresh ordering -> `HandleNodeFromPreAuthKey` reuses tagged nodes on legitimate restart, rejects ambiguous machine-key ownership, and only re-validates spent keys when the reauth path actually changes ownership or key state -> `db.ValidateAPIKey` / `AuthenticateAPIKey` parse prefixed or legacy API keys and enforce expiry/user ownership -> `State.Connect` increments the node session epoch, marks the node online, clears unhealthy state, emits a lightweight online change, and only emits a policy recompute when the node role requires it -> `State.Disconnect` decrements active sessions, only marks offline when the last live session ends, persists last-seen data, and emits the minimal offline change plus policy recompute when needed -> `State.BatchSetNodeHealth` applies health flips atomically and runs primary-route election once after the batch -> `auth_tagged_expiry_test.go`, `connect_test.go`, `node_recompute_test.go`, and `node_health_test.go` exercise tagged reauth expiry, reused-user PAK restart behavior, ordinary reconnects, relay/subnet-router recompute gates, and batched health invariants.
+`dns.NewChallenges` wires DNS certificate issuance into server startup -> `Challenges.Present` publishes TXT records, enforces per-node limits, extends challenge lifetime on successful propagation, and keeps ownership stable across renames -> `dns.AwaitTXT` / `txtChecker.wait` follow CNAMEs, resolve authoritative nameservers, and wait for all of them to serve the TXT value before returning -> `PolicyManager::NewPolicyManager` parses and validates policy, resolves user references, compiles filter and grant structures, and caches the derived peer/filter artifacts -> `buildPeerMapPairScan` keeps the old pair-scan peer-map behavior as a reference for the indexed builder -> `TestReloadPolicyRebuildsPeerMapOnChangeOnly` proves a policy write rebuilds once on change and not on idempotent reload -> `TestSetDNS` drives the Noise-authenticated SetDNS path and confirms rename-following certificate domains -> `TestACMETLSSettings` spins up Pebble plus authoritative DNS to validate TLS settings for each challenge type.
 
-- E1 source verified: `hscontrol/policy/v2/policy.go:32-103,198-240` implements policy validation, cache invalidation, auto-approver resolution, and the peer-recompute classification gate.
-- E1 source verified: `hscontrol/state/state.go:2379-2540,2574-2725` implements auth-path node updates, tagged-node recovery, preauth-key restart behavior, and policy refresh ordering.
-- E1 source verified: `hscontrol/db/api_key.go:28-220` implements API-key creation, expiry, authentication, prefix parsing, and owner assignment.
-- E1 source verified: `hscontrol/types/api_key.go:13-63` implements masked logging for API-key identity and expiration metadata.
-- E1 source verified: `hscontrol/state/state.go:651-760,1470-1581` implements connect/disconnect session handling, approved-route persistence, batched node-health updates, and API-key passthrough helpers.
-- E2 test verified: `hscontrol/state/connect_test.go:56-209,238-275` covers ordinary reconnects, relay-target recompute, subnet-router recompute, and out-of-order disconnect safety.
-- E2 test verified: `hscontrol/policy/v2/node_recompute_test.go:12-132` pins which node roles force peer recomputation.
-- E2 test verified: `hscontrol/state/node_health_test.go:69-85` confirms unchanged health writes skip publication.
-- E2 test verified: `hscontrol/state/auth_tagged_expiry_test.go:20-239` covers tagged reauth expiry retention, reused-user one-shot-key restart behavior, and expired-node key reuse guards.
+- E1 source verified: `hscontrol/app.go:144-150,170-193` wires challenge handling into startup and keeps the ephemeral garbage collector session-aware.
+- E1 source verified: `hscontrol/dns/challenge.go:23-207` implements challenge TTL, lifetime extension, per-node limits, ownership transfer, propagation waits, and provider append/delete semantics.
+- E1 source verified: `hscontrol/dns/propagation.go:28-237` implements authoritative TXT propagation waits, CNAME chain following, nameserver lookup, and not-propagated errors.
+- E1 source verified: `hscontrol/policy/v2/policy.go:32-103,198-220` implements policy validation, cache invalidation, auto-approver resolution, and the peer-recompute metadata gate.
+- E2 test verified: `hscontrol/policy/v2/peermap_scan_test.go:17-80` defines the reference pair-scan peer-map builder that the indexed implementation must match.
+- E2 test verified: `hscontrol/state/reload_policy_test.go:12-88` proves changed policies rebuild the peer map once and idempotent reloads do not.
+- E2 test verified: `hscontrol/servertest/setdns_test.go:19-88` exercises authenticated SetDNS ownership checks and rename-following certificate domains.
+- E2 test verified: `hscontrol/app_tls_test.go:34-240` drives Pebble plus authoritative DNS to validate ACME/TLS settings end to end.
+- E2 test verified: `hscontrol/policy/v2/peermap_scan_test.go:295-833` validates the indexed peer-map builder against the reference pair-scan behavior across randomized policy and node sets.
+- E2 test verified: `hscontrol/state/reload_policy_test.go:17-88` confirms a policy write rebuilds once on change and not on repeated reload of the same state.
+- E2 test verified: `hscontrol/servertest/setdns_test.go:21-88` confirms unauthorized SetDNS attempts are rejected and certificate domains follow node renames.
+- E2 test verified: `hscontrol/app_tls_test.go:191-240` proves the ACME settings work with DNS-01, HTTP-01, and TLS-ALPN-01.
 
 ## Architecture
 
 Principal components:
 
+- DNS challenge manager with per-node ownership and propagation waits.
 - Policy manager that compiles ACLs, grants, auto-approvers, and SSH policy.
 - NodeStore copy-on-write snapshot with atomic batched writes and route-election state.
 - State layer that coordinates connect/disconnect, approved routes, auth-path reauth, and health updates.
-- API-key parsing and projection helpers that normalize expiry and owner identity.
-- Property and integration tests that pin reconnect, tagged reauth, and HA election behavior.
+- ACME and DNS integration tests that pin certificate issuance, propagation, and rename behavior.
 
-Most interesting mechanism: reconnect recovery is session-aware rather than epoch-only, and the auth path is ownership-aware rather than key-string-only. A node only goes offline when the last session is released, and tagged-node reauth, spent preauth keys, and API-key expiry rules all preserve the distinction between ordinary reconnects and ownership-changing transitions.
+Most interesting mechanism: Headscale now separates three expensive transitions that are easy to confuse in a control plane. Reconnect recovery is session-aware rather than epoch-only, DNS issuance waits for authoritative propagation rather than the first resolver response, and peer-map rebuilds are change-detected rather than recomputed on every reload. That keeps ordinary reconnects and reloads cheap while making the risky paths explicit.
 
-Baseline comparison: a simpler control plane would treat every reconnect or auth callback as a fresh node lifecycle event. Headscale narrows the fan-out, keeps ordinary reconnects lightweight, and preserves machine identity when the same node legitimately reauthenticates or retags.
+Baseline comparison: a simpler control plane would treat every reconnect, DNS challenge, or policy reload as a fresh lifecycle event. Headscale narrows the fan-out, keeps ordinary reconnects lightweight, and preserves machine identity and certificate issuance semantics when the same node legitimately reauthenticates or retags.
 
 ## Reuse Guidance
 
 Reusable:
 
 - Separate ordinary reconnects from topology-changing reconnects.
+- Wait for authoritative propagation, not just a first resolver response, before treating a DNS challenge as ready.
 - Use a session count, not only a last-epoch check, to avoid stranding a node online after out-of-order disconnects.
 - Preserve tagged-node ownership and key-expiry semantics across restart and reauth paths.
 - Batch HA health flips so primary election sees the post-batch state only.
 - Keep policy compilation caches explicit and invalidate them only when the derived artifacts actually change.
+- Use a reference pair-scan test when introducing a faster peer-map builder.
 
 Do not copy:
 
 - Do not copy the NodeStore snapshot layout without understanding the surrounding policy and DB contracts.
+- Do not copy the ACME propagation waits without the authoritative-DNS assumptions that make them meaningful.
 - Do not assume the recompute gates are sufficient without real reconnect churn and multi-node validation.
 - Do not treat the property tests as a substitute for live overlay recovery.
 
@@ -62,13 +68,14 @@ Do not copy:
 Production-quality signals:
 
 - The control plane distinguishes ordinary peer patches from expensive recompute paths.
-- Route approval, connect/disconnect, auth-path restart behavior, and HA health all have tests that codify the intended invariants.
+- Route approval, connect/disconnect, auth-path restart behavior, authoritative DNS propagation, and HA health all have tests that codify the intended invariants.
 - NodeStore write batching and snapshot replacement are explicit rather than accidental.
+- The new peer-map benchmark/test surface keeps the faster builder honest against the reference scan.
 
 Experimental or incomplete for our needs:
 
 - The source evidence is strong, but live reconnect storms, mixed-role HA recovery, and tagged-node restart churn still need runtime validation.
-- The current code assumes the policy and node-store layers remain coherent under concurrent churn; that is well motivated but still deserves fault-injection proof.
+- The current code assumes the DNS provider and authoritative servers remain coherent under concurrent churn; that is well motivated but still deserves operational proof.
 - The policy layer is broad and can become coupling-heavy if reused without the rest of the state machine.
 
 Hidden costs and failure modes:
@@ -76,13 +83,15 @@ Hidden costs and failure modes:
 - A stale unhealthy bit or stale primary assignment can mislead peer routing if health and disconnect paths diverge.
 - Too many recompute triggers would reintroduce CPU-heavy fan-out on reconnect storms.
 - Tagged-node reauth and spent-key restart paths are security-sensitive: a bad ownership decision can either strand a valid node or silently authorize the wrong one.
+- DNS propagation waits can stall certificate issuance if authoritative servers or resolvers are slow or inconsistent.
 
 Adoption experiment:
 
-Run a small tailnet with one ordinary node and one subnet-router or relay target, inject reconnect storms plus overlapping disconnects, and then re-authenticate a tagged node with a reused preauth key to confirm ordinary reconnects stay lightweight while topology-changing nodes still trigger exactly one recompute and tagged reauth stays keyed to the same machine identity.
+Run a small tailnet with one ordinary node and one subnet-router or relay target, inject reconnect storms plus overlapping disconnects, and then re-authenticate a tagged node with a reused preauth key while also issuing a certificate challenge to confirm ordinary reconnects stay lightweight, topology-changing nodes still trigger exactly one recompute, and DNS issuance waits for authoritative propagation rather than a first-resolver guess.
 
 ## Candidate Patterns
 
+- `authoritative ACME challenge propagation gate`
 - `reconnect-safe route approval propagation`
 - `session-epoch gated reconnect recovery`
 - `atomic HA primary-election batch`
