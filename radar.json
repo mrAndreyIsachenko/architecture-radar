@@ -1730,30 +1730,31 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "hscontrol/poll.go",
+        "hscontrol/app.go",
+        "hscontrol/dns/challenge.go",
+        "hscontrol/dns/propagation.go",
         "hscontrol/policy/v2/policy.go",
+        "hscontrol/policy/v2/peermap_scan_test.go",
+        "hscontrol/state/reload_policy_test.go",
+        "hscontrol/servertest/setdns_test.go",
+        "hscontrol/app_tls_test.go",
         "hscontrol/state/state.go",
-        "hscontrol/state/node_store.go",
-        "hscontrol/state/connect_test.go",
-        "hscontrol/state/auth_tagged_expiry_test.go",
-        "hscontrol/policy/v2/node_recompute_test.go",
-        "hscontrol/state/node_health_test.go",
-        "hscontrol/db/api_key.go",
-        "hscontrol/types/api_key.go"
+        "hscontrol/state/node_store.go"
       ],
       "operational_blockers": [
         "needs live reconnect-storm validation",
-        "needs multi-node HA churn validation",
-        "tagged-node restart and reauth churn still need operational proof"
+        "needs authoritative DNS propagation validation under real latency",
+        "needs multi-node HA churn validation"
       ],
       "first_seen": "2026-09-13",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
-      "previous_commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
+      "last_reviewed": "2026-10-22",
+      "commit_reviewed": "cc66979b16cfbdc76b1d582b028108bb8b823354",
+      "previous_commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
       "categories": [
         "privacy networking",
         "policy control",
         "route reconciliation",
+        "ACME DNS propagation",
         "reconnect recovery"
       ],
       "maturity": "track",
@@ -1764,6 +1765,7 @@
         "Policy-Guarded Route Reconciliation Loop"
       ],
       "candidate_patterns": [
+        "authoritative ACME challenge propagation gate",
         "reconnect-safe route approval propagation",
         "session-epoch gated reconnect recovery",
         "atomic HA primary-election batch",
@@ -1772,9 +1774,9 @@
         "API-key ownership projection"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
-      "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
-      "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
+      "decision_reason": "Source and tests now show authoritative ACME DNS challenge propagation, peer-map rebuild indexing, policy compilation, session-aware connect/disconnect, and tagged-node ownership handling. The reusable control-plane mechanism remains strong, but it still needs live reconnect and authoritative-DNS validation before adoption.",
+      "revisit_reason": "Review after reconnect-storm, authoritative DNS propagation, or route-election behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to reconnect handling, DNS propagation, primary-route election, or policy recomputation."
     },
     {
       "repository": "gnuradio/gnuradio",
@@ -2493,6 +2495,87 @@
       "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
       "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
       "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
+    },
+    {
+      "repository": "RightNow-AI/AutoMegaKernel",
+      "URL": "https://github.com/RightNow-AI/AutoMegaKernel",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "harness.py",
+        "schedule/search.py",
+        "schedule/graph.py",
+        "eval/bench.py",
+        "tests/test_harness.py",
+        "tests/test_autoresearch.py"
+      ],
+      "operational_blockers": [
+        "needs live GPU runtime validation",
+        "needs measured-vs-predicted honesty proof on a CUDA host"
+      ],
+      "first_seen": "2026-10-22",
+      "last_reviewed": "2026-10-22",
+      "commit_reviewed": "884534c4d2dbed4381576f81a79ae97feca53c34",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "agent runtime",
+        "kernel autotuning",
+        "correctness-gated benchmarking"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "correctness-gated search loop",
+        "truthful latency reporting",
+        "flywheel-backed trial ledger"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show a validated schedule-search loop, a correctness gate in front of every latency number, and resumable trial logging. The mechanism is reusable, but it still needs a real CUDA run before the measured path is operationally proven.",
+      "revisit_reason": "Review after a real GPU runtime validation or a material change to the search / benchmark contract.",
+      "next_revisit_condition": "Revisit after live CUDA validation or after the correctness gate / search loop changes materially."
+    },
+    {
+      "repository": "ArduPilot/ardupilot",
+      "URL": "https://github.com/ArduPilot/ardupilot",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "ArduCopter/failsafe.cpp",
+        "ArduCopter/mode_rtl.cpp",
+        "Tools/autotest/rover.py",
+        "Tools/autotest/vehicle_test_suite.py"
+      ],
+      "operational_blockers": [
+        "needs live SITL validation for rover circle-direction behavior",
+        "needs repeated failsafe/recovery validation in simulator"
+      ],
+      "first_seen": "2026-10-22",
+      "last_reviewed": "2026-10-22",
+      "commit_reviewed": "3d24375e579203b8af27605df841dc1022f0e9e1",
+      "previous_commit_reviewed": "acef45eb0f0145943a9c2ba341d3825b8af34472",
+      "categories": [
+        "mission failsafes",
+        "SITL autotest",
+        "rover autonomy"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "circle-direction SITL assertion harness",
+        "AMSL position-target projection"
+      ],
+      "decision": "track",
+      "decision_reason": "Source and tests show the copter failsafe ladder, staged RTL recovery, and rover circle-direction / AMSL assertions in the autotest harness. The mechanism is reusable, but it still needs a live SITL run before the simulator-only evidence can be treated as operational proof.",
+      "revisit_reason": "Review after SITL validation or a material change to the failsafe or rover mission harness.",
+      "next_revisit_condition": "Revisit after live SITL validation or after the failsafe / rover autotest path changes materially."
     }
   ]
 }

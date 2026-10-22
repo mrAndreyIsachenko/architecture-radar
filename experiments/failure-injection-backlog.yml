@@ -235,6 +235,34 @@ items:
     created: 2026-10-10
     last_updated: 2026-10-10
 
+  - id: 2026-10-22-automegakernel-runtime
+    family: ai-llm-systems
+    source_report: reports/2026-10-22.md
+    source_repository: RightNow-AI/AutoMegaKernel
+    mechanism: correctness-gated megakernel search loop
+    evidence_gap: Source and tests show validate-before-measure semantics, flywheel logging, and checkpointed autoresearch, but the reviewed evidence does not validate a real GPU run of the search loop with measured latencies on this host.
+    validation_type: runtime
+    proposed_validation: Run autoresearch on a real CUDA-capable host, confirm that incorrect configs never emit measured latency, and compare the kept schedule and results.tsv rows against the reference-VM verdicts across several search iterations.
+    success_condition: Measured GPU latency is only reported after correctness PASS, rejected configs remain rejected, and the search can complete with a stable best schedule and persisted results.
+    priority: high
+    status: open
+    created: 2026-10-22
+    last_updated: 2026-10-22
+
+  - id: 2026-10-22-ardupilot-rover-sitl-circle-altframe
+    family: drones-robotics-autonomy
+    source_report: reports/2026-10-22.md
+    source_repository: ArduPilot/ardupilot
+    mechanism: rover circle-direction and AMSL position-target validation
+    evidence_gap: Source and autotests show LOITER_TURNS circle entry, circle-direction helpers, and AMSL altitude projection, but the reviewed evidence does not validate the same rover path in a live SITL mission with alternating circle directions and GCS failsafe churn.
+    validation_type: sitl
+    proposed_validation: Run Rover SITL with MAV_CMD_NAV_LOITER_TURNS in both clockwise and counter-clockwise configurations, verify POSITION_TARGET_GLOBAL_INT.alt stays in AMSL, and pair the mission with GCS-failsafe loss/recovery cycles.
+    success_condition: The vehicle enters the expected circle submode, circle-direction assertions pass, the altitude projection remains AMSL-correct, and telemetry-loss recovery does not corrupt the mission state.
+    priority: medium
+    status: open
+    created: 2026-10-22
+    last_updated: 2026-10-22
+
   - id: 2026-10-07-openocr-runtime
     family: document-ai-ocr
     source_report: reports/2026-10-07.md
