@@ -135,7 +135,7 @@ items:
     priority: high
     status: open
     created: 2026-10-13
-    last_updated: 2026-10-13
+    last_updated: 2026-10-25
 
   - id: 2026-09-19-fprime-operational-routing
     family: satellites-space-systems
@@ -220,6 +220,20 @@ items:
     status: open
     created: 2026-10-10
     last_updated: 2026-10-10
+
+  - id: 2026-10-25-paddleocr-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-10-25.md
+    source_repository: PaddlePaddle/PaddleOCR
+    mechanism: poll-backed document parsing client with page-level provenance
+    evidence_gap: Source and tests validate the typed client, parser shape, and structure pipeline, but not live runtime execution on a representative PDF/image batch against the actual backend path.
+    validation_type: runtime
+    proposed_validation: Run `parse_document()` on a mixed PDF/image batch with representative page counts and backend latency, then verify that the returned pages preserve markdown, images, exports, raw payloads, and stable page counts without timeout or parse failure.
+    success_condition: The live backend returns the expected page count and provenance fields, and the job finishes without timeout, parser failure, or missing exported artifacts.
+    priority: medium
+    status: open
+    created: 2026-10-25
+    last_updated: 2026-10-25
 
   - id: 2026-10-10-cfs-cfdp-operational
     family: satellites-space-systems

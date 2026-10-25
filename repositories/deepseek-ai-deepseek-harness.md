@@ -1,12 +1,12 @@
 # deepseek-ai/deepseek-harness
 
 - Repository: https://github.com/deepseek-ai/deepseek-harness
-- Review date: 2026-10-13
-- Current commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Commit date: 2026-10-09T17:31:32+08:00
+- Review date: 2026-10-25
+- Current commit reviewed: `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`
+- Commit date: 2026-10-23T19:48:59+08:00
 - Branch: `master`
 - Previous commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Material changes since previous review: no upstream commit change since 2026-10-10. This additional source review examines checkpoint-before-dispatch and sandbox-mode replay at the same pinned commit; the earlier review examined the synchronous SDK and bundled-runtime lifecycle.
+- Material changes since previous review: the new head is merge pull request #7075 (`worktree-chatgap`), which expands `.agents/notes` architecture documentation and related scaffolding. The core runtime contract reviewed previously remains the same, so this revisit updates the pinned head without changing the decision.
 - Decision: track
 
 ## Problem Fit
@@ -86,4 +86,4 @@ Kill the runtime after a request prefix or top-level tool call has been flushed,
 
 ## Previous Reviews
 
-The [2026-10-10 report](../reports/2026-10-10.md) examined SDK transport, notification routing, and bundled-runtime cleanup at the same commit. The [2026-10-04 report](../reports/2026-10-04.md) examined CLI/plugin approvals and JSONL replay at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. The [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/d1fe321f3a0a08355405865a6407c86a683ed560/repositories/deepseek-ai-deepseek-harness.md) preserves those source references. Their open runtime and restart experiments remain in the backlog; this review does not mark them completed.
+The [2026-10-13 report](../reports/2026-10-13.md) examined checkpoint-before-dispatch and sandbox-mode replay at `d743267388641bc76f17c45ce8b4c231aed1d32c`. The [2026-10-10 report](../reports/2026-10-10.md) examined SDK transport, notification routing, and bundled-runtime cleanup. The [2026-10-04 report](../reports/2026-10-04.md) examined CLI/plugin approvals and JSONL replay at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. Their open runtime and restart experiments remain in the backlog; this review does not mark them completed.
