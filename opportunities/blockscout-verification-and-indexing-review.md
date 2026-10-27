@@ -245,3 +245,10 @@ Sell-before-build. The paid workflow is already visible, the buyer is reachable,
 - M2 repeated pain: the frontend migration issue and docs continue to show verification and boundary-work that teams wire by hand.
 - M3 competitor proof: the public API migration, deployment pages, and customer-facing docs confirm that the workflow remains actively sold in 2026.
 - No new paid pilot or inbound buyer request surfaced this week, so the opportunity remains sell-before-build rather than promoting to build.
+
+## 2026-10-27 Signal Check
+- M1 paid demand: the Autoscout wizard and PRO API pricing pages still show explicit paid workflow spend for explorer deployment and multichain data access.
+- M2 repeated pain: the live issue feed still shows missing blocks, websocket drops, contract-smart-contract timeouts, and tx-interpretation migration work that need manual boundary checks.
+- M3 competitor proof: the `Going PRO` and `Supporting Developer Access` posts still frame Blockscout as a paid replacement for tightening upstream API limits.
+- M4 workaround evidence: users still stitch together docs, verification frameworks, and rollout settings to make explorer launches work.
+- Decision: carried-forward sell-before-build; the current evidence refreshes the same manual review wedge but does not add a paid pilot or inbound buyer request.
