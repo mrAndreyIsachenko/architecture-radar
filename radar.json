@@ -198,18 +198,21 @@
       "runtime_paths": [
         "src/modules/commander/Commander.cpp",
         "src/modules/commander/Commander.hpp",
+        "src/modules/commander/failsafe/failsafe_test.cpp",
+        "src/modules/commander/HealthAndArmingChecks/escChecksTest.cpp",
         "test/test_mavlink_param_validation.py",
-        "test/mavsdk_tests/test_multicopter_failsafe.cpp",
-        "test/mavsdk_tests/autopilot_tester.cpp"
+        "test/mavsdk_tests/test_multicopter_failsafe.py",
+        "test/mavsdk_tests/autopilot_tester.py",
+        "src/modules/ekf2/test/test_EKF_gen_nav.cpp"
       ],
       "operational_blockers": [
         "needs live SITL validation",
         "command/mode semantics still depend on simulator fidelity"
       ],
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
-      "previous_commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
+      "last_reviewed": "2026-10-28",
+      "commit_reviewed": "87c833ddd1046bece995628d8304ca7887e673b3",
+      "previous_commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -226,9 +229,9 @@
         "parameter-slot mission validation gate"
       ],
       "decision": "track",
-      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The refreshed head remains highly reusable, but adoption still depends on live SITL validation.",
-      "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
-      "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
+      "decision_reason": "Commander ACK handling and the health/failsafe gates still define the reusable autonomy contract, while the current head expands the validation surface with additional Gen Nav and mission-failure tests. The mechanism remains highly reusable, but adoption still depends on live SITL proof.",
+      "revisit_reason": "Revisit if command ACK semantics, mission checks, EKF validation, or sensor-loss recovery paths materially change.",
+      "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, EKF flight-condition tests, or MAVSDK recovery tests."
     },
     {
       "repository": "mavlink/qgroundcontrol",
@@ -2187,7 +2190,7 @@
       ],
       "candidate_patterns": [
         "internal observation session envelope",
-        "session-to-SDR ownership façade"
+        "session-to-SDR ownership fa\u00e7ade"
       ],
       "decision": "track",
       "decision_reason": "The session service and tracker make internal observations first-class runtime objects with explicit SDR ownership and cleanup. That is a useful ground-station mechanism, but it still needs live hardware validation to prove reconnect and cleanup behavior under field conditions.",
@@ -2200,6 +2203,10 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
+        "apps/cli/src/profile-boot.ts",
+        "apps/cli/src/plugin.ts",
+        "apps/cli/tests/profiles/headless/tests/semantic-checkpoint.expected.e2e.ts",
+        "apps/cli/tests/profiles/sdk/checkpoints.expected.e2e.ts",
         "packages/session/session-persistence/src/index.ts",
         "packages/session/session-persistence-jsonl/src/index.ts",
         "packages/session/session-checkpoint-policy/src/index.ts",
@@ -2207,17 +2214,17 @@
         "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
         "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
         "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
-        "packages/sandbox/sandbox-policy/src/index.ts"
+        "packages/sandbox/sandbox-policy/src/index.ts",
+        "packages/sandbox/sandbox-policy/src/session-mode.ts"
       ],
       "operational_blockers": [
-        "needs live process-kill and restart validation",
-        "flush-before-dispatch and lease semantics still need contention proof",
-        "needs a real packaged session against the bundled runtime",
-        "needs live process-kill and restart validation on the same semantic checkpoint path"
+        "needs live packaged-session validation against the bundled runtime",
+        "needs live process-kill and restart validation on the same semantic checkpoint path",
+        "flush-before-dispatch and lease semantics still need contention proof"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "last_reviewed": "2026-10-28",
+      "commit_reviewed": "f3803c96974ad4a94195fb97e5c637e9c2a3afe3",
       "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
       "categories": [
         "agent runtime",
@@ -2233,21 +2240,17 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
+        "profile-layered boot composition",
+        "exact-version plugin approval gate",
+        "headless semantic-checkpoint recovery",
         "semantic checkpoint barrier before dispatch",
         "durable sandbox-mode replay",
-        "single-owner session write lease",
-        "session-normalized synchronous harness",
-        "bundled runtime resolution guardrail",
-        "notification-tree subscription",
-        "bounded subprocess shutdown",
-        "replay-safe session harness",
-        "exact-version plugin approval",
-        "single-writer JSONL session store"
+        "single-owner session write lease"
       ],
       "decision": "track",
-      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
-      "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
-      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
+      "decision_reason": "The harness still treats flush-before-dispatch as the safety boundary, but the current release head refreshes profile boot composition, exact-version plugin approvals, and headless semantic-checkpoint fixtures around that same durable session ledger. The mechanism remains reusable, yet the live restart path still needs a process-kill proof on the same ledger.",
+      "revisit_reason": "Revisit after a material change to checkpoint policy, session boot composition, sandbox replay semantics, or restart-recovery behavior.",
+      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, profile boot composition, JSONL storage, or restart-recovery behavior."
     },
     {
       "repository": "TencentCloud/TencentDB-Agent-Memory",
@@ -2259,22 +2262,28 @@
         "MemoryProxy/src/server.ts",
         "MemoryProxy/src/injection/pipeline.ts",
         "MemoryProxy/src/pipeline/stages/session-init-orchestrate.ts",
+        "MemoryProxy/src/pipeline/stages/team-memory-switch.ts",
+        "MemoryProxy/src/session/user-default.ts",
+        "MemoryProxy/src/skill/selection/service.ts",
+        "MemoryProxy/src/session-trace/assemble.ts",
         "MemoryProxy/src/pipeline/stages/mem-command.ts",
         "MemoryProxy/src/storage/sqlite-storage.ts",
         "MemoryProxy/src/storage/fs-storage.ts"
       ],
       "operational_blockers": [
         "needs live proxy validation against a real upstream and persistent backend",
-        "needs live proxy restart validation of hydrated initialized sessions"
+        "needs live proxy restart validation of hydrated initialized sessions",
+        "needs live team-memory and skill-selection traffic against real backend state"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-10",
-      "commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
-      "previous_commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
+      "last_reviewed": "2026-10-28",
+      "commit_reviewed": "42c6711c218b40d38d1d6b0ed4767bcc6069cbfd",
+      "previous_commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
       "categories": [
         "context engineering",
         "proxy orchestration",
-        "memory injection"
+        "memory injection",
+        "session orchestration"
       ],
       "maturity": "track",
       "novelty_score": 4,
@@ -2289,11 +2298,15 @@
         "atomic prefix-backed proxy KV",
         "layered session recovery chain",
         "durable session promotion after rebuild",
-        "content-only memory clear"
+        "content-only memory clear",
+        "team-memory master switch",
+        "lazy validated user-session default",
+        "candidate-gated skill loading",
+        "streamed session-trace assembly"
       ],
       "decision": "track",
-      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
-      "revisit_reason": "Revisit after a live backend run or a material pipeline/storage refactor.",
+      "decision_reason": "The proxy still keeps marker-gated rewriting and degraded-storage visibility, but the current head adds a staged session-init path that combines team-memory gating, validated user defaults, and adaptive skill loading. The mechanism is reusable, yet it still needs operational proof against a live upstream and persistent backend.",
+      "revisit_reason": "Revisit after a live backend run or a material pipeline, selection, or storage refactor.",
       "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the pipeline/storage contract changes materially."
     },
     {
