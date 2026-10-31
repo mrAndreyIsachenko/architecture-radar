@@ -196,20 +196,20 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "src/modules/commander/Commander.cpp",
-        "src/modules/commander/Commander.hpp",
-        "test/test_mavlink_param_validation.py",
-        "test/mavsdk_tests/test_multicopter_failsafe.cpp",
-        "test/mavsdk_tests/autopilot_tester.cpp"
+        "src/modules/mavlink/mavlink_parameters.cpp",
+        "src/modules/mavlink/mavlink_mission.cpp",
+        "test/mavsdk_tests/test_param_ftp.py",
+        "test/mavsdk_tests/test_mavlink_param_validation.py",
+        "test/mavsdk_tests/test_multicopter_mission.py"
       ],
       "operational_blockers": [
         "needs live SITL validation",
-        "command/mode semantics still depend on simulator fidelity"
+        "mission replay and command recovery still depend on simulator fidelity"
       ],
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
-      "previous_commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
+      "last_reviewed": "2026-10-31",
+      "commit_reviewed": "789389fd46fcfb8473544d2fb3eeabd85893294c",
+      "previous_commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -223,12 +223,14 @@
       "candidate_patterns": [
         "failsafe command acknowledgment matrix",
         "mission sensor-loss recovery",
-        "parameter-slot mission validation gate"
+        "parameter-slot mission validation gate",
+        "parameter current-value acknowledgement",
+        "recoverable mission cursor"
       ],
       "decision": "track",
-      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The refreshed head remains highly reusable, but adoption still depends on live SITL validation.",
-      "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
-      "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
+      "decision_reason": "The current head adds recoverable parameter and mission transaction handling without changing the underlying autonomy safety model. The reusable mechanism is stronger, but adoption still depends on live SITL validation.",
+      "revisit_reason": "Review after SITL, command recovery, or mission transaction behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to parameter acknowledgement, mission replay recovery, or MAVSDK validation coverage."
     },
     {
       "repository": "mavlink/qgroundcontrol",
@@ -571,20 +573,24 @@
       "repository": "docling-project/docling",
       "URL": "https://github.com/docling-project/docling",
       "first_seen": "2026-08-08",
-      "last_reviewed": "2026-09-19",
-      "commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
-      "previous_commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
+      "last_reviewed": "2026-10-31",
+      "commit_reviewed": "764b5d4dc22b03ea87afd4c2207f510300b27a5b",
+      "previous_commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
         "docling/document_converter.py",
+        "docling/backend/msexcel_backend.py",
+        "docling/datamodel/backend_options.py",
         "docling/pipeline/standard_pdf_pipeline.py",
+        "tests/test_backend_msexcel.py",
         "tests/test_failed_pages.py",
         "tests/test_threaded_pipeline.py"
       ],
       "operational_blockers": [
         "broad surface",
-        "backend/model combinations still need local validation"
+        "backend/model combinations still need local validation",
+        "mixed workbook image-cell handling still needs runtime validation"
       ],
       "categories": [
         "document parsing",
@@ -596,17 +602,19 @@
       "relevance_score": 5,
       "evidence_quality": "high",
       "extracted_patterns": [
-        "Deferred Image Materialization"
+        "Deferred Image Materialization",
+        "spreadsheet rich-value image projection"
       ],
       "candidate_patterns": [
         "page-number-preserving partial-success pipeline",
         "timeout-bounded stage shutdown",
-        "confidence aggregation across page outputs"
+        "confidence aggregation across page outputs",
+        "table-provenance preserving image promotion"
       ],
       "decision": "track",
-      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The refreshed head keeps that reusable mechanism intact without changing the decision.",
-      "revisit_reason": "Revisit if the pipeline, backend adapters, or confidence aggregation semantics materially change.",
-      "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, or backend behavior."
+      "decision_reason": "The current head keeps the PDF pipeline intact and adds spreadsheet rich-value image handling with table provenance preservation. The repo remains highly reusable, but the XLSX path still needs runtime validation before adoption.",
+      "revisit_reason": "Revisit if the pipeline, spreadsheet backend, or provenance handling changes materially.",
+      "next_revisit_condition": "Revisit after a material change to page retention, XLSX image projection, confidence aggregation, or backend behavior."
     },
     {
       "repository": "datalab-to/marker",
@@ -1730,10 +1738,13 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
+        "hscontrol/app.go",
         "hscontrol/poll.go",
+        "hscontrol/db/node.go",
         "hscontrol/policy/v2/policy.go",
         "hscontrol/state/state.go",
         "hscontrol/state/node_store.go",
+        "hscontrol/poll_test.go",
         "hscontrol/state/connect_test.go",
         "hscontrol/state/auth_tagged_expiry_test.go",
         "hscontrol/policy/v2/node_recompute_test.go",
@@ -1744,12 +1755,13 @@
       "operational_blockers": [
         "needs live reconnect-storm validation",
         "needs multi-node HA churn validation",
-        "tagged-node restart and reauth churn still need operational proof"
+        "tagged-node restart and reauth churn still need operational proof",
+        "stale ephemeral timer suppression still needs live churn proof"
       ],
       "first_seen": "2026-09-13",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
-      "previous_commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
+      "last_reviewed": "2026-10-31",
+      "commit_reviewed": "7721d8c29978b65b68269bb58391fcd25a8c1085",
+      "previous_commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
       "categories": [
         "privacy networking",
         "policy control",
@@ -1769,12 +1781,13 @@
         "atomic HA primary-election batch",
         "policy-driven peer-recompute gate",
         "tagged-node reauthentication guard",
-        "API-key ownership projection"
+        "API-key ownership projection",
+        "generation-stamped cleanup timer"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
-      "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
-      "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
+      "decision_reason": "Source and tests now cover policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, batched primary-election updates, and stale ephemeral timer suppression. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
+      "revisit_reason": "Review after reconnect-storm, multi-node churn, stale-timer behavior, or route-election changes materially.",
+      "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, stale-timer suppression, or policy recomputation."
     },
     {
       "repository": "gnuradio/gnuradio",

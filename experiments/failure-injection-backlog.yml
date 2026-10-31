@@ -95,6 +95,20 @@ items:
     created: 2026-09-19
     last_updated: 2026-09-19
 
+  - id: 2026-10-31-docling-xlsx-image-cell-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-10-31.md
+    source_repository: docling-project/docling
+    mechanism: rich-value image-cell projection with table provenance
+    evidence_gap: Source and tests show that the XLSX backend can read Excel rich-value image cells, preserve table provenance, and promote singleton image sheets, but the reviewed evidence does not validate a mixed workbook batch with real image-in-cell data under runtime pressure.
+    validation_type: runtime
+    proposed_validation: Run the XLSX backend over a mixed workbook corpus that includes rich-value image cells, plain error cells, singleton image sheets, and section-label splits, then verify the promoted image items and table cells preserve their provenance and labels.
+    success_condition: Image cells become picture-backed RichTableCell or singleton PictureItem outputs as expected, ordinary error cells keep their fallback text, section labels remain attached, and the backend completes the batch without corrupting provenance.
+    priority: medium
+    status: open
+    created: 2026-10-31
+    last_updated: 2026-10-31
+
   - id: 2026-09-19-defguard-reconnect-recovery
     family: privacy-networking-vpn
     source_report: reports/2026-09-19.md

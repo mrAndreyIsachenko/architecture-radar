@@ -3,7 +3,7 @@
 - Canonical name: Policy-Guarded Route Reconciliation Loop
 - Aliases: route reconciliation loop, reconnect-safe route propagation, policy-synchronized tunnel update loop, access-controlled route refresh
 - Avoided duplicate names: VPN sync loop, route syncer, control-plane poller, reconnect handler
-- Last updated: 2026-10-07
+- Last updated: 2026-10-31
 
 ## Problem
 
@@ -33,13 +33,14 @@ The loop keeps raw node state, policy state, and derived reachability state dist
 ## Implementation Variants
 
 - Reconnect-first subnet-router reconciliation: Headscale updates node state from `MapRequest` before `Connect`, then re-approves routes and rebuilds peer maps on policy reload.
+- Generation-stamped cleanup-timer reconciliation: Headscale keeps ephemeral GC timers alive across failed reconnects, then suppresses stale deletions when the node has re-keyed or already has live sessions.
 - Policy-event tunnel reconciliation: Firezone routes portal authorization and relay updates through a gateway event loop that mutates route, DNS, and tunnel state.
 - Connectivity-status projection: NetBird normalizes peers, relays, DNS, SSH, and session expiry into one operator-facing snapshot so route health can be observed coherently.
 - Key-revocation tunnel reconciliation: `dyber-pqc/DyberVPN` normalizes peer keys, hot-reloads policy and CRL state, and scans revoked peers on a periodic timer so reconnects do not resurrect stale access.
 
 ## Known Repositories
 
-- `juanfont/headscale` reviewed at `4087d1fee9d34d042b279262ffbdaf1030ffd5e8`.
+- `juanfont/headscale` reviewed at `7721d8c29978b65b68269bb58391fcd25a8c1085`.
 - `firezone/firezone` reviewed at `ac4e69ea9d86f21b26d09106d9ac1a5afacb5b55`.
 - `netbirdio/netbird` reviewed at `791401060d2b95e5f51e3439c0649729132f571e`.
 - `dyber-pqc/DyberVPN` reviewed at `943cf5012dc370a5768550eab6a0b7a3c71711c7`.
@@ -87,9 +88,9 @@ The conventional baseline is a tunnel client that applies route and DNS changes 
 
 ## Evidence References
 
-- E1 source verified: Headscale `hscontrol/poll.go` updates node state from `MapRequest` before `Connect`.
+- E1 source verified: Headscale `hscontrol/poll.go` updates node state from `MapRequest` before `Connect`, and `hscontrol/app.go` / `hscontrol/db/node.go` suppress stale ephemeral GC timers after reconnect or re-key events.
 - E1 source verified: Headscale `hscontrol/state/state.go:ReloadPolicy`, `SetApprovedRoutes`, and `AutoApproveRoutes` re-run policy and route reconciliation.
-- E2 test verified: Headscale `hscontrol/servertest/routes_test.go`, `policy_test.go`, and `state/persist_test.go` verify route propagation, policy changes, and restart persistence.
+- E2 test verified: Headscale `hscontrol/poll_test.go`, `hscontrol/servertest/routes_test.go`, `policy_test.go`, and `state/persist_test.go` verify reconnect recovery, stale-timer suppression, route propagation, policy changes, and restart persistence.
 - E1 source verified: Firezone `rust/gateway/src/main.rs` and `rust/gateway/src/eventloop.rs` drive gateway state from portal authorization and relay updates.
 - E1 source verified: NetBird `client/status/status.go` converts protobuf status into a normalized connectivity snapshot.
 - E1 source verified: DyberVPN `crates/dybervpn-tunnel/src/policy.rs::normalize_peer_key`, `PolicyEngine::evaluate`, and `reload` enforce full-key matching and policy hot reload.
