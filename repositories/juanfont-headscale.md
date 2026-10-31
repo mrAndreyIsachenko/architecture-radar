@@ -1,85 +1,81 @@
 # juanfont/headscale
 
 - Repository: https://github.com/juanfont/headscale
-- Review date: 2026-10-13
-- Current commit reviewed: `cee9066e91156d51e47fad3ca6c6bbda743750f0`
-- Commit date: 2026-10-13T05:01:46Z
+- Review date: 2026-10-31
+- Current commit reviewed: `7721d8c29978b65b68269bb58391fcd25a8c1085`
+- Commit date: 2026-10-30T14:51:17+00:00
 - Branch: `main`
-- Previous commit reviewed: `c90ba0f0d6f82fe79fc2da82d95561f0e2780628`
-- Material changes since previous review: adds tagged-node reauth expiry guards, reused-user-preauth-key recovery, API-key prefix/expiry/user-assignment handling, and refreshed reconnect/health tests while keeping the bounded peer-recompute gate intact.
+- Previous commit reviewed: `cee9066e91156d51e47fad3ca6c6bbda743750f0`
+- Material changes since previous review: keeps the reconnect/policy model intact but closes a stale ephemeral-GC timer hole by deferring cancellation until after `Connect`, rejecting timers for nodes that are no longer ephemeral, and dropping queued deletions when the node has a live session.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `privacy-networking-vpn`, especially reconnect recovery, route approval, tagged-node reauthentication, and control-plane behavior when policy or node health changes. The reusable mechanism is the combination of policy compilation, node-store snapshots, auth-path ownership handling, and session-aware connect/disconnect logic that keeps peer recomputation bounded.
+This repository informs `privacy-networking-vpn`, especially reconnect recovery, route approval, and control-plane behavior when a node rekeys, reconnects, or loses session state. The reusable mechanism is now more specific than the general policy-guarded route loop: the control plane uses generation-stamped ephemeral deletion timers so a reconnect, re-key, or failed poll cannot accidentally delete a node that has become permanent or already has a live session.
 
 ## Verified Flow
 
-`PolicyManager::NewPolicyManager` parses and validates policy, resolves user references, compiles filter and grant structures, and caches the derived peer/filter artifacts -> `HandleNodeFromAuthPath` loads the cached registration, resolves the user, serializes by machine key, and either updates the existing node or creates a new one while preserving tag ownership and policy refresh ordering -> `HandleNodeFromPreAuthKey` reuses tagged nodes on legitimate restart, rejects ambiguous machine-key ownership, and only re-validates spent keys when the reauth path actually changes ownership or key state -> `db.ValidateAPIKey` / `AuthenticateAPIKey` parse prefixed or legacy API keys and enforce expiry/user ownership -> `State.Connect` increments the node session epoch, marks the node online, clears unhealthy state, emits a lightweight online change, and only emits a policy recompute when the node role requires it -> `State.Disconnect` decrements active sessions, only marks offline when the last live session ends, persists last-seen data, and emits the minimal offline change plus policy recompute when needed -> `State.BatchSetNodeHealth` applies health flips atomically and runs primary-route election once after the batch -> `auth_tagged_expiry_test.go`, `connect_test.go`, `node_recompute_test.go`, and `node_health_test.go` exercise tagged reauth expiry, reused-user PAK restart behavior, ordinary reconnects, relay/subnet-router recompute gates, and batched health invariants.
+`app.go` installs the ephemeral garbage collector with a callback that first checks whether the node still exists, then whether it is still ephemeral, then whether it still has active sessions before deleting anything -> `poll.go` waits until `State.Connect` succeeds before cancelling the ephemeral timer, so a failed reconnect cannot clear a pending deletion schedule -> `db/node.go` arms timers with generation numbers, reaps old watcher goroutines on reschedule/cancel, and drops queued deletions whose generation no longer matches -> `poll_test.go` exercises failed reconnects, stale timers after re-keying, delete-cancels-timer behavior, and never-polled ephemeral cleanup.
 
-- E1 source verified: `hscontrol/policy/v2/policy.go:32-103,198-240` implements policy validation, cache invalidation, auto-approver resolution, and the peer-recompute classification gate.
-- E1 source verified: `hscontrol/state/state.go:2379-2540,2574-2725` implements auth-path node updates, tagged-node recovery, preauth-key restart behavior, and policy refresh ordering.
-- E1 source verified: `hscontrol/db/api_key.go:28-220` implements API-key creation, expiry, authentication, prefix parsing, and owner assignment.
-- E1 source verified: `hscontrol/types/api_key.go:13-63` implements masked logging for API-key identity and expiration metadata.
-- E1 source verified: `hscontrol/state/state.go:651-760,1470-1581` implements connect/disconnect session handling, approved-route persistence, batched node-health updates, and API-key passthrough helpers.
-- E2 test verified: `hscontrol/state/connect_test.go:56-209,238-275` covers ordinary reconnects, relay-target recompute, subnet-router recompute, and out-of-order disconnect safety.
-- E2 test verified: `hscontrol/policy/v2/node_recompute_test.go:12-132` pins which node roles force peer recomputation.
-- E2 test verified: `hscontrol/state/node_health_test.go:69-85` confirms unchanged health writes skip publication.
-- E2 test verified: `hscontrol/state/auth_tagged_expiry_test.go:20-239` covers tagged reauth expiry retention, reused-user one-shot-key restart behavior, and expired-node key reuse guards.
+- E1 source verified: `hscontrol/app.go:162-203` installs the ephemeral GC callback and rejects deletion when the node is gone, no longer ephemeral, or still has live sessions.
+- E1 source verified: `hscontrol/poll.go:292-300` cancels ephemeral GC only after `Connect` succeeds, preserving the timer on failed reconnects.
+- E1 source verified: `hscontrol/db/node.go:367-504` implements generation-stamped timer scheduling, cancel/reap semantics, and stale-deletion suppression.
+- E2 test verified: `hscontrol/poll_test.go:301-361` proves a failed reconnect must not cancel the ephemeral GC timer.
+- E2 test verified: `hscontrol/poll_test.go:363-448` proves a reconnected node survives a stale timer until it actually goes idle again.
+- E2 test verified: `hscontrol/poll_test.go:450-575` proves delete cancels the timer and a saved ephemeral node still gets a GC timer.
+- E2 test verified: `hscontrol/poll_test.go:577-623` proves re-keying to a permanent key does not let a stale timer delete the node.
 
 ## Architecture
 
 Principal components:
 
-- Policy manager that compiles ACLs, grants, auto-approvers, and SSH policy.
-- NodeStore copy-on-write snapshot with atomic batched writes and route-election state.
-- State layer that coordinates connect/disconnect, approved routes, auth-path reauth, and health updates.
-- API-key parsing and projection helpers that normalize expiry and owner identity.
-- Property and integration tests that pin reconnect, tagged reauth, and HA election behavior.
+- State-layer lifecycle hooks that own node visibility and session counts.
+- Ephemeral-GC scheduling with explicit timer ownership and generation checks.
+- Poll/long-poll sequencing that preserves the deletion timer across failed reconnects.
+- Property and integration tests that pin stale-timer and re-key behavior.
 
-Most interesting mechanism: reconnect recovery is session-aware rather than epoch-only, and the auth path is ownership-aware rather than key-string-only. A node only goes offline when the last session is released, and tagged-node reauth, spent preauth keys, and API-key expiry rules all preserve the distinction between ordinary reconnects and ownership-changing transitions.
+Most interesting mechanism: reconnect recovery is not just about preserving routes or policy. The node lifecycle also protects against a stale timer from an earlier ephemeral identity. The timer is only cancelled when the reconnect actually succeeds, and the deletion callback refuses to act if the node has been re-keyed to permanent or already has a live session.
 
-Baseline comparison: a simpler control plane would treat every reconnect or auth callback as a fresh node lifecycle event. Headscale narrows the fan-out, keeps ordinary reconnects lightweight, and preserves machine identity when the same node legitimately reauthenticates or retags.
+Baseline comparison: a simpler control plane would cancel the timer at poll entry or trust that a node's old ephemeral timer cannot outlive the old session. Headscale instead treats session count and node type as authoritative, so a stale timer becomes a no-op instead of a destructive surprise.
 
 ## Reuse Guidance
 
 Reusable:
 
-- Separate ordinary reconnects from topology-changing reconnects.
-- Use a session count, not only a last-epoch check, to avoid stranding a node online after out-of-order disconnects.
-- Preserve tagged-node ownership and key-expiry semantics across restart and reauth paths.
-- Batch HA health flips so primary election sees the post-batch state only.
-- Keep policy compilation caches explicit and invalidate them only when the derived artifacts actually change.
+- Cancel cleanup timers only after the reconnect path has committed the new state.
+- Make deletion callbacks re-check the live node type and session count before acting.
+- Stamp queued deletions so a stale timer cannot delete a newer generation.
+- Keep failed reconnects from clearing pending cleanup state.
 
 Do not copy:
 
-- Do not copy the NodeStore snapshot layout without understanding the surrounding policy and DB contracts.
-- Do not assume the recompute gates are sufficient without real reconnect churn and multi-node validation.
-- Do not treat the property tests as a substitute for live overlay recovery.
+- Do not copy the timer pattern without the surrounding session-count and node-type checks.
+- Do not assume a reconnect that failed before `Connect` can safely cancel cleanup.
+- Do not treat the stale-timer tests as a substitute for live churn validation.
 
 ## Quality, Limits, And Adoption Conditions
 
 Production-quality signals:
 
-- The control plane distinguishes ordinary peer patches from expensive recompute paths.
-- Route approval, connect/disconnect, auth-path restart behavior, and HA health all have tests that codify the intended invariants.
-- NodeStore write batching and snapshot replacement are explicit rather than accidental.
+- The deletion path is explicit about existence, ephemerality, and active sessions.
+- The reconnect path has a test for failed reconnects preserving cleanup.
+- Re-keying, delete, and never-polled states all have direct regression tests.
 
 Experimental or incomplete for our needs:
 
-- The source evidence is strong, but live reconnect storms, mixed-role HA recovery, and tagged-node restart churn still need runtime validation.
-- The current code assumes the policy and node-store layers remain coherent under concurrent churn; that is well motivated but still deserves fault-injection proof.
-- The policy layer is broad and can become coupling-heavy if reused without the rest of the state machine.
+- The source still needs live reconnect-storm validation with multiple nodes and route churn.
+- The timer logic is safe in source, but operational proof under long churn is still missing.
+- The control plane remains coupled to session and policy state; misuse of those checks can still strand or delete nodes incorrectly.
 
 Hidden costs and failure modes:
 
-- A stale unhealthy bit or stale primary assignment can mislead peer routing if health and disconnect paths diverge.
-- Too many recompute triggers would reintroduce CPU-heavy fan-out on reconnect storms.
-- Tagged-node reauth and spent-key restart paths are security-sensitive: a bad ownership decision can either strand a valid node or silently authorize the wrong one.
+- A stale GC timer can still delete a node if the re-checks drift from the state layer.
+- Overly aggressive cancellation would reintroduce the "stranded offline" bug this change fixes.
+- Cleanup logic is sensitive to races between reconnect, disconnect, and delete.
 
 Adoption experiment:
 
-Run a small tailnet with one ordinary node and one subnet-router or relay target, inject reconnect storms plus overlapping disconnects, and then re-authenticate a tagged node with a reused preauth key to confirm ordinary reconnects stay lightweight while topology-changing nodes still trigger exactly one recompute and tagged reauth stays keyed to the same machine identity.
+Run a small tailnet with one ordinary node and one ephemeral node, trigger a failed reconnect and then a re-key to permanent while the old timer is still armed, and confirm that the timer survives the failed reconnect but becomes a no-op once the node is no longer ephemeral.
 
 ## Candidate Patterns
 
@@ -89,3 +85,8 @@ Run a small tailnet with one ordinary node and one subnet-router or relay target
 - `policy-driven peer-recompute gate`
 - `tagged-node reauthentication guard`
 - `API-key ownership projection`
+- `generation-stamped cleanup timer`
+
+## Previous Review
+
+The [2026-10-13 report](../reports/2026-10-13.md) and the previous card recorded the tagged-node reauth, API-key ownership, and peer-recompute behavior at `cee9066e91156d51e47fad3ca6c6bbda743750f0`. This current review adds the stale-timer suppression path at `7721d8c29978b65b68269bb58391fcd25a8c1085`.

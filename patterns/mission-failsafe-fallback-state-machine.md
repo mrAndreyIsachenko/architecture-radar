@@ -3,7 +3,7 @@
 - Canonical name: Mission Failsafe Fallback State Machine
 - Aliases: RTL fallback machine, safe-mode mission controller, staged recovery state machine, autonomy failsafe ladder
 - Avoided duplicate names: emergency lander, panic stop, autopilot watchdog, mission abort switch
-- Last updated: 2026-10-07
+- Last updated: 2026-10-31
 
 ## Problem
 
@@ -36,13 +36,14 @@ Combine a fast watchdog with explicit mission fallback states:
 - Staged RTL controller: ArduPilot's RTL mode moves through start, climb, return, loiter, descent, and land states, with terrain restart when needed.
 - Mission/safety regression harness: ArduPilot autotests inject RC and GPS failures and verify the resulting mode transitions and mission continuation behavior.
 - Command-response safety matrix: PX4 uses a different control structure, but still encodes explicit failsafe and mission recovery policies that can be compared against the staged RTL approach.
+- Parameter-acknowledgement recovery: PX4 returns the current parameter value for rejected writes and keeps mission transfers recoverable when requests replay or arrive out of order.
 - Mission-state hold boundary: `EspiroFares/Autonomous-UAV` routes world-model freshness into mission states, forces stale or silent setpoints into a canonical hold, and keeps the FCU bridge as the only actuation gateway.
 - Mesh failsafe ladder: `AkitaEngineering/MeshSwarm` latches RTL when geofence, low battery, lost link, no GCS, or GPS loss trips, while encrypted control and ACK sync keep the mesh command path replay-safe.
 
 ## Known Repositories
 
 - `ArduPilot/ardupilot` reviewed at `acef45eb0f0145943a9c2ba341d3825b8af34472`.
-- `PX4/PX4-Autopilot` reviewed at `d57d7f3b11c044b86195a12cfb933d17fac85b34`.
+- `PX4/PX4-Autopilot` reviewed at `789389fd46fcfb8473544d2fb3eeabd85893294c`.
 - `EspiroFares/Autonomous-UAV` reviewed at `8df4f467332fcf7a93cf93dc596d5f8d78f94396`.
 - `AkitaEngineering/MeshSwarm` reviewed at `bd7f2d1a5791f06abcc6254279b42b79d69a7219`.
 
@@ -96,6 +97,9 @@ The conventional baseline is a single "land now" emergency response. That is sim
 - E1 source verified: ArduPilot `ArduCopter/GCS_MAVLink_Copter.cpp::vehicle_system_status` reports critical state when any failsafe is active.
 - E2 test verified: ArduPilot `Tools/autotest/arducopter.py::ThrottleFailsafe` injects RC and GPS failures and checks RTL, Land, SmartRTL, guided continuation, and mission continuation behavior.
 - E2 test verified: ArduPilot `Tools/autotest/run_mission.py` runs a mission in SITL and waits for completion/disarm.
+- E1 source verified: PX4 `src/modules/mavlink/mavlink_parameters.cpp:228-315` returns the current parameter value for rejected writes and distinguishes missing parameters from TX-buffer saturation.
+- E1 source verified: PX4 `src/modules/mavlink/mavlink_mission.cpp:701-855,858-972,1160-1365` preserves recoverable mission transfer state across replayed or out-of-order requests.
+- E2 test verified: PX4 `test/mavsdk_tests/test_param_ftp.py`, `test_mavlink_param_validation.py`, and `test_multicopter_mission.py` verify parameter-stream behavior, mission validation, and mission execution under the MAVSDK harness.
 - E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_behavior/src/mission_manager_node.cpp` tracks mission state from world-model validity and publishes `follow_enabled`.
 - E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_control/src/follow_controller_node.cpp` clamps and freshness-gates the control output, then degrades to safe hover or hold.
 - E1 source verified: `EspiroFares/Autonomous-UAV/software/drone_ws/src/drone_safety/include/drone_safety/hold_policy.hpp` normalizes all unsafe states into a canonical hold command.

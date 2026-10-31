@@ -3,7 +3,7 @@
 - Canonical name: Deferred Image Materialization
 - Aliases: lazy high-res page promotion, lowres-first page promotion, page-image promotion after structural parse, page crop promotion
 - Avoided duplicate names: eager rasterization, always-highres OCR, full-page first pass, blanket page rendering
-- Last updated: 2026-10-01
+- Last updated: 2026-10-31
 
 ## Problem
 
@@ -25,6 +25,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 
 - Marker: `DocumentBuilder.build_document` creates lowres pages and per-page lazy loaders, then `render_highres` promotes only pages that `page_needs_highres`; `TableProcessor` crops and OCRs only unresolved tables or forms.
 - Docling: `StandardPdfPipeline._assemble_document` delays page and element image generation until after structural assembly, then crops only `PictureItem` and `TableItem` regions using `prov` metadata; failed pages are backfilled to keep numbering stable.
+- Docling XLSX rich-value projection: `MsExcelBackend` resolves cell-level image payloads from workbook metadata, then promotes only image-bearing cells and singleton image sheets while preserving table provenance and section labels.
 - HURIDOCS PDF document layout analysis: saves the PDF once, builds a structural `PdfImages` representation, predicts segments, and only promotes to 200 dpi when tables or formulas need secondary conversion; picture segments trigger page-image rendering in the markup converter.
 - LiteParse: keeps structural parsing authoritative, then renders screenshots or emits classified blocks only when the caller asks for them; page numbering, geometry, and OCR merge stay stable whether the promoted artifacts are enabled or not.
 - Xberg: scores page geometry without decoding pixels, records gate reasons in metadata, and reuses the layout pass for OCR only when the page set and rotations are safe for reuse.
@@ -35,7 +36,7 @@ Materialize a cheap structural representation first. Decide which pages or eleme
 ## Known Repositories
 
 - `datalab-to/marker` reviewed at `e1a6226adfaab4cd573cfa96e12d60905ee38036`.
-- `docling-project/docling` reviewed at `8050c42be2b179504445cb8f3c75655e27cbb662`.
+- `docling-project/docling` reviewed at `764b5d4dc22b03ea87afd4c2207f510300b27a5b`.
 - `huridocs/pdf-document-layout-analysis` reviewed at `cb47514458a29cadbc1e3a667050c1a6de1d25a5`.
 - `run-llama/liteparse` reviewed at `59b63ede9b3d7cde037b3e81e8b8d905691783c8`.
 - `xberg-io/xberg` reviewed at `3025e8cbb22bd653443428a4ac352489a7f9b831`.
@@ -96,6 +97,10 @@ Bumblebee applies the same pattern as a streaming batch runtime rather than a pu
 - E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` `StandardPdfPipeline._add_failed_pages_to_document` preserves missing page numbers after partial failures.
 - E2 test verified: `tests/test_failed_pages.py::test_failed_pages_added_to_document_1page` and `::test_failed_pages_added_to_document_2pages` verify page-number retention under partial failure.
 - E2 test verified: `tests/test_threaded_pipeline.py::test_threaded_pipeline_stage_shutdown_timeout` verifies stage shutdown and abandonment behavior when a blocking stage hangs.
+- E1 source verified: `docling/backend/msexcel_backend.py:360-494` resolves rich-value image payloads from workbook metadata and attaches them to spreadsheet cells.
+- E1 source verified: `docling/backend/msexcel_backend.py:1395-1485` maps fallback error cells back to their image payloads and table records.
+- E1 source verified: `docling/backend/msexcel_backend.py:2101-2165` preserves table structure while promoting singleton or image-heavy sheets through the table pipeline.
+- E2 test verified: `tests/test_backend_msexcel.py:1290-1369` verifies image-cell promotion, singleton handling, and section-label retention.
 - E1 source verified: `marker/builders/document.py` `DocumentBuilder.build_document` creates lowres pages, attaches a per-page highres loader, and `render_highres` promotes only pages that need it.
 - E1 source verified: `marker/processors/table.py` `TableProcessor.run_ocr_fallback` renders highres crops only for unresolved tables and forms.
 - E2 test verified: `tests/builders/test_document_builder.py::test_document_builder_inline_eq` verifies the pdftext-first path and embedded text layer.

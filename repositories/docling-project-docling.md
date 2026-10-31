@@ -1,85 +1,89 @@
 # docling-project/docling
 
 - Repository: https://github.com/docling-project/docling
-- Review date: 2026-09-19
-- Current commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
-- Commit date: 2026-09-18T09:18:30Z
+- Review date: 2026-10-31
+- Current commit reviewed: `764b5d4dc22b03ea87afd4c2207f510300b27a5b`
+- Commit date: 2026-10-31T13:14:48+08:00
 - Branch: `main`
-- Previous commit reviewed: `8050c42be2b179504445cb8f3c75655e27cbb662`
-- Material changes since previous review: version bump to 2.129.0 and refreshed current-head verification; the threaded PDF pipeline and recovery model remain the same mechanism.
+- Previous commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
+- Material changes since previous review: the current head adds spreadsheet-specific rich-value image handling. XLSX cells that carry image payloads now become picture-backed table cells, fallback error cells can be re-associated with their image content, and singleton image sheets can be promoted without losing table provenance or section labels.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `document-ai-ocr`, especially batch PDF conversion, page-number retention under failure, confidence propagation, and mixed backend/runtime control. The reusable mechanism is the threaded PDF pipeline with explicit recovery and post-assembly image materialization, not the broader format-adapter surface around it.
+This repository informs `document-ai-ocr`, especially spreadsheet provenance, layout-aware extraction, and mixed text/image document parsing. The reusable mechanism is narrower than the broader deferred-image pattern: Docling now materializes cell-level images only when the XLSX rich-value metadata or fallback cell state proves that a cell actually contains an image payload.
 
 ## Verified Flow
 
-`DocumentConverter.convert`/`__call__` normalizes string or `BytesIO` input -> `PdfFormatOption` selects `StandardPdfPipeline` and a PDF backend -> `StandardPdfPipeline._build_document` streams pages through a producer thread and bounded pipeline stages -> `_integrate_results` records `SUCCESS`, `PARTIAL_SUCCESS`, or `FAILURE` and keeps page/failure state separate -> `_assemble_document` builds the final document, generates requested page and element images, aggregates confidence, and backfills missing page slots -> the renderer consumes the completed conversion result.
+`DocumentConverter.convert` / `DocumentConverter.__call__` -> `MsExcelBackend` opens the workbook and routes through rich-value parsing -> `_read_rich_value_images` inspects the workbook relationships and extracts image references attached to cells -> `_find_cell_images` maps both explicit rich-value cells and fallback error cells back to their image payloads -> `_find_data_tables` and `_split_leading_section_label` preserve table boundaries and leading labels -> `doc.add_table`, `doc.add_table_cell`, `RichTableCell`, and `_add_cell_image` attach the image to the table structure -> singleton promotion through `treat_singleton_as_text` keeps one-cell image sheets from being flattened into a useless table shell -> tests assert image-cell promotion, singleton handling, and label retention.
 
-- E1 source verified: `docling/document_converter.py` defines `PdfFormatOption`, default pipeline selection, and the input normalization path used by `DocumentConverter`.
-- E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` defines `_build_document`, `_integrate_results`, `_assemble_document`, and `_add_failed_pages_to_document`, including page-streaming, timeout handling, confidence aggregation, and page-number backfill.
-- E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` retains page sizes and error items separately from the success path so downstream output can still render page breaks correctly.
-- E2 test verified: `tests/test_failed_pages.py::test_failed_pages_added_to_document_1page` and `::test_failed_pages_added_to_document_2pages` verify that failed pages remain present in `DoclingDocument.pages` and the result status becomes `PARTIAL_SUCCESS`.
-- E2 test verified: `tests/test_threaded_pipeline.py::test_threaded_pipeline_stage_shutdown_timeout` verifies the stage shutdown timeout path when a blocking model call does not return.
-- E2 test verified: `tests/test_native_pdf_pipeline.py` covers provenance retention, page-image scaling, picture/bitmap extraction, text-cell granularity, order restoration, and concurrent conversion separation.
-- E2 test verified: `tests/test_pipeline_cache.py` exercises pipeline option hashing and fallback behavior across pipeline subtype collisions.
+- E1 source verified: `docling/backend/msexcel_backend.py:360-494` reads rich-value image metadata and resolves cell-level image references.
+- E1 source verified: `docling/backend/msexcel_backend.py:1395-1485` maps fallback error cells back to image content and builds table-aware cell records.
+- E1 source verified: `docling/backend/msexcel_backend.py:2101-2165` preserves table structure while promoting singleton or image-heavy sheets through the table pipeline.
+- E1 source verified: `docling/datamodel/backend_options.py:466-476` exposes the spreadsheet backend option that controls singleton treatment.
+- E2 test verified: `tests/test_backend_msexcel.py:1290-1319` verifies image cells are surfaced through the rich-value path.
+- E2 test verified: `tests/test_backend_msexcel.py:1321-1339` verifies singleton image-sheet promotion does not corrupt the output shape.
+- E2 test verified: `tests/test_backend_msexcel.py:1341-1369` verifies section labels and table provenance remain intact.
 
 ## Architecture
 
 Principal components:
 
-- `DocumentConverter` and `FormatOption` dispatch by input format and backend type.
-- `StandardPdfPipeline` coordinates producer, stage workers, timeout handling, and result integration.
-- Backend adapters isolate PDF/HTML/word-processing specifics from the pipeline skeleton.
-- Datamodel objects carry page sizes, confidence, errors, and conversion status.
+- XLSX backend logic that inspects workbook metadata before emitting table cells.
+- Rich-value image extraction and fallback cell recovery.
+- Table assembly helpers that preserve provenance while attaching image payloads.
+- Backend options that tune how singleton sheets are promoted.
+- Regression tests that pin image-cell, singleton, and label behavior.
 
-Most interesting mechanism: the pipeline treats failure as a first-class outcome. Pages that fail to parse are still retained in the document, timeout is explicitly surfaced as `PARTIAL_SUCCESS`, and the final document aggregates confidence from page-level scores instead of collapsing them into a single opaque result.
+Most interesting mechanism: the backend does not treat every spreadsheet cell as text-first. It inspects XLSX rich-value relationships and fallback error cells, then materializes picture-backed table cells only where the workbook itself proves there is image content. That keeps the parse structurally honest while still preserving image evidence.
 
-Baseline comparison: a conventional document conversion tool either returns a flat success/failure result or drops failed pages from the output. Docling keeps page numbering stable, preserves error structure, and continues to produce usable output for the pages that did succeed.
+Baseline comparison: a simpler spreadsheet extractor would either ignore cell images or flatten them into generic blobs. Docling instead keeps the table structure, associates the image with the cell, and retains section labels so downstream consumers can reason over provenance.
 
 ## Reuse Guidance
 
 Reusable:
 
-- Preserve page numbering even when some pages fail.
-- Keep pipeline recovery separate from backend adapters.
-- Aggregate confidence at document scope, but derive it from page-level state.
-- Make stage shutdown time-bounded so blocking model calls do not freeze the whole job.
+- Materialize image payloads only when workbook metadata proves the cell carries them.
+- Preserve table provenance when promoting cell images into the parse tree.
+- Keep singleton image-sheet promotion behind an explicit option.
+- Retain section labels even when the data path upgrades a sheet into a richer structure.
 
 Do not copy:
 
-- Do not copy the full backend zoo unless you need the same format coverage.
-- Do not assume that page backfill alone gives provenance; it only preserves document shape.
-- Do not tie adoption to Docling-specific backend names or model packages.
+- Do not copy the XLSX-specific parsing assumptions into a format that does not have workbook relationships.
+- Do not flatten rich-value images into unlabelled attachments if provenance matters.
+- Do not treat singleton promotion as a universal default without checking consumer expectations.
 
 ## Quality, Limits, And Adoption Conditions
 
 Production-quality signals:
 
-- The pipeline has explicit timeout, partial-success, and page-retention paths in source.
-- Threaded execution is exercised by tests that cover successful runs and blocking-stage shutdown.
-- The settings layer has tests for scoped overrides and backend option defaults.
+- The rich-value path is implemented in source rather than left as a docstring-only promise.
+- Tests cover the new spreadsheet behavior and the provenance-preserving promotion rules.
+- The backend option makes the singleton promotion policy explicit.
 
 Experimental or incomplete for our needs:
 
-- The surface is broad and product-shaped.
-- Source-level provenance is page-oriented, but not an explicit evidence-envelope model.
-- Backend/model combinations remain externally coupled.
+- The current evidence is source-and-test backed, but it still needs a runtime validation pass on mixed workbook corpora.
+- The promotion logic is specific to XLSX semantics; other spreadsheet formats may need different provenance handling.
+- The path is careful about structure, but it still depends on workbook metadata being accurate.
 
 Hidden costs and failure modes:
 
-- Broad backend support increases operational and maintenance cost.
-- Blocking producers can be abandoned after timeout, which protects the job but can leak resources briefly.
-- Confidence aggregation can hide a bad tail if downstream consumers only inspect document-level summaries.
+- If rich-value metadata is missing or malformed, image cells can degrade to plain text or fallback cells.
+- Over-promoting singleton sheets can obscure when a workbook was actually just a single figure.
+- Misaligned table provenance can make downstream consumers believe a cell belongs to the wrong table.
 
 Adoption experiment:
 
-Run one internal batch on mixed-quality PDFs, force a page failure and a blocking-stage timeout, then confirm the final document still preserves page numbering, error items, and confidence aggregation without hanging the worker process.
+Run a mixed workbook corpus with rich-value image cells, plain error cells, singleton image sheets, and section labels, then confirm that image cells become picture-backed table cells, fallback cells retain their image content, and the output preserves table provenance.
 
 ## Candidate Patterns
 
 - `Deferred Image Materialization`
-- `page-number-preserving partial-success pipeline`
-- `timeout-bounded stage shutdown`
-- `confidence aggregation across page outputs`
+- `spreadsheet rich-value image projection`
+- `table-provenance preserving image promotion`
+
+## Previous Review
+
+The [2026-09-19 report](../reports/2026-09-19.md) and the previous card covered the broader PDF and layout pipeline at `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`. This current review adds the XLSX rich-value image-cell path at `764b5d4dc22b03ea87afd4c2207f510300b27a5b`.
