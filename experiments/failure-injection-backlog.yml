@@ -12,7 +12,6 @@ items:
     status: open
     created: 2026-09-13
     last_updated: 2026-09-13
-
   - id: 2026-09-13-fprime-router-runtime
     family: satellites-space-systems
     source_report: reports/2026-09-13.md
@@ -26,7 +25,6 @@ items:
     status: open
     created: 2026-09-13
     last_updated: 2026-09-13
-
   - id: 2026-09-13-ardupilot-sitl-failsafe
     family: drones-robotics-autonomy
     source_report: reports/2026-09-13.md
@@ -40,7 +38,6 @@ items:
     status: open
     created: 2026-09-13
     last_updated: 2026-09-13
-
   - id: 2026-09-16-nasa-fprime-runtime-restart
     family: satellites-space-systems
     source_report: reports/2026-09-16.md
@@ -80,7 +77,6 @@ items:
     status: open
     created: 2026-09-16
     last_updated: 2026-09-16
-
   - id: 2026-09-19-docling-stage-timeout
     family: document-ai-ocr
     source_report: reports/2026-09-19.md
@@ -94,7 +90,6 @@ items:
     status: open
     created: 2026-09-19
     last_updated: 2026-09-19
-
   - id: 2026-09-19-defguard-reconnect-recovery
     family: privacy-networking-vpn
     source_report: reports/2026-09-19.md
@@ -108,7 +103,6 @@ items:
     status: open
     created: 2026-09-19
     last_updated: 2026-09-19
-
   - id: 2026-09-19-px4-sitl-failsafe
     family: drones-robotics-autonomy
     source_report: reports/2026-09-19.md
@@ -122,7 +116,6 @@ items:
     status: open
     created: 2026-09-19
     last_updated: 2026-10-13
-
   - id: 2026-10-13-deepseek-harness-failure-injection
     family: ai-llm-systems
     source_report: reports/2026-10-13.md
@@ -136,7 +129,6 @@ items:
     status: open
     created: 2026-10-13
     last_updated: 2026-10-13
-
   - id: 2026-09-19-fprime-operational-routing
     family: satellites-space-systems
     source_report: reports/2026-09-19.md
@@ -150,7 +142,6 @@ items:
     status: open
     created: 2026-09-19
     last_updated: 2026-09-19
-
   - id: 2026-09-22-durable-agent-runtime-fault-injection
     family: ai-llm-systems
     source_report: reports/2026-09-22.md
@@ -164,7 +155,6 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
-
   - id: 2026-09-22-autonomous-uav-sitl-hold
     family: drones-robotics-autonomy
     source_report: reports/2026-09-22.md
@@ -178,7 +168,6 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
-
   - id: 2026-09-22-hdtn-operational-routing
     family: satellites-space-systems
     source_report: reports/2026-09-22.md
@@ -192,7 +181,6 @@ items:
     status: open
     created: 2026-09-22
     last_updated: 2026-09-22
-
   - id: 2026-10-10-deepseek-harness-runtime
     family: ai-llm-systems
     source_report: reports/2026-10-10.md
@@ -206,7 +194,6 @@ items:
     status: open
     created: 2026-10-10
     last_updated: 2026-10-10
-
   - id: 2026-10-10-tencentdb-agent-memory-operational
     family: ai-llm-systems
     source_report: reports/2026-10-10.md
@@ -220,7 +207,6 @@ items:
     status: open
     created: 2026-10-10
     last_updated: 2026-10-10
-
   - id: 2026-10-10-cfs-cfdp-operational
     family: satellites-space-systems
     source_report: reports/2026-10-10.md
@@ -234,7 +220,6 @@ items:
     status: open
     created: 2026-10-10
     last_updated: 2026-10-10
-
   - id: 2026-10-07-openocr-runtime
     family: document-ai-ocr
     source_report: reports/2026-10-07.md
@@ -248,7 +233,6 @@ items:
     status: open
     created: 2026-10-07
     last_updated: 2026-10-07
-
   - id: 2026-10-07-dybervpn-reconnect-recovery
     family: privacy-networking-vpn
     source_report: reports/2026-10-07.md
@@ -262,7 +246,6 @@ items:
     status: open
     created: 2026-10-07
     last_updated: 2026-10-07
-
   - id: 2026-10-07-meshswarm-restart-recovery
     family: drones-robotics-autonomy
     source_report: reports/2026-10-07.md
@@ -276,7 +259,6 @@ items:
     status: open
     created: 2026-10-07
     last_updated: 2026-10-07
-
   - id: 2026-10-07-cfs-operational-bundle
     family: satellites-space-systems
     source_report: reports/2026-10-07.md
@@ -290,7 +272,6 @@ items:
     status: open
     created: 2026-10-07
     last_updated: 2026-10-07
-
   - id: 2026-10-07-sam-fleet-mesh
     family: ai-llm-systems
     source_report: reports/2026-10-07.md
@@ -304,7 +285,6 @@ items:
     status: open
     created: 2026-10-07
     last_updated: 2026-10-07
-
   - id: 2026-10-04-deepseek-harness-replay-restart
     family: ai-llm-systems
     source_report: reports/2026-10-04.md
@@ -318,7 +298,6 @@ items:
     status: open
     created: 2026-10-04
     last_updated: 2026-10-04
-
   - id: 2026-10-04-tencentdb-agent-memory-restart-hydration
     family: ai-llm-systems
     source_report: reports/2026-10-04.md
@@ -332,7 +311,6 @@ items:
     status: open
     created: 2026-10-04
     last_updated: 2026-10-04
-
   - id: 2026-10-01-fusion-ocr-runtime-batch
     family: document-ai-ocr
     source_report: reports/2026-10-01.md
@@ -346,7 +324,6 @@ items:
     status: open
     created: 2026-10-01
     last_updated: 2026-10-01
-
   - id: 2026-10-01-chain-indexer-reorg-failure-injection
     family: blockchain-intelligence
     source_report: reports/2026-10-01.md
@@ -360,7 +337,6 @@ items:
     status: open
     created: 2026-10-01
     last_updated: 2026-10-01
-
   - id: 2026-10-01-droneserver-operational-flight
     family: drones-robotics-autonomy
     source_report: reports/2026-10-01.md
@@ -374,7 +350,6 @@ items:
     status: open
     created: 2026-10-01
     last_updated: 2026-10-01
-
   - id: 2026-10-01-ground-station-operational-observation
     family: satellites-space-systems
     source_report: reports/2026-10-01.md
@@ -388,7 +363,6 @@ items:
     status: open
     created: 2026-10-01
     last_updated: 2026-10-01
-
   - id: 2026-09-28-agentledger-failure-injection
     family: ai-llm-systems
     source_report: reports/2026-09-28.md
@@ -402,7 +376,6 @@ items:
     status: open
     created: 2026-09-28
     last_updated: 2026-09-28
-
   - id: 2026-09-28-bumblebee-runtime
     family: document-ai-ocr
     source_report: reports/2026-09-28.md
@@ -416,7 +389,6 @@ items:
     status: open
     created: 2026-09-28
     last_updated: 2026-09-28
-
   - id: 2026-09-28-evm-indexer-operational
     family: blockchain-intelligence
     source_report: reports/2026-09-28.md
@@ -430,3 +402,16 @@ items:
     status: open
     created: 2026-09-28
     last_updated: 2026-09-28
+  - id: 2026-11-03-olmocr-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-11-03.md
+    source_repository: allenai/olmocr
+    mechanism: queue-backed batch OCR conversion with rotation-aware retries
+    evidence_gap: Source and tests show queue-backed batching, rotation correction, repeat detection, and fallback recovery, but the reviewed evidence does not validate the same behavior on a live mixed corpus with malformed pages and repeated outputs.
+    validation_type: runtime
+    proposed_validation: Run the CLI or pipeline against a mixed real PDF corpus with tables, formulas, rotated pages, malformed pages, and intentionally repetitive outputs, then compare the final page spans, fallback counts, and markdown outputs against the source-level expectations.
+    success_condition: The batch completes without hanging, page spans remain aligned, fallback pages stay represented instead of disappearing, and repeat/rotation recovery behaves consistently across the corpus.
+    priority: medium
+    status: open
+    created: '2026-11-03'
+    last_updated: '2026-11-03'
