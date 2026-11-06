@@ -221,6 +221,34 @@ items:
     created: 2026-10-10
     last_updated: 2026-10-10
 
+  - id: 2026-11-06-tunnex-operational-reconnect
+    family: privacy-networking-vpn
+    source_report: reports/2026-11-06.md
+    source_repository: tunnexio/tunnex
+    mechanism: origin-policy canonicalization and restore-barrier guarded reconnect
+    evidence_gap: Source and tests verify policy normalization, request rewriting, and bounded connector admission, but the reviewed evidence does not validate reconnect and restore churn on a live gateway and connector pair.
+    validation_type: operational
+    proposed_validation: Run the gateway and connector through a reconnect and restart sequence while changing DNS and restore state, then confirm no stale authority is reused and the startup barrier still fails closed when recovery is ambiguous.
+    success_condition: Reconnect and restart converge without stale origin authority, policy drift, or unsafe startup, and the restore barrier still blocks ambiguous recovery.
+    priority: high
+    status: open
+    created: 2026-11-06
+    last_updated: 2026-11-06
+
+  - id: 2026-11-06-stm32-ccsds-node-runtime
+    family: satellites-space-systems
+    source_report: reports/2026-11-06.md
+    source_repository: JosefHobler/stm32-ccsds-node
+    mechanism: watchdog-supervised CCSDS TM/TC loop
+    evidence_gap: Source and tests verify packet framing, watchdog supervision, and cross-language codec conformance, but the reviewed evidence does not validate runtime behavior under actual UART load, corruption, and reset recovery on hardware or an emulator.
+    validation_type: runtime
+    proposed_validation: Flash or emulate the board, run telemetry and telecommand cycles with injected packet corruption and task stalls, and confirm slip-resync plus watchdog recovery behave as expected.
+    success_condition: Frames recover correctly, watchdog resets only on intended stall, and ACK/TM behavior matches the source contract under runtime load.
+    priority: high
+    status: open
+    created: 2026-11-06
+    last_updated: 2026-11-06
+
   - id: 2026-10-10-cfs-cfdp-operational
     family: satellites-space-systems
     source_report: reports/2026-10-10.md

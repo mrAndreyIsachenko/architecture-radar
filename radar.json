@@ -2493,6 +2493,93 @@
       "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
       "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
       "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
+    },
+    {
+      "repository": "tunnexio/tunnex",
+      "URL": "https://github.com/tunnexio/tunnex",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "packages/apptransport/originpolicy/policy.go",
+        "packages/apptransport/originpolicy/check.go",
+        "packages/apptransport/originpolicy/transport.go",
+        "packages/apptransport/restorebarrier/barrier.go",
+        "packages/apptransport/beam/gateway.go",
+        "packages/apptransport/beam/connector.go",
+        "packages/apptransport/http_policy_test.go",
+        "packages/apptransport/channel_test.go",
+        "packages/apptransport/browser_readiness_test.go",
+        "packages/apptransport/beam/gateway_test.go",
+        "packages/apptransport/beam/routes_test.go",
+        "packages/apptransport/beam/connector_test.go"
+      ],
+      "operational_blockers": [
+        "needs live reconnect and restore churn validation across gateway and connector restarts"
+      ],
+      "first_seen": "2026-11-06",
+      "last_reviewed": "2026-11-06",
+      "commit_reviewed": "ac9b58b6ca02585cd00a7015871e7ab76f6a9853",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "privacy networking",
+        "policy control",
+        "origin validation",
+        "connector recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "origin-policy canonicalization",
+        "restore-barrier guarded startup",
+        "bounded connector admission"
+      ],
+      "decision": "track",
+      "decision_reason": "The runtime canonicalizes origin policy, revalidates DNS on each request, rewrites only authority-safe URL components, and fails closed when restore state is ambiguous. The mechanism is reusable, but it still needs live reconnect and restore churn validation.",
+      "revisit_reason": "Review after reconnect, restore, or binding behavior changes materially.",
+      "next_revisit_condition": "Revisit after a material change to origin-policy normalization, restore barrier behavior, or connector admission semantics."
+    },
+    {
+      "repository": "JosefHobler/stm32-ccsds-node",
+      "URL": "https://github.com/JosefHobler/stm32-ccsds-node",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "Core/Src/app.c",
+        "Core/Src/telecommand_task.c",
+        "Core/Src/telemetry_task.c",
+        "Core/Src/ccsds.c",
+        "cpp/tests/conformance_test.cpp"
+      ],
+      "operational_blockers": [
+        "needs runtime validation on hardware or an emulator under packet loss and watchdog stalls"
+      ],
+      "first_seen": "2026-11-06",
+      "last_reviewed": "2026-11-06",
+      "commit_reviewed": "838f4d5b5a800489ccf33b0e7b00c7124652e680",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "space systems",
+        "telemetry",
+        "telecommand",
+        "watchdog recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 3,
+      "relevance_score": 4,
+      "evidence_quality": "high",
+      "extracted_patterns": [],
+      "candidate_patterns": [
+        "watchdog-supervised CCSDS TM/TC loop",
+        "slip-resync framing",
+        "cross-language packet conformance"
+      ],
+      "decision": "track",
+      "decision_reason": "The firmware and tests define a reusable CCSDS TM/TC loop with watchdog supervision, slip-resync parsing, and byte-identical cross-language codec checks. The mechanism is useful, but it still needs runtime proof under actual UART load and reset behavior.",
+      "revisit_reason": "Review after runtime or hardware validation changes the packet loop's failure profile.",
+      "next_revisit_condition": "Revisit after a material change to the watchdog loop, framing recovery, or codec conformance tests."
     }
   ]
 }
