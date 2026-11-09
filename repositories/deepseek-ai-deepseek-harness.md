@@ -1,41 +1,42 @@
 # deepseek-ai/deepseek-harness
 
 - Repository: https://github.com/deepseek-ai/deepseek-harness
-- Review date: 2026-10-13
-- Current commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Commit date: 2026-10-09T17:31:32+08:00
+- Review date: 2026-11-09
+- Current commit reviewed: `fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159`
+- Commit date: 2026-11-04T00:00:00Z
 - Branch: `master`
 - Previous commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Material changes since previous review: no upstream commit change since 2026-10-10. This additional source review examines checkpoint-before-dispatch and sandbox-mode replay at the same pinned commit; the earlier review examined the synchronous SDK and bundled-runtime lifecycle.
+- Material changes since previous review: upstream head advanced and the loop/runtime code was heavily refactored. `packages/core/agent-loop/src/tool-calls.ts` disappeared, dispatch and replay logic moved deeper into `agent.ts` and `index.ts`, and the test surface expanded around request reconstruction, resume, and tool execution. The checkpoint and sandbox replay mechanism still resolves to the same semantic boundary.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `ai-llm-systems`, especially durable agent workflows, tool-use recovery, and checkpointed execution around model and shell dispatch. The reusable mechanism is the semantic checkpoint barrier: session state is flushed before model or top-level tool execution, and sandbox mode is replayed from durable session state instead of being treated as ephemeral request context.
+This repository informs `ai-llm-systems`, especially durable agent workflows, tool-use recovery, and checkpointed execution around model and shell dispatch. The reusable mechanism is still the semantic checkpoint barrier: session state is flushed before model or top-level tool execution, and sandbox mode is replayed from durable session state instead of being treated as ephemeral request context.
 
 ## Verified Flow
 
-Session- and tool-level input -> `session-checkpoint-policy.apply` intercepts `llm/stream`, `tools/execute`, and `agent/pre-step` -> `ctx.sessions.flush(...)` forces a durability barrier before the next model request, top-level tool dispatch, or agent step -> `SessionPersistence`/`SessionHandle` keep session events contiguous from seq 0 and make `flush()` the persistence boundary -> `JsonlSessionPersistence` materializes immutable generation files under a write lease and validates storage fail-closed -> `sandbox-policy` reads and writes durable sandbox mode events so the shell runtime can replay the same mode decision after restart -> crash-recovery tests verify that the checkpoint boundary prevents dispatch after a checkpoint failure and preserves the logged prefix.
+User input enters `ReactLoopAgent.send`/`followup`/`steer`/`inject` in `packages/core/agent-loop/src/agent.ts` -> the agent loop and `session-checkpoint-policy.apply` coordinate turn and pre-step boundaries -> `ctx.sessions.flush(...)` forces a durability barrier before the next model request, top-level tool dispatch, or agent step -> `SessionPersistence`/`SessionHandle` keep session events contiguous from seq 0 and make `flush()` the persistence boundary -> `JsonlSessionPersistence` materializes immutable generation files under a write lease and validates storage fail-closed -> `sandbox-policy` reads and writes durable sandbox mode events so the shell runtime can replay the same mode decision after restart -> resume and reconstruction tests verify that the checkpoint boundary preserves the logged prefix and request shape.
 
-- E1 source verified: `packages/session/session-persistence/src/index.ts:117-180,182-203` defines the append-only session-storage contract, per-session handles, and `flush()` as the durability barrier.
-- E1 source verified: `packages/session/session-checkpoint-policy/src/index.ts:20-82` flushes session state before model dispatch, top-level tool execution, and agent pre-step execution, and fail-closes on checkpoint failure.
-- E1 source verified: `packages/session/session-persistence-jsonl/src/index.ts:61-75,245-260` defines the JSONL backend, its format/compression contract, and the session-persistence service binding.
-- E1 source verified: `packages/sandbox/sandbox-policy/src/index.ts` and `packages/sandbox/sandbox-policy/src/session-mode.ts` keep sandbox mode as durable session state rather than ephemeral request-only state.
-- E2 test verified: `packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts` and `packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts` cover checkpoint-before-dispatch behavior and fail-closed recovery on crashes.
-- E2 test verified: `packages/session/session-persistence-jsonl/tests/lease.spec.ts` covers cross-process write ownership, inode verification, and stale lock handling.
+- E1 source verified: `packages/core/agent-loop/src/agent.ts:112-188` defines the turn/step driver, wake handling, cancel semantics, and maintenance escape hatch for the live agent.
+- E1 source verified: `packages/core/agent-loop/src/index.ts:290-620` wires the loop service, agent construction, and maintenance path into the runtime.
+- E1 source verified: `packages/session/session-checkpoint-policy/src/index.ts:22-72` flushes session state before model dispatch, top-level tool execution, and agent pre-step execution, and fail-closes on checkpoint failure.
+- E1 source verified: `packages/session/session-persistence/src/index.ts:78-188` defines the append-only session-storage contract, per-session handles, and `flush()` as the durability barrier.
+- E1 source verified: `packages/sandbox/sandbox-policy/src/index.ts:1-176` keeps sandbox mode as durable session state rather than ephemeral request-only state.
+- E2 test verified: `packages/core/agent-loop/tests/resume.spec.ts`, `packages/core/agent-loop/tests/config-session-id.spec.ts`, and `packages/core/agent-loop/tests/request-reconstruction.spec.ts` cover resume behavior, session-id projection, and request reconstruction after interruption.
+- E2 test verified: `packages/core/agent-loop/tests/tool-executors.spec.ts` and `packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts` cover tool dispatch and checkpoint-before-dispatch behavior under failure.
 - E2 test verified: `packages/sandbox/sandbox-policy/tests/policy.spec.ts` covers default mode/root resolution, override replay, and durable sandbox-mode switching.
 
 ## Architecture
 
 Principal components:
 
+- Agent loop service with turn, step, wake, and maintenance phases.
 - Session persistence service with per-session handles and a durability barrier.
-- JSONL backend with immutable generation files, migration preparation, and write leasing.
 - Semantic checkpoint policy that flushes before model and tool boundaries.
 - Sandbox policy and shell integration that replay durable mode decisions.
-- Workspace registry that keeps durable session metadata and archived/pinned workspace state.
+- Inbox/projection logic that preserves request reconstruction and replay shape.
 
-Most interesting mechanism: the runtime treats flush-before-dispatch as the safety boundary. The system does not wait for the entire conversation to end; a checkpoint failure prevents downstream dispatch. This does not establish at-most-once external execution: a crash after an external effect but before its result is persisted still requires idempotency or reconciliation on recovery.
+Most interesting mechanism: the runtime treats flush-before-dispatch as the safety boundary. The system does not wait for the entire conversation to end; a checkpoint failure prevents downstream dispatch. This still does not establish at-most-once external execution: a crash after an external effect but before its result is persisted still requires idempotency or reconciliation on recovery.
 
 Baseline comparison: a simpler agent runtime would append logs asynchronously and let the shell or model adapter proceed on the assumption that a later flush will be fine. Deepseek Harness instead makes persistence a semantic precondition for model/tool dispatch and uses durable sandbox mode state to replay the same execution posture.
 
@@ -61,12 +62,12 @@ Production-quality signals:
 - The checkpoint barrier is enforced at the semantic boundary where side effects can start.
 - The session persistence contract is explicit about contiguity, ownership, and durability.
 - The backend validates leases and storage state rather than trusting a best-effort append.
-- Crash-recovery and policy tests cover the intended safety boundary.
+- Resume, reconstruction, and crash-recovery tests cover the intended safety boundary.
 
 Experimental or incomplete for our needs:
 
 - The reviewed evidence still needs a live process-kill and restart cycle on the same runtime path, not only source-level crash-recovery tests.
-- The shell/workspace integration is strong, but it remains a runtime boundary with file-system and lease semantics that need operational proof under contention.
+- The bundled/runtime integration remains a runtime boundary with file-system and lease semantics that need operational proof under contention.
 
 Hidden costs and failure modes:
 
@@ -83,6 +84,8 @@ Kill the runtime after a request prefix or top-level tool call has been flushed,
 - `semantic checkpoint barrier before dispatch`
 - `durable sandbox-mode replay`
 - `single-owner session write lease`
+- `session-normalized synchronous harness`
+- `replay-safe request reconstruction`
 
 ## Previous Reviews
 

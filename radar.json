@@ -1732,9 +1732,13 @@
       "runtime_paths": [
         "hscontrol/poll.go",
         "hscontrol/policy/v2/policy.go",
+        "hscontrol/policy/v2/compiled.go",
+        "hscontrol/policy/v2/filter.go",
         "hscontrol/state/state.go",
         "hscontrol/state/node_store.go",
         "hscontrol/state/connect_test.go",
+        "hscontrol/state/persist_test.go",
+        "hscontrol/state/reload_policy_test.go",
         "hscontrol/state/auth_tagged_expiry_test.go",
         "hscontrol/policy/v2/node_recompute_test.go",
         "hscontrol/state/node_health_test.go",
@@ -1747,9 +1751,9 @@
         "tagged-node restart and reauth churn still need operational proof"
       ],
       "first_seen": "2026-09-13",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
-      "previous_commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
+      "last_reviewed": "2026-11-09",
+      "commit_reviewed": "48416ce0894ef7bef0ef9c064609b4aa76a0d9b6",
+      "previous_commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
       "categories": [
         "privacy networking",
         "policy control",
@@ -1772,7 +1776,7 @@
         "API-key ownership projection"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
+      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The current head expands the policy and state test surface, but the reusable control-plane mechanism still needs live reconnect and HA churn validation before adoption.",
       "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
       "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
     },
@@ -2200,14 +2204,21 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
+        "packages/core/agent-loop/src/agent.ts",
+        "packages/core/agent-loop/src/index.ts",
+        "packages/core/agent-loop/src/inbox.ts",
         "packages/session/session-persistence/src/index.ts",
         "packages/session/session-persistence-jsonl/src/index.ts",
         "packages/session/session-checkpoint-policy/src/index.ts",
         "packages/session/session-persistence-jsonl/src/lease.ts",
+        "packages/sandbox/sandbox-policy/src/index.ts",
         "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
         "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
         "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
-        "packages/sandbox/sandbox-policy/src/index.ts"
+        "packages/core/agent-loop/tests/resume.spec.ts",
+        "packages/core/agent-loop/tests/config-session-id.spec.ts",
+        "packages/core/agent-loop/tests/request-reconstruction.spec.ts",
+        "packages/core/agent-loop/tests/tool-executors.spec.ts"
       ],
       "operational_blockers": [
         "needs live process-kill and restart validation",
@@ -2216,8 +2227,8 @@
         "needs live process-kill and restart validation on the same semantic checkpoint path"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "last_reviewed": "2026-11-09",
+      "commit_reviewed": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
       "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
       "categories": [
         "agent runtime",
@@ -2245,7 +2256,7 @@
         "single-writer JSONL session store"
       ],
       "decision": "track",
-      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
+      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The current head refactors the loop and expands replay tests, but it still needs a live process-kill and restart proof on the same session ledger.",
       "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
       "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
     },
@@ -2421,16 +2432,20 @@
         "apps/cf/fsw/src/cf_cfdp.c",
         "apps/cf/fsw/src/cf_cfdp_r.c",
         "apps/cf/fsw/src/cf_cfdp_s.c",
-        "apps/cf/unit-test/cf_cfdp_tests.c"
+        "apps/cf/fsw/src/cf_timer.c",
+        "apps/cf/unit-test/cf_cfdp_tests.c",
+        "apps/cf/unit-test/cf_cfdp_r_tests.c",
+        "apps/cf/unit-test/cf_cfdp_s_tests.c",
+        "apps/cf/unit-test/cf_cfdp_dispatch_tests.c"
       ],
       "operational_blockers": [
         "needs integrated CFDP validation with delayed acknowledgements and packet reordering",
         "needs operational validation beyond the demo build/telemetry path"
       ],
       "first_seen": "2026-10-07",
-      "last_reviewed": "2026-10-10",
-      "commit_reviewed": "ca14a5cce6954c1cbc464c536ea681b6798d3b44",
-      "previous_commit_reviewed": "13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b",
+      "last_reviewed": "2026-11-09",
+      "commit_reviewed": "1ca3a956d05348d2dce22447fa5eda74ddd89a55",
+      "previous_commit_reviewed": "ca14a5cce6954c1cbc464c536ea681b6798d3b44",
       "categories": [
         "CFDP",
         "delayed connectivity",
@@ -2450,7 +2465,7 @@
         "table-driven telemetry subscription management"
       ],
       "decision": "track",
-      "decision_reason": "The CF app and CFDP modules form a reusable delayed-connectivity transfer engine with explicit timer, ack/nak, and gap-tracking behavior. The unit tests are strong, but the operational bundle still needs live delayed-ACK and reordering validation.",
+      "decision_reason": "The CF app and CFDP modules form a reusable delayed-connectivity transfer engine with explicit timer, ack/nak, and gap-tracking behavior. The root bundle merged PR #1190 and the reviewed CFDP app submodule remains the same mechanism, but the operational bundle still needs live delayed-ACK and reordering validation.",
       "revisit_reason": "Revisit after integrated CFDP validation or a material change to the transaction engine.",
       "next_revisit_condition": "Revisit when integrated CFDP behavior is validated or the send/receive transaction model changes materially."
     },

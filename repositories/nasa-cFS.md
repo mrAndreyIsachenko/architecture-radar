@@ -1,27 +1,29 @@
 # nasa/cFS
 
 - Repository: https://github.com/nasa/cFS
-- Review date: 2026-10-10
-- Current commit reviewed: `ca14a5cce6954c1cbc464c536ea681b6798d3b44`
-- Commit date: 2026-10-09T06:58:22-04:00
+- Review date: 2026-11-09
+- Current commit reviewed: `1ca3a956d05348d2dce22447fa5eda74ddd89a55`
+- Commit date: 2026-11-06T00:00:00Z
 - Branch: `dev`
-- Previous commit reviewed: `13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b`
-- Material changes since previous review: The earlier review covered command/telemetry app loops; this review examines the CFDP file-transfer transaction engine.
+- Reviewed CFDP app submodule commit: `0dbc2b759b0343dcc64269b7754c9cddcab518cc`
+- Previous commit reviewed: `ca14a5cce6954c1cbc464c536ea681b6798d3b44`
+- Material changes since previous review: the root bundle merged PR #1190 and advanced the `apps/cf` submodule pointer. The reviewed CFDP app code remains the reusable mechanism; the bundle-level merge mostly changes surrounding repository plumbing rather than the transaction model itself.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `satellites-space-systems`, especially delayed-connectivity command/telemetry loops, CFDP file transfer, table-driven flight configuration, and safe recovery from late or missing acknowledgements. The reusable mechanism is the CFDP engine and its transaction state machine, not the broader cFS bundle branding.
+This repository informs `satellites-space-systems`, especially delayed-connectivity command/telemetry loops, CFDP file transfer, table-driven flight configuration, and safe recovery from late or missing acknowledgements. The reusable mechanism is still the CFDP engine and its transaction state machine, not the broader cFS bundle branding.
 
 ## Verified Flow
 
-`CF_ValidateConfigTable()` and `CF_ManageTables()` validate and import the CF application config table -> `CF_CFDP_EncodeStart()` and `CF_CFDP_DecodeStart()` reset the codec state and clamp the payload window to the encapsulation header -> `CF_CFDP_S_SendFileData()` seeks, reads, chunks, and CRCs outbound data before sending a file-data PDU -> `CF_CFDP_R_ProcessFd()` seeks, writes, and records received chunks so the gap list can be updated -> `CF_CFDP_R_SubstateRecvEof()` and `CF_CFDP_R_CheckComplete()` manage EOF handling, ack/nak counting, CRC checking, and completeness detection -> `cf_cfdp_tests.c` covers the codec, timer, transaction, send/receive, and engine-cycle paths.
+`CF_ValidateConfigTable()` and `CF_ManageTables()` validate and import the CF application config table -> `CF_CFDP_EncodeStart()` and `CF_CFDP_DecodeStart()` reset the codec state and clamp the payload window to the encapsulation header -> `CF_CFDP_S_SendFileData()` seeks, reads, chunks, and CRCs outbound data before sending a file-data PDU -> `CF_CFDP_R_ProcessFd()` seeks, writes, and records received chunks so the gap list can be updated -> `CF_CFDP_R_SubstateRecvEof()` and `CF_CFDP_R_CheckComplete()` manage EOF handling, ack/nak counting, CRC checking, and completeness detection -> `cf_cfdp_tests.c` plus the receive/send/dispatch unit suites cover the codec, timer, transaction, send/receive, and engine-cycle paths.
 
-- E1 source verified: `apps/cf/fsw/src/cf_app.c:50-240,278-278` implements table-driven configuration import and validation.
-- E1 source verified: `apps/cf/fsw/src/cf_cfdp.c:68-146,177-253,1057-1238` implements PDU start, timer arming, ack/nak counting, and receive dispatch.
-- E1 source verified: `apps/cf/fsw/src/cf_cfdp_r.c:79-250,636-677,897-905,989-989` implements receive-side completeness, file-data processing, EOF handling, and transaction completion checks.
+- E1 source verified: `apps/cf/fsw/src/cf_app.c:114-278` implements table-driven configuration import and validation.
+- E1 source verified: `apps/cf/fsw/src/cf_cfdp.c:68-146,177-253,1056-1238` implements PDU start, timer arming, ack/nak counting, and receive dispatch.
+- E1 source verified: `apps/cf/fsw/src/cf_cfdp_r.c:79-250,636-677,897-905` implements receive-side completeness, file-data processing, EOF handling, and transaction completion checks.
 - E1 source verified: `apps/cf/fsw/src/cf_cfdp_s.c:49-220,229-258,1030-1030` implements outbound file-data chunking, early-FIN cancellation, and FIN handling.
-- E2 test verified: `apps/cf/unit-test/cf_cfdp_tests.c:37-214,184-214,1952-2046` covers codec setup, transaction setup, receive/send helpers, engine cycle, and the registered CFDP test suite.
+- E1 source verified: `apps/cf/fsw/src/cf_timer.c:1-120` provides timer tick and expiry helpers used by the CFDP transaction path.
+- E2 test verified: `apps/cf/unit-test/cf_cfdp_tests.c:184-214,1952-2046`, `apps/cf/unit-test/cf_cfdp_r_tests.c:444-777,1293-1346`, `apps/cf/unit-test/cf_cfdp_s_tests.c:382-460,1173-1212`, and `apps/cf/unit-test/cf_cfdp_dispatch_tests.c:106-297` cover codec setup, transaction setup, receive/send helpers, engine cycle, dispatch, and the registered CFDP test suites.
 
 ## Architecture
 
@@ -88,4 +90,4 @@ Run the CFDP app inside the integrated cFS bundle with delayed acknowledgements 
 
 The earlier review covered command/telemetry app loops; this review examines the CFDP file-transfer transaction engine.
 
-Earlier evidence remains pinned to `13ebc15286ec7f56cc9ac2a6b313a4aaeda16f9b` in the [report for 2026-10-07](../reports/2026-10-07.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/nasa-cFS.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
+Earlier evidence remains pinned to `ca14a5cce6954c1cbc464c536ea681b6798d3b44` in the [report for 2026-10-07](../reports/2026-10-07.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/nasa-cFS.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
