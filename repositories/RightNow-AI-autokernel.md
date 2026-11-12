@@ -1,28 +1,31 @@
 # RightNow-AI/autokernel
 
 - Repository: https://github.com/RightNow-AI/autokernel
-- Review date: 2026-08-23
-- Current commit reviewed: `78435821cc3d5756ba6ee1785c397f6d8fa8c90d`
-- Commit date: 2026-08-23
+- Review date: 2026-11-12
+- Current commit reviewed: `77bfaa4b2d45ec19f33d6582080b44c3784929b7`
+- Commit date: 2026-11-08T16:29:39-08:00
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
+- Previous commit reviewed: `78435821cc3d5756ba6ee1785c397f6d8fa8c90d`
+- Material changes since previous review: current head adds a dedicated TTFT benchmark lane, cache validation, and end-to-end verification around the persisted optimization loop.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `ai-llm-systems`, especially long-running agent loops that must decide when to continue, revert, or stop based on evidence rather than intuition. The reusable mechanism is not the branding around autonomous kernel optimization; it is the persisted optimization state machine, the deterministic setup/verify stages, and the benchmark harness that makes every candidate change pass through the same safety gates.
+This repository informs `ai-llm-systems`, especially long-running optimization loops that must decide when to continue, revert, or stop based on evidence rather than intuition. The reusable mechanism is not the GPU branding around kernel tuning; it is the persisted orchestration state, the repeatable benchmark gate, and the final verification step that force each candidate through the same safety checks.
 
 ## Verified Flow
 
-`extract.py` builds `workspace/optimization_plan.json` from profiling output -> `orchestrate.py` loads the plan, persists `workspace/orchestration_state.json`, and marks kernels `pending`, `optimizing`, `done`, or `skipped` -> `prepare.py` verifies CUDA/Triton/PyTorch, generates deterministic test data, and smoke-tests the current kernel -> `bench.py` runs smoke, shape, stability, determinism, and performance stages before saving `workspace/results/*.tsv` -> `verify.py` plugs optimized kernels back into the model, compares outputs, and saves a final verification report -> `kernelbench/bench_kb.py` repeats the same correctness/performance idea as a reusable evaluation harness.
+`extract.py` builds `workspace/optimization_plan.json` from profiling output -> `orchestrate.py` loads the plan, persists `workspace/orchestration_state.json`, and marks kernels `pending`, `optimizing`, `done`, or `skipped` -> `prepare.py` verifies CUDA/Triton/PyTorch, generates deterministic test data, and smoke-tests the current kernel -> `engine/prefill_ttft.py` times streamed requests, validates cached tokens, and emits TTFT summaries -> `verify.py` plugs optimized kernels back into the model, compares outputs, and saves a verification report -> `kernelbench/bench_kb.py` repeats the correctness/performance loop as a reusable evaluation harness.
 
 - E1 source verified: `orchestrate.py` defines `MOVE_ON_CRITERIA`, loads `workspace/optimization_plan.json`, and records keep/revert/failure decisions into the orchestration state and TSV results.
+- E1 source verified: `engine/prefill_ttft.py` defines the TTFT benchmark contract, cache validation, cold and warm modes, and streamed-request timing.
 - E1 source verified: `prepare.py` verifies the CUDA stack, generates deterministic test data, and performs a kernel smoke test before optimization work begins.
-- E1 source verified: `bench.py` runs a fixed multi-stage correctness harness, then only proceeds to performance once correctness passes.
-- E1 source verified: `verify.py` loads the model twice, substitutes optimized kernels, compares outputs with dtype-specific tolerances, and writes the verification result.
+- E1 source verified: `verify.py` loads the model, substitutes optimized kernels, compares outputs with dtype-specific tolerances, and writes the final verification result.
 - E1 source verified: `kernelbench/bench_kb.py` defines a reusable correctness/stability/determinism/performance evaluation loop with timeout protection and VRAM tracking.
-- E3 maintainer stated: `kernelbench/program_kb.md` and `README.md` describe the keep/revert contract, the five-stage correctness harness, and the result schema that the code emits.
+- E2 test verified: `tests/test_gqa_prefill_attention.py` covers the calibrated attention oracle, paged KV handling, page-size overrides, and calibration behavior.
+- E2 test verified: `tests/test_calibrate_attention.py` covers calibration and backend-selection behavior.
+- E2 test verified: `tests/test_gqa_prefill_attention_kernel.py` covers the kernel-facing prefill attention path.
+- E3 maintainer stated: `kernelbench/program_kb.md` and `README.md` describe the keep/revert contract, the five-stage correctness harness, and the result schema.
 
 ## Architecture
 
@@ -31,11 +34,12 @@ Principal components:
 - `extract.py`: profile-to-plan extraction.
 - `orchestrate.py`: stateful kernel scheduler with move-on criteria.
 - `prepare.py`: environment and deterministic input setup.
-- `bench.py` and `kernelbench/bench_kb.py`: correctness and performance harnesses.
+- `engine/prefill_ttft.py`: TTFT benchmark and cache validation.
 - `verify.py`: end-to-end model reintegration and final comparison.
+- `kernelbench/bench_kb.py`: reusable correctness, stability, determinism, and performance harness.
 - `kernelbench/bridge.py` and `kernelbench/scorer.py`: adapter and scoring utilities around the harness.
 
-Most interesting mechanism: the optimization loop is explicitly stateful and reversible. A candidate kernel is not just benchmarked; it is recorded in workspace state, checked against deterministic setup data, run through correctness/stability/determinism gates, and only then promoted or reverted using thresholds for consecutive reverts, speedup, wall-clock budget, and peak VRAM.
+Most interesting mechanism: the optimization loop is explicitly stateful and reversible. A candidate kernel is not just benchmarked; it is recorded in workspace state, checked against deterministic setup data, run through correctness and TTFT gates, and only then promoted or reverted using explicit thresholds.
 
 Baseline comparison: a conventional kernel-optimization workflow would rely on ad hoc benchmarking plus manual judgment. This repository instead forces every candidate through a repeatable state machine and a fixed evaluation harness.
 
@@ -50,7 +54,7 @@ Reusable:
 
 Do not copy:
 
-- Do not copy the hard-coded `kernel.py` / `workspace/` file conventions without an adapter.
+- Do not copy the hard-coded `kernel.py` and `workspace/` file conventions without an adapter.
 - Do not treat the workspace TSV files as a production persistence layer.
 - Do not assume the move-on thresholds are universally valid without workload-specific calibration.
 

@@ -571,8 +571,8 @@
       "repository": "docling-project/docling",
       "URL": "https://github.com/docling-project/docling",
       "first_seen": "2026-08-08",
-      "last_reviewed": "2026-09-19",
-      "commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
+      "last_reviewed": "2026-11-12",
+      "commit_reviewed": "336e9dde255237a3bf68abaea727d9782f7417a9",
       "previous_commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
       "artifact_type": "repository",
       "external_artifacts": [],
@@ -604,9 +604,9 @@
         "confidence aggregation across page outputs"
       ],
       "decision": "track",
-      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The refreshed head keeps that reusable mechanism intact without changing the decision.",
-      "revisit_reason": "Revisit if the pipeline, backend adapters, or confidence aggregation semantics materially change.",
-      "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, or backend behavior."
+      "decision_reason": "The current head expands the threaded conversion path with formatting-preserving Word extraction and LibreOffice hardening while preserving timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The reusable mechanism is still the partial-success pipeline, but the latest head materially improves the document-format edge cases.",
+      "revisit_reason": "Revisit if the pipeline, backend adapters, formatting-preserving extraction, or confidence aggregation semantics materially change.",
+      "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, backend behavior, or Office conversion hardening."
     },
     {
       "repository": "datalab-to/marker",
@@ -1347,9 +1347,9 @@
         "benchmark validity depends on workload"
       ],
       "first_seen": "2026-08-23",
-      "last_reviewed": "2026-08-23",
-      "commit_reviewed": "78435821cc3d5756ba6ee1785c397f6d8fa8c90d",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-11-12",
+      "commit_reviewed": "77bfaa4b2d45ec19f33d6582080b44c3784929b7",
+      "previous_commit_reviewed": "78435821cc3d5756ba6ee1785c397f6d8fa8c90d",
       "categories": [
         "agent runtime",
         "benchmark harness",
@@ -1365,9 +1365,9 @@
         "workspace-backed experiment ledger"
       ],
       "decision": "track",
-      "decision_reason": "The repository turns kernel optimization into a persisted state machine with deterministic setup, fixed correctness gates, and end-to-end verification. The loop is reusable as a long-running agent pattern even though the concrete workload is GPU-specific.",
-      "revisit_reason": "Revisit if the orchestration state model, benchmark harness, or end-to-end verification flow materially changes.",
-      "next_revisit_condition": "Revisit after a material change to workspace state persistence, benchmark criteria, or verification output."
+      "decision_reason": "The current head expands the persisted optimization loop with a TTFT benchmark lane, cache validation, and end-to-end verification. The reusable mechanism is still the stateful optimization ledger plus fixed correctness gates, but the latest head materially improves the benchmark evidence for current-head adoption analysis.",
+      "revisit_reason": "Revisit if the orchestration state model, TTFT benchmark lane, or end-to-end verification flow materially changes.",
+      "next_revisit_condition": "Revisit after a material change to workspace state persistence, benchmark criteria, TTFT validation, or verification output."
     },
     {
       "repository": "run-llama/liteparse",
@@ -2268,8 +2268,8 @@
         "needs live proxy restart validation of hydrated initialized sessions"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-10",
-      "commit_reviewed": "274e549069ad780e411d70e6fff51f6a977d81d3",
+      "last_reviewed": "2026-11-12",
+      "commit_reviewed": "42d4cde50c5a83182fced8c584f9ddb32a620615",
       "previous_commit_reviewed": "8b86874a2daea49e3ff0fb53d699203146c5c77d",
       "categories": [
         "context engineering",
@@ -2292,7 +2292,7 @@
         "content-only memory clear"
       ],
       "decision": "track",
-      "decision_reason": "The proxy splits bootstrap, route gating, request rewriting, session recovery, memory commands, and storage backends into reusable stages. QA scripts cover the main flows, but the live upstream/backend path still needs operational validation.",
+      "decision_reason": "The current head expands the proxy bootstrap, shared session-init orchestration, and mem-command handling while keeping the staged request-rewrite model intact. QA scripts still cover the main flows, but the live upstream/backend path continues to need operational validation.",
       "revisit_reason": "Revisit after a live backend run or a material pipeline/storage refactor.",
       "next_revisit_condition": "Revisit when end-to-end proxy traffic is validated on a real deployment or the pipeline/storage contract changes materially."
     },

@@ -1,29 +1,31 @@
 # docling-project/docling
 
 - Repository: https://github.com/docling-project/docling
-- Review date: 2026-09-19
-- Current commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
-- Commit date: 2026-09-18T09:18:30Z
+- Review date: 2026-11-12
+- Current commit reviewed: `336e9dde255237a3bf68abaea727d9782f7417a9`
+- Commit date: 2026-11-12T09:15:00+01:00
 - Branch: `main`
-- Previous commit reviewed: `8050c42be2b179504445cb8f3c75655e27cbb662`
-- Material changes since previous review: version bump to 2.129.0 and refreshed current-head verification; the threaded PDF pipeline and recovery model remain the same mechanism.
+- Previous commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
+- Material changes since previous review: current head adds formatting-preserving Word extraction paths and LibreOffice hardening around the conversion pipeline.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `document-ai-ocr`, especially batch PDF conversion, page-number retention under failure, confidence propagation, and mixed backend/runtime control. The reusable mechanism is the threaded PDF pipeline with explicit recovery and post-assembly image materialization, not the broader format-adapter surface around it.
+This repository informs `document-ai-ocr`, especially batch PDF and Word conversion, page-number retention under failure, confidence propagation, and mixed backend/runtime control. The reusable mechanism is the threaded conversion pipeline with explicit recovery and page retention, not the broader format-adapter surface around it.
 
 ## Verified Flow
 
-`DocumentConverter.convert`/`__call__` normalizes string or `BytesIO` input -> `PdfFormatOption` selects `StandardPdfPipeline` and a PDF backend -> `StandardPdfPipeline._build_document` streams pages through a producer thread and bounded pipeline stages -> `_integrate_results` records `SUCCESS`, `PARTIAL_SUCCESS`, or `FAILURE` and keeps page/failure state separate -> `_assemble_document` builds the final document, generates requested page and element images, aggregates confidence, and backfills missing page slots -> the renderer consumes the completed conversion result.
+`DocumentConverter.convert` and `__call__` normalize string or `BytesIO` input -> `PdfFormatOption` selects `StandardPdfPipeline` and a backend -> `StandardPdfPipeline._build_document` streams pages through a producer thread and bounded pipeline stages -> `_integrate_results` records `SUCCESS`, `PARTIAL_SUCCESS`, or `FAILURE` and keeps page/failure state separate -> `_assemble_document` builds the final document, generates requested page and element images, aggregates confidence, and backfills missing page slots -> the renderer consumes the completed conversion result.
 
 - E1 source verified: `docling/document_converter.py` defines `PdfFormatOption`, default pipeline selection, and the input normalization path used by `DocumentConverter`.
 - E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` defines `_build_document`, `_integrate_results`, `_assemble_document`, and `_add_failed_pages_to_document`, including page-streaming, timeout handling, confidence aggregation, and page-number backfill.
-- E1 source verified: `docling/pipeline/standard_pdf_pipeline.py` retains page sizes and error items separately from the success path so downstream output can still render page breaks correctly.
+- E1 source verified: `docling/backend/msword_backend.py` expands paragraph and cell extraction with formatting-preserving logic.
+- E1 source verified: `docling/backend/docx/drawingml/utils.py` adds LibreOffice profile and timeout hardening for conversion support.
+- E2 test verified: `tests/test_backend_msword.py::test_trailing_whitespace_run_keeps_paragraph_formatting` covers whitespace-sensitive Word extraction.
+- E2 test verified: `tests/test_backend_msword.py::test_is_rich_table_cell` covers rich-cell behavior in the Word backend.
 - E2 test verified: `tests/test_failed_pages.py::test_failed_pages_added_to_document_1page` and `::test_failed_pages_added_to_document_2pages` verify that failed pages remain present in `DoclingDocument.pages` and the result status becomes `PARTIAL_SUCCESS`.
 - E2 test verified: `tests/test_threaded_pipeline.py::test_threaded_pipeline_stage_shutdown_timeout` verifies the stage shutdown timeout path when a blocking model call does not return.
-- E2 test verified: `tests/test_native_pdf_pipeline.py` covers provenance retention, page-image scaling, picture/bitmap extraction, text-cell granularity, order restoration, and concurrent conversion separation.
-- E2 test verified: `tests/test_pipeline_cache.py` exercises pipeline option hashing and fallback behavior across pipeline subtype collisions.
+- E2 test verified: `tests/test_native_pdf_pipeline.py` covers provenance retention, page-image scaling, picture and bitmap extraction, text-cell granularity, order restoration, and concurrent conversion separation.
 
 ## Architecture
 
@@ -31,7 +33,7 @@ Principal components:
 
 - `DocumentConverter` and `FormatOption` dispatch by input format and backend type.
 - `StandardPdfPipeline` coordinates producer, stage workers, timeout handling, and result integration.
-- Backend adapters isolate PDF/HTML/word-processing specifics from the pipeline skeleton.
+- Backend adapters isolate PDF, HTML, and word-processing specifics from the pipeline skeleton.
 - Datamodel objects carry page sizes, confidence, errors, and conversion status.
 
 Most interesting mechanism: the pipeline treats failure as a first-class outcome. Pages that fail to parse are still retained in the document, timeout is explicitly surfaced as `PARTIAL_SUCCESS`, and the final document aggregates confidence from page-level scores instead of collapsing them into a single opaque result.
@@ -65,7 +67,7 @@ Experimental or incomplete for our needs:
 
 - The surface is broad and product-shaped.
 - Source-level provenance is page-oriented, but not an explicit evidence-envelope model.
-- Backend/model combinations remain externally coupled.
+- Backend and model combinations remain externally coupled.
 
 Hidden costs and failure modes:
 
