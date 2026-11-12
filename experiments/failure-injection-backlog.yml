@@ -93,7 +93,7 @@ items:
     priority: medium
     status: open
     created: 2026-09-19
-    last_updated: 2026-09-19
+    last_updated: 2026-11-12
 
   - id: 2026-09-19-defguard-reconnect-recovery
     family: privacy-networking-vpn
@@ -136,6 +136,20 @@ items:
     status: open
     created: 2026-10-13
     last_updated: 2026-10-13
+
+  - id: 2026-11-12-autokernel-prefill-ttft-runtime
+    family: ai-llm-systems
+    source_report: reports/2026-11-12.md
+    source_repository: RightNow-AI/autokernel
+    mechanism: benchmark-gated optimization loop with TTFT validation
+    evidence_gap: Source and tests show the current head's TTFT benchmark lane, cache validation, and verification flow, but the reviewed evidence does not validate the runtime on a live GPU-backed workspace.
+    validation_type: runtime
+    proposed_validation: Run the TTFT benchmark lane on the target GPU workspace, exercise cold and warm cache paths, and confirm the persisted orchestration state still advances or reverts candidates correctly after a restart.
+    success_condition: The runtime completes without invalid state transitions, the TTFT results match the expected benchmark contract, and restart preserves the candidate ledger and move-on decisions.
+    priority: medium
+    status: open
+    created: 2026-11-12
+    last_updated: 2026-11-12
 
   - id: 2026-09-19-fprime-operational-routing
     family: satellites-space-systems
@@ -219,7 +233,7 @@ items:
     priority: high
     status: open
     created: 2026-10-10
-    last_updated: 2026-10-10
+    last_updated: 2026-11-12
 
   - id: 2026-10-10-cfs-cfdp-operational
     family: satellites-space-systems

@@ -1,12 +1,12 @@
 # TencentCloud/TencentDB-Agent-Memory
 
 - Repository: https://github.com/TencentCloud/TencentDB-Agent-Memory
-- Review date: 2026-10-10
-- Current commit reviewed: `274e549069ad780e411d70e6fff51f6a977d81d3`
-- Commit date: 2026-10-10T10:31:39+08:00
+- Review date: 2026-11-12
+- Current commit reviewed: `42d4cde50c5a83182fced8c584f9ddb32a620615`
+- Commit date: 2026-11-10T21:27:08+08:00
 - Branch: `feat/server_team`
-- Previous commit reviewed: `8b86874a2daea49e3ff0fb53d699203146c5c77d`
-- Material changes since previous review: The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
+- Previous commit reviewed: `274e549069ad780e411d70e6fff51f6a977d81d3`
+- Material changes since previous review: current head expands the proxy bootstrap, session-init orchestration, and mem-command handling with more explicit staged flow.
 - Decision: track
 
 ## Problem Fit
@@ -15,17 +15,18 @@ This repository informs `ai-llm-systems`, especially agent memory, context engin
 
 ## Verified Flow
 
-`src/index.ts` parses config, initializes logging, tracing, auth, storage, and optional control-plane features -> `createApp()` in `src/server.ts` installs marker gates, health checks, bridge routes, and agent-prefixed endpoints -> `InjectionPipeline.process()` parses the request body into an agent context, resolves the agent profile from URL identity, executes hooks, and serializes the modified body -> `stageSessionInitOrchestrate()` recovers or initializes the session state machine, decides whether to intercept, and normalizes the response path -> `stageMemCommand()` recognizes `mem:` commands, executes them, and returns the intercepted response envelope -> `SqliteStorage` and `FsStorage` provide atomic KV persistence, CAS writes, prefix deletion, and TTL behavior for the proxy state.
+`MemoryProxy/src/index.ts` parses config, initializes logging, tracing, auth, storage, and shutdown hooks -> `createApp()` installs marker gates, health checks, bridge routes, and agent-prefixed endpoints -> `InjectionPipeline.process()` parses the request body into an agent context, resolves the agent profile from URL identity, executes hooks, and serializes the modified body -> `stageSessionInitOrchestrate()` recovers or initializes the session state machine, decides whether to intercept, and normalizes the response path -> `stageMemCommand()` recognizes `mem:` commands, executes them, and returns the intercepted response envelope -> `SqliteStorage` and `FsStorage` provide atomic KV persistence, CAS writes, prefix deletion, and TTL behavior for the proxy state.
 
-- E1 source verified: `MemoryProxy/src/index.ts:1-118` initializes the proxy subsystems, request-preparation lifecycle, and graceful shutdown path.
-- E1 source verified: `MemoryProxy/src/server.ts:1-260` registers the marker gates, health endpoint, bridge routes, session-management endpoints, and agent-prefixed protocol routes.
-- E1 source verified: `MemoryProxy/src/injection/pipeline.ts:1-260` implements adapter parsing, agent-profile lookup, hook execution, observer callbacks, and safe continuation on hook failures.
+- E1 source verified: `MemoryProxy/src/index.ts:1-180` initializes the proxy subsystems, request-preparation lifecycle, and graceful shutdown path.
 - E1 source verified: `MemoryProxy/src/pipeline/stages/session-init-orchestrate.ts:1-230` factors the shared session-init recovery/state-machine logic into a parameterized orchestration stage.
-- E1 source verified: `MemoryProxy/src/pipeline/stages/mem-command.ts:1-121` isolates `mem:` command parsing and execution from the protocol handlers.
-- E1 source verified: `MemoryProxy/src/storage/sqlite-storage.ts:19-134` and `MemoryProxy/src/storage/fs-storage.ts:19-164` implement the persistence backends with atomic writes, CAS semantics, prefix deletion, and TTL sweeps or cleanup.
-- E2 test verified: `MemoryProxy/scripts/qa/p1-api-test.sh:61-220` exercises model gating, header preselection, session-init, and memory-command paths.
-- E2 test verified: `MemoryProxy/scripts/qa/p1-dump-verify.py:1-220` captures outbound requests to prove injection is present in the final body rather than only in intermediate logs.
-- E2 test verified: `MemoryProxy/scripts/qa/cc-session-reset-smoke.py:1-110` exercises the real CLI reset flow and the re-prompt behavior after reset.
+- E1 source verified: `MemoryProxy/src/pipeline/stages/mem-command.ts:1-120` isolates `mem:` command parsing and execution from the protocol handlers.
+- E1 source verified: `MemoryCore/src/core/tdai-core.ts:244-340` wires the core initialization, pipeline manager, skill modules, and background task draining.
+- E1 source verified: `MemoryCore/src/core/decision/providers/jev/client.ts` and `MemoryCore/src/core/persona/jev-gate.ts` participate in the current decision and persona-gating path.
+- E1 source verified: `MemoryCore/src/core/session/session-record.ts` anchors the session record model used by the proxy-side orchestration.
+- E2 test verified: `MemoryProxy/scripts/qa/p1-api-test.sh:120-260` exercises model gating, header preselection, session-init, mem-command, and reset behavior.
+- E2 test verified: `MemoryProxy/scripts/qa/p1-dump-verify.py:1-220` verifies outbound-body injection rather than only intermediate logs.
+- E2 test verified: `sdk/memory-core/python/tests/test_v3_transport_timeout.py` covers timeout behavior in the Python transport.
+- E2 test verified: `MemoryPanel/tests/code-graph-polling.test.ts` covers the current graph-polling control path.
 
 ## Architecture
 
@@ -94,4 +95,4 @@ Run the proxy against a real upstream and a real persistent backend, then valida
 
 The earlier review covered layered session recovery; this review examines marker-gated request rewriting, session-init orchestration, and outbound-body verification.
 
-Earlier evidence remains pinned to `8b86874a2daea49e3ff0fb53d699203146c5c77d` in the [report for 2026-10-04](../reports/2026-10-04.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/TencentCloud-TencentDB-Agent-Memory.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
+Earlier evidence remains pinned to `274e549069ad780e411d70e6fff51f6a977d81d3` in the [report for 2026-10-10](../reports/2026-10-10.md) and the [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/591083a2bcc57b16fc2596c8fd2d78759c4c4f7a/repositories/TencentCloud-TencentDB-Agent-Memory.md). Its open validation experiments remain in the backlog; this source review does not mark them completed.
