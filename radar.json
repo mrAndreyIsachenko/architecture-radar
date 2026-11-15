@@ -199,17 +199,17 @@
         "src/modules/commander/Commander.cpp",
         "src/modules/commander/Commander.hpp",
         "test/test_mavlink_param_validation.py",
-        "test/mavsdk_tests/test_multicopter_failsafe.cpp",
-        "test/mavsdk_tests/autopilot_tester.cpp"
+        "test/mavsdk_tests/test_multicopter_failsafe.py",
+        "test/mavsdk_tests/autopilot_tester.py"
       ],
       "operational_blockers": [
         "needs live SITL validation",
         "command/mode semantics still depend on simulator fidelity"
       ],
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
-      "previous_commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
+      "last_reviewed": "2026-11-15",
+      "commit_reviewed": "c4b8f107ae97d643fc784a394e3874f34caec563",
+      "previous_commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -226,7 +226,7 @@
         "parameter-slot mission validation gate"
       ],
       "decision": "track",
-      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The refreshed head remains highly reusable, but adoption still depends on live SITL validation.",
+      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The current head broadens the parameter-slot and mission-loss validation surface, but adoption still depends on live SITL validation.",
       "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
       "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
     },
@@ -1739,7 +1739,9 @@
         "hscontrol/policy/v2/node_recompute_test.go",
         "hscontrol/state/node_health_test.go",
         "hscontrol/db/api_key.go",
-        "hscontrol/types/api_key.go"
+        "hscontrol/types/api_key.go",
+        "cmd/headscale/cli/utils.go",
+        "cmd/headscale/cli/utils_test.go"
       ],
       "operational_blockers": [
         "needs live reconnect-storm validation",
@@ -1747,9 +1749,9 @@
         "tagged-node restart and reauth churn still need operational proof"
       ],
       "first_seen": "2026-09-13",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
-      "previous_commit_reviewed": "c90ba0f0d6f82fe79fc2da82d95561f0e2780628",
+      "last_reviewed": "2026-11-15",
+      "commit_reviewed": "520eb6f9c7f90bad7a5358ea818267edf4d0b4de",
+      "previous_commit_reviewed": "cee9066e91156d51e47fad3ca6c6bbda743750f0",
       "categories": [
         "privacy networking",
         "policy control",
@@ -1772,7 +1774,7 @@
         "API-key ownership projection"
       ],
       "decision": "track",
-      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The reusable control-plane mechanism remains strong, but it still needs live reconnect and HA churn validation before adoption.",
+      "decision_reason": "Source and tests show policy compilation, session-aware connect/disconnect, tagged-node reauthentication, API-key ownership handling, and batched primary-election updates. The current head further tightens the server/CLI config boundary and empty-socket handling without removing the need for live reconnect and HA churn validation before adoption.",
       "revisit_reason": "Review after reconnect-storm, multi-node churn, or route-election behavior changes materially.",
       "next_revisit_condition": "Revisit after a material change to reconnect handling, primary-route election, or policy recomputation."
     },

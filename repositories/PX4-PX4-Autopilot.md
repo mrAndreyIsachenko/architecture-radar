@@ -1,29 +1,29 @@
 # PX4/PX4-Autopilot
 
 - Repository: https://github.com/PX4/PX4-Autopilot
-- Review date: 2026-10-13
-- Current commit reviewed: `07a2faab0dd4621e3b85d1818a7f6e4af63cf87f`
-- Commit date: 2026-10-13T07:14:45-05:00
+- Review date: 2026-11-15
+- Current commit reviewed: `c4b8f107ae97d643fc784a394e3874f34caec563`
+- Commit date: 2026-11-15T11:31:22+11:00
 - Branch: `main`
-- Previous commit reviewed: `c4e4ef98e9d75063bf3d53ebb2716221ee7505ae`
-- Material changes since previous review: the current head keeps the commander/failsafe safety model intact while refreshing the explicit command-acknowledgment matrix and the mission/sensor-loss validation surface.
+- Previous commit reviewed: `07a2faab0dd4621e3b85d1818a7f6e4af63cf87f`
+- Material changes since previous review: the current head keeps the commander/failsafe safety model intact while expanding the validation surface around parameter slots, ACK handling, and mission-loss tests. The new/updated Python tests make the command contract more explicit, and the MAVSDK harness now documents the retry-and-ACK path more clearly.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `drones-robotics-autonomy`: mission planning, telemetry, safety envelopes, command acknowledgments, and recovery from sensor loss or flight-mode loss. The reusable mechanism is the commander-side command-acknowledgment matrix and the safety gates that decide whether a high-risk transition should be accepted, denied, temporarily rejected, or failed.
+This repository informs `drones-robotics-autonomy`: mission planning, telemetry, safety envelopes, command acknowledgments, and recovery from sensor loss or flight-mode loss. The reusable mechanism is the commander-side command-acknowledgment matrix and the safety gates that decide whether a high-risk transition should be accepted, denied, temporarily rejected, or failed. The current head broadens the validation surface for that mechanism by making unsupported parameter slots and sensor-loss recoveries explicit in the Python test layer.
 
 ## Verified Flow
 
-MAVLink command / mission input -> `Commander::handle_command` classifies the command and assigns an ACK result -> `Commander::answer_command` publishes the ACK back to MAVLink -> `Commander::arm` / `disarm` enforce preflight, health, and failsafe gates -> `test/test_mavlink_param_validation.py` validates unsupported parameter slots at the mission/command boundary -> `test/mavsdk_tests/test_multicopter_failsafe.cpp` and `autopilot_tester.cpp` execute GPS, baro, and magnetometer-loss missions until the vehicle reaches the expected recovery state.
+MAVLink command / mission input -> `Commander::handle_command` classifies the command and assigns an ACK result -> `Commander::answer_command` publishes the ACK back to MAVLink -> `Commander::arm` / `disarm` enforce preflight, health, and failsafe gates -> `test/test_mavlink_param_validation.py` validates unsupported parameter slots at the mission/command boundary -> `test/mavsdk_tests/test_multicopter_failsafe.py` and `autopilot_tester.py` execute GPS, baro, and magnetometer-loss missions until the vehicle reaches the expected recovery state.
 
 - E1 source verified: `src/modules/commander/Commander.hpp` wires in failsafe, mission, offboard, `mission_result`, `vehicle_command_ack`, and health-check subsystems.
-- E1 source verified: `src/modules/commander/Commander.cpp:862-930,2827-2865` classifies incoming `vehicle_command` messages, assigns accepted/denied/temporarily-rejected results, and publishes the ACK.
+- E1 source verified: `src/modules/commander/Commander.cpp:866-930,2858-2896` classifies incoming `vehicle_command` messages, assigns accepted/denied/temporarily-rejected results, and publishes the ACK.
 - E1 source verified: `src/modules/commander/Commander.cpp:667-760` enforces preflight, throttle, and health checks before arming.
 - E1 source verified: `src/modules/rc_update/rc_update.cpp` handles RC function mapping and fallback behavior when parameters or calibration state change.
 - E2 test verified: `test/test_mavlink_param_validation.py:108-260` rejects mission items and commands with unsupported parameter slots and accepts valid variants.
-- E2 test verified: `test/mavsdk_tests/test_multicopter_failsafe.cpp:37-167` exercises mission continuation or landing after GPS, baro, and magnetometer loss.
-- E2 test verified: `test/mavsdk_tests/autopilot_tester.cpp` supports the integration harness that arms, runs, and degrades missions under sensor-loss injection.
+- E2 test verified: `test/mavsdk_tests/test_multicopter_failsafe.py:12-70` exercises mission continuation or landing after GPS, baro, and magnetometer loss.
+- E2 test verified: `test/mavsdk_tests/autopilot_tester.py:810-863` supports the integration harness that arms, runs, and degrades missions under sensor-loss injection.
 
 ## Architecture
 
@@ -81,3 +81,7 @@ Use the PX4 command-ACK model as a template for an internal autonomy agent: ever
 - `failsafe command acknowledgment matrix`
 - `mission sensor-loss recovery`
 - `parameter-slot mission validation gate`
+
+## Previous Reviews
+
+The [2026-10-13 report](../reports/2026-10-13.md) examined the same commander/failsafe contract at the previous commit. The [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/d1fe321f3a0a08355405865a6407c86a683ed560/repositories/PX4-PX4-Autopilot.md) preserves those source references. The current head broadens the validation surface but does not replace the need for live SITL validation.
