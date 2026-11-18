@@ -1,13 +1,13 @@
 # openziti/ziti
 
 - Repository: https://github.com/openziti/ziti
-- Review date: 2026-08-23
-- Current commit reviewed: `804f55abb3694c4fc1fd46a685df3a7775ee2414`
-- Commit date: 2026-08-23
+- Review date: 2026-11-18
+- Current commit reviewed: `99b50fbdb210fe373dd3e7e3bb9a7d24e8e74024`
+- Commit date: 2026-11-17T11:10:16-05:00
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
-- Decision: track
+- Previous commit reviewed: `804f55abb3694c4fc1fd46a685df3a7775ee2414`
+- Material changes since previous review: the reconnect path now carries explicit reconnect-generation debt tracking in `ctrlSynchronizer`, fences refresh and listener completion against later reconnects, and tests the queued-but-never-written case, stale refresh completion, and one-in-flight announcement behavior.
+- Decision: selected
 
 ## Problem Fit
 
@@ -15,23 +15,23 @@ This repository informs `privacy-networking-vpn`, especially zero-trust control-
 
 ## Verified Flow
 
-`Router.NotifyOfReconnect` delegates to the link registry -> `linkRegistryImpl.NotifyOfReconnect` retries the reconnect announcement up to three times -> `sendFullRefresh` snapshots dialed links into a `RouterLinks` message with `FullRefresh: true` and sends it with `SendAndWaitForWire` -> the controller can prune links it no longer sees because the refresh is complete, not incremental -> tests prove the retry bound, closed-channel exit, and failure when the message was queued but not actually written -> related controller store tests verify router and service-policy data-model semantics.
+`Router.NotifyOfReconnect` delegates to the link registry -> `linkRegistryImpl.NotifyOfReconnect` marks the controller as owed a full refresh -> `notifyControllersOfRefresh` claims the reconnect generation and queues `sendFullRefresh` -> `sendFullRefresh` snapshots dialed links into a `RouterLinks` message with `FullRefresh: true` and sends it with `SendAndWaitForWire` -> `ctrlSynchronizer.markRefreshWritten` or `markRefreshFailed` fences the debt against later reconnects -> `markListenersSent` only clears the listener debt when the reconnect generation still matches -> the tests prove retry-until-delivered, stale-write invalidation, one-in-flight refresh, and queued-but-undelivered failure semantics.
 
-- E1 source verified: `router/link/link_registry.go` implements reconnect retries, full-refresh construction, and wire-confirmed delivery.
-- E2 test verified: `router/link/link_registry_test.go` verifies retry-until-delivered, bounded retries, channel-close exit, and queued-but-discarded failure semantics.
-- E1 source verified: `common/router_data_model.go` defines the router/service/policy data model that the controller and router side both project into.
-- E2 test verified: `controller/db/service_policy_store_test.go` and `controller/db/router_store_test.go` cover store semantics for service policies and routers.
+- E1 source verified: `router/link/link_registry.go::NotifyOfReconnect`, `notifyControllersOfRefresh`, `sendFullRefresh`, and `snapshotDialedLinks` implement reconnect debt tracking, full-refresh construction, and wire-confirmed delivery.
+- E1 source verified: `router/link/ctrl_sync.go::beginRefresh`, `markRefreshWritten`, `markRefreshFailed`, `markReconnected`, and `markListenersSent` fence refresh and listener debt against reconnect generations.
+- E2 test verified: `router/link/link_registry_test.go::Test_NotifyOfReconnect_RetriesUntilTheAnnouncementLands`, `::Test_NotifyOfReconnect_KeepsRetryingWhileTheDebtStands`, `::Test_NotifyOfReconnect_TreatsADiscardedAnnouncementAsFailure`, `::Test_NotifyOfReconnect_OneAnnouncementInFlightPerController`, and `::Test_NotifyOfReconnect_ReconnectDuringAnnouncementLeavesItOwed` cover the reconnect announcement contract.
+- E2 test verified: `router/link/ctrl_sync_test.go::Test_ctrlSynchronizer` covers refresh debt, stale reconnect invalidation, and listener-set generation fencing.
 
 ## Architecture
 
 Principal components:
 
-- Router link registry: tracks dialed links and reconnect state.
+- Router link registry: tracks dialed links, reconnect debt, and listener publication.
+- Controller synchronizer: fences refresh and listener completion against reconnect generations.
 - Controller data model: typed router, service, and policy projection.
-- Controller DB stores: persist router and policy state.
 - Test harnesses: confirm reconnect behavior and store semantics.
 
-Most interesting mechanism: the reconnect path does not trust an incremental retry. It resends the whole link set with a `FullRefresh` flag and waits for wire-level confirmation so the controller can reconcile stale state and prune links that should no longer exist.
+Most interesting mechanism: the reconnect path does not trust an incremental retry. It resends the whole link set with a `FullRefresh` flag, fences it with a reconnect generation, and waits for wire-level confirmation so the controller can reconcile stale state and prune links that should no longer exist.
 
 Baseline comparison: a simpler control plane would retry an announcement until the send queue accepts it. This repository distinguishes queue acceptance from wire delivery and treats accepted-but-undelivered messages as failures.
 
@@ -41,6 +41,7 @@ Reusable:
 
 - Use a full-refresh reconnect message when the remote side needs to prune stale state.
 - Confirm wire delivery rather than merely queue acceptance.
+- Fence reconnect recovery with a generation token so late completions do not clear newer debt.
 - Bound retries and exit cleanly on channel closure.
 - Keep typed controller-side data models and store tests around the reconnect path.
 
@@ -62,7 +63,7 @@ Experimental or incomplete for our needs:
 
 - The codebase is large and heavily coupled to the rest of the Ziti control plane.
 - The reconnect mechanism depends on the controller and channel semantics actually honoring `SendAndWaitForWire`.
-- Operational behavior still needs live validation under controller load.
+- Operational behavior still needs live validation under controller load and reconnect churn.
 
 Hidden costs and failure modes:
 
@@ -78,3 +79,4 @@ Mirror this reconnect shape in one of our control paths, then inject a channel b
 
 - `full-refresh reconnect reconciliation`
 - `wire-confirmed control-plane announcement`
+- `reconnect-generation debt fencing`

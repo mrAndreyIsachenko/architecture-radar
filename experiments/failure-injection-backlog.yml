@@ -430,3 +430,45 @@ items:
     status: open
     created: 2026-09-28
     last_updated: 2026-09-28
+
+  - id: 2026-11-18-openziti-operational
+    family: privacy-networking-vpn
+    source_report: reports/2026-11-18.md
+    source_repository: openziti/ziti
+    mechanism: reconnect-generation debt fencing
+    evidence_gap: Source and Go tests prove full-refresh reconnect debt tracking, but the reviewed evidence does not validate the current head under live controller load, queue backpressure, and reconnect churn.
+    validation_type: operational
+    proposed_validation: Run a router/controller pair under reconnect churn and intentional channel backlog, then verify the full-refresh reconnect eventually lands, stale refresh generations stay fenced, and listener debt is cleared only by the current reconnect.
+    success_condition: The controller eventually receives a wire-confirmed full refresh, stale generations do not clear newer debt, and backlog pressure never marks an undelivered announcement as synced.
+    priority: high
+    status: open
+    created: 2026-11-18
+    last_updated: 2026-11-18
+
+  - id: 2026-11-18-satnogs-network-operational
+    family: satellites-space-systems
+    source_report: reports/2026-11-18.md
+    source_repository: librespacefoundation/satnogs-network
+    mechanism: future-observation materialization gate
+    evidence_gap: Source and tests show the scheduling matrix and future-observation refresh logic, but the reviewed evidence does not validate the tasks against a live backend, cache, and API under pass-window churn.
+    validation_type: operational
+    proposed_validation: Run the network scheduler against a live database/API pair with mixed client versions, station hard limits, and a transient cache outage, then confirm only eligible future observations are refreshed and cleanup tasks remain coherent.
+    success_condition: Eligible future observations are updated once, excluded stations and client versions stay untouched, and cleanup/archive tasks do not corrupt observation state after a transient backend failure.
+    priority: high
+    status: open
+    created: 2026-11-18
+    last_updated: 2026-11-18
+
+  - id: 2026-11-18-satnogs-client-operational
+    family: satellites-space-systems
+    source_report: reports/2026-11-18.md
+    source_repository: librespacefoundation/satnogs-client
+    mechanism: serialized observation session
+    evidence_gap: Source and Robot tests show job polling, pass-bound tracking, and artifact upload behavior, but the reviewed evidence does not validate the full capture loop against live radio, Hamlib, and network endpoints.
+    validation_type: operational
+    proposed_validation: Run one live observation against a mock or real network endpoint and radio stack, then verify the lock prevents overlap, midpoint-based tracking behaves as expected, and post-run uploads or retained files match the response path.
+    success_condition: The observation runs to completion without overlapping jobs, tracking and upload stay aligned with the pass window, and any upload failure leaves a clearly recoverable artifact set.
+    priority: high
+    status: open
+    created: 2026-11-18
+    last_updated: 2026-11-18
