@@ -221,6 +221,34 @@ items:
     created: 2026-10-10
     last_updated: 2026-10-10
 
+  - id: 2026-11-21-superdeman-drone-agent-operational
+    family: drones-robotics-autonomy
+    source_report: reports/2026-11-21.md
+    source_repository: SuperDeMan/drone-agent
+    mechanism: mission-spec / mission-package boundary with lease-fenced guardian submission
+    evidence_gap: Source and tests prove the package hash fence, lease epoch checks, and restart-safe journals, but the review still lacks operational validation beyond SITL and simulated adapters.
+    validation_type: operational
+    proposed_validation: Run an operational or hardware-backed mission through approval, lease install, dispatch, restart, and recovery, then verify the guardian never accepts stale or replayed work.
+    success_condition: The package hash, lease epoch, heartbeat checks, and replay journal converge after restart without duplicate dispatches or stale acceptance.
+    priority: high
+    status: open
+    created: 2026-11-21
+    last_updated: 2026-11-21
+
+  - id: 2026-11-21-openbmb-minicpm-ocr-runtime
+    family: document-ai-ocr
+    source_report: reports/2026-11-21.md
+    source_repository: OpenBMB/MiniCPM-OCR
+    mechanism: layout-first staged OCR pipeline with ordered partial-success assembly
+    evidence_gap: Source and tests prove ordering, layout-worker scaling, and partial-success assembly, but the review still lacks a live mixed-corpus backend run against a real server.
+    validation_type: runtime
+    proposed_validation: Run a mixed PDF/image corpus against a live backend, slow or restart the server mid-run, and observe retry, streaming, ordering, and page retention behavior.
+    success_condition: The run completes with stable page ordering, partial failures remain visible, and retry behavior does not drop or reorder completed pages.
+    priority: medium
+    status: open
+    created: 2026-11-21
+    last_updated: 2026-11-21
+
   - id: 2026-10-10-cfs-cfdp-operational
     family: satellites-space-systems
     source_report: reports/2026-10-10.md
