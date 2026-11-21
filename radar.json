@@ -2493,6 +2493,101 @@
       "decision_reason": "The sidecar boundary, discovery tools, and mesh integration test are source-backed and reusable, but fleet-scale churn still needs proof before adoption.",
       "revisit_reason": "Review after fleet validation or a material sidecar/mesh change.",
       "next_revisit_condition": "Revisit after a release or branch update that changes sidecar auth, discovery, or mesh tool invocation."
+    },
+    {
+      "repository": "SuperDeMan/drone-agent",
+      "URL": "https://github.com/SuperDeMan/drone-agent",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "src/drone_agent/contracts/mission.py",
+        "src/drone_agent/admission/compiler.py",
+        "src/drone_agent/admission/admission.py",
+        "src/drone_agent/runtime/signing.py",
+        "src/drone_agent/guardian/core.py",
+        "src/drone_agent/runtime/uplink.py",
+        "tests/admission/test_compiler_and_admission.py",
+        "tests/contracts/test_package_signatures.py",
+        "tests/runtime/test_uplink.py",
+        "tests/runtime/test_safety_runtime.py"
+      ],
+      "operational_blockers": [
+        "needs operational validation beyond SITL and simulated adapters",
+        "real-aircraft or HIL proof is still missing for the package/lease boundary"
+      ],
+      "first_seen": "2026-11-21",
+      "last_reviewed": "2026-11-21",
+      "commit_reviewed": "50046dff00a41e398fe9bbb8e95ccb03ebf963bc",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "mission planning",
+        "command authorization",
+        "safety recovery"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Evidence-Carrying Execution Envelopes",
+        "Mission Failsafe Fallback State Machine"
+      ],
+      "candidate_patterns": [
+        "mission-spec / mission-package boundary",
+        "lease-fenced guardian submit path",
+        "restart-aware onboard journal"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository makes the mission package immutable, signed, and explicitly leased before the guardian dispatches anything. That is a reusable autonomy-safety mechanism, but it still needs operational validation beyond SITL and simulated adapters.",
+      "revisit_reason": "Revisit after operational or hardware-backed validation of the package/lease/replay boundary.",
+      "next_revisit_condition": "Revisit after a hardware-in-the-loop or field run validates the guardian submit path and restart behavior."
+    },
+    {
+      "repository": "OpenBMB/MiniCPM-OCR",
+      "URL": "https://github.com/OpenBMB/MiniCPM-OCR",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "sdk/minicpmvocr/backends/__init__.py",
+        "sdk/minicpmvocr/backends/client.py",
+        "sdk/minicpmvocr/layouts/__init__.py",
+        "sdk/minicpmvocr/pipeline/staged.py",
+        "sdk/minicpmvocr/pipeline/overlapped.py",
+        "sdk/minicpmvocr/pipeline/_response.py",
+        "sdk/minicpmvocr/postprocess/crosspage.py",
+        "sdk/tests/test_layout_parallelism.py",
+        "sdk/tests/test_multi_input.py",
+        "sdk/tests/test_stream_pages.py"
+      ],
+      "operational_blockers": [
+        "needs live mixed-corpus backend validation against a real server",
+        "retry, streaming, and partial-success behavior still need runtime proof"
+      ],
+      "first_seen": "2026-11-21",
+      "last_reviewed": "2026-11-21",
+      "commit_reviewed": "c21a3ca524263ef8166cb6d350864b10c3056b61",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "layout-aware extraction",
+        "streaming OCR orchestration",
+        "partial-success assembly"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Deferred Image Materialization"
+      ],
+      "candidate_patterns": [
+        "layout-first staged OCR pipeline",
+        "stream-order preserving page pipeline",
+        "partial-success document assembly"
+      ],
+      "decision": "track",
+      "decision_reason": "The repository separates layout detection, recognition, and document assembly into explicit phases and preserves page order through partial failures. That is a useful OCR mechanism, but it still needs a live mixed-corpus backend run before adoption.",
+      "revisit_reason": "Revisit after a live backend run or a material change to pipeline ordering or retry semantics.",
+      "next_revisit_condition": "Revisit after a live mixed-corpus run confirms retry, ordering, and partial-success behavior under real latency."
     }
   ]
 }
