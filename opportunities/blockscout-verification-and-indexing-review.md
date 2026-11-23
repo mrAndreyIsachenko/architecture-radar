@@ -227,6 +227,13 @@ If three reachable chain teams decline a paid review or say they would rather bu
 ## Decision
 Sell-before-build. The paid workflow is already visible, the buyer is reachable, and the first delivery can be manual.
 
+## 2026-11-24 Signal Check
+- M1 paid demand: the live PRO API, Going PRO, and migration pages still expose explicit pricing and multichain spend.
+- M2 repeated pain: the current issue feed still shows websocket drops, indexing failures, and API performance work.
+- M3 competitor proof: the API discovery post still indicates active usage of the paid workflow.
+- M4 workaround evidence: the docs tree still routes teams through framework wiring, RPC setup, and contract-verification steps.
+- Decision: carried-forward sell-before-build; no paid pilot or inbound buyer request surfaced on 2026-11-24.
+
 ## 2026-10-06 Signal Check
 - M1 paid demand: the live DevPortal, Autoscout, EaaS, and Going PRO API pages still expose a paid workflow for explorer deployment and onchain data access.
 - M2 repeated pain: the current public issue feed still shows indexing gaps, websocket drops, and import/test requests that teams need to reconcile by hand.
