@@ -1,12 +1,12 @@
 # deepseek-ai/deepseek-harness
 
 - Repository: https://github.com/deepseek-ai/deepseek-harness
-- Review date: 2026-10-13
-- Current commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Commit date: 2026-10-09T17:31:32+08:00
+- Review date: 2026-11-24
+- Current commit reviewed: `4b399c39a6d1479cd84ca591b4d7c88e24d38a96`
+- Commit date: 2026-11-22T16:50:28+08:00
 - Branch: `master`
 - Previous commit reviewed: `d743267388641bc76f17c45ce8b4c231aed1d32c`
-- Material changes since previous review: no upstream commit change since 2026-10-10. This additional source review examines checkpoint-before-dispatch and sandbox-mode replay at the same pinned commit; the earlier review examined the synchronous SDK and bundled-runtime lifecycle.
+- Material changes since previous review: the current head merges `worktree-release-dsh-0.2.3-alpha.2` but keeps the same checkpoint-before-dispatch barrier and durable sandbox-mode replay path. The selection remains useful as a current-head confirmation of the semantic flush boundary rather than a new architectural direction.
 - Decision: track
 
 ## Problem Fit
@@ -86,4 +86,4 @@ Kill the runtime after a request prefix or top-level tool call has been flushed,
 
 ## Previous Reviews
 
-The [2026-10-10 report](../reports/2026-10-10.md) examined SDK transport, notification routing, and bundled-runtime cleanup at the same commit. The [2026-10-04 report](../reports/2026-10-04.md) examined CLI/plugin approvals and JSONL replay at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. The [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/d1fe321f3a0a08355405865a6407c86a683ed560/repositories/deepseek-ai-deepseek-harness.md) preserves those source references. Their open runtime and restart experiments remain in the backlog; this review does not mark them completed.
+The [2026-10-10 report](../reports/2026-10-10.md) examined SDK transport, notification routing, and bundled-runtime cleanup at the previous head. The [2026-10-04 report](../reports/2026-10-04.md) examined CLI/plugin approvals and JSONL replay at `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. The [previous card](https://github.com/mrAndreyIsachenko/architecture-radar/blob/d1fe321f3a0a08355405865a6407c86a683ed560/repositories/deepseek-ai-deepseek-harness.md) preserves those source references. Their open runtime and restart experiments remain in the backlog; this review does not mark them completed.

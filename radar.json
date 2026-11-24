@@ -198,6 +198,8 @@
       "runtime_paths": [
         "src/modules/commander/Commander.cpp",
         "src/modules/commander/Commander.hpp",
+        "src/modules/fw_mode_manager/FixedWingModeManager.cpp",
+        "src/modules/fw_mode_manager/FixedWingModeManager.hpp",
         "test/test_mavlink_param_validation.py",
         "test/mavsdk_tests/test_multicopter_failsafe.cpp",
         "test/mavsdk_tests/autopilot_tester.cpp"
@@ -207,9 +209,9 @@
         "command/mode semantics still depend on simulator fidelity"
       ],
       "first_seen": "2026-08-02",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
-      "previous_commit_reviewed": "c4e4ef98e9d75063bf3d53ebb2716221ee7505ae",
+      "last_reviewed": "2026-11-24",
+      "commit_reviewed": "d090301e480480ceb128280a21f2727091466db2",
+      "previous_commit_reviewed": "07a2faab0dd4621e3b85d1818a7f6e4af63cf87f",
       "categories": [
         "autonomy safety",
         "mission planning",
@@ -223,10 +225,11 @@
       "candidate_patterns": [
         "failsafe command acknowledgment matrix",
         "mission sensor-loss recovery",
-        "parameter-slot mission validation gate"
+        "parameter-slot mission validation gate",
+        "terrain-aware landing roll guard"
       ],
       "decision": "track",
-      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while expanding the explicit result matrix and test surface. The refreshed head remains highly reusable, but adoption still depends on live SITL validation.",
+      "decision_reason": "Commander ACK handling, parameter validation, and MAVSDK integration tests keep the same safety model while the refreshed head adds a terrain-aware fixed-wing landing guard that changes how near-ground roll limits are chosen during flare. The mechanism remains highly reusable, but adoption still depends on live SITL validation.",
       "revisit_reason": "Revisit if command ACK semantics, mission checks, or sensor-loss recovery paths materially change.",
       "next_revisit_condition": "Revisit after a material change to commander failsafe logic, mission validation, or MAVSDK recovery tests."
     },
@@ -571,16 +574,20 @@
       "repository": "docling-project/docling",
       "URL": "https://github.com/docling-project/docling",
       "first_seen": "2026-08-08",
-      "last_reviewed": "2026-09-19",
-      "commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
-      "previous_commit_reviewed": "8050c42be2b179504445cb8f3c75655e27cbb662",
+      "last_reviewed": "2026-11-24",
+      "commit_reviewed": "22b80a43d1baf8f7d51ae9b690e33b917a983ff4",
+      "previous_commit_reviewed": "890dd42d017497c955a56a1d2cfc3f0af5bc2aa9",
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
         "docling/document_converter.py",
         "docling/pipeline/standard_pdf_pipeline.py",
+        "docling/models/base_table_model.py",
+        "docling/models/stages/table_structure/table_structure_model.py",
         "tests/test_failed_pages.py",
-        "tests/test_threaded_pipeline.py"
+        "tests/test_threaded_pipeline.py",
+        "tests/test_table_structure_degenerate.py",
+        "tests/test_table_structure_degenerate_pipeline.py"
       ],
       "operational_blockers": [
         "broad surface",
@@ -601,10 +608,11 @@
       "candidate_patterns": [
         "page-number-preserving partial-success pipeline",
         "timeout-bounded stage shutdown",
-        "confidence aggregation across page outputs"
+        "confidence aggregation across page outputs",
+        "text-preserving empty-table fallback"
       ],
       "decision": "track",
-      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The refreshed head keeps that reusable mechanism intact without changing the decision.",
+      "decision_reason": "Docling provides a reusable threaded PDF conversion path with explicit timeout handling, partial-success recovery, page-number retention, and confidence aggregation. The refreshed head adds a table-structure guard that skips empty TableFormer decode and preserves table text under discarded structures, which keeps the decision intact while improving failure handling.",
       "revisit_reason": "Revisit if the pipeline, backend adapters, or confidence aggregation semantics materially change.",
       "next_revisit_condition": "Revisit after a material change to page retention, timeout recovery, confidence aggregation, or backend behavior."
     },
@@ -2216,8 +2224,8 @@
         "needs live process-kill and restart validation on the same semantic checkpoint path"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "last_reviewed": "2026-11-24",
+      "commit_reviewed": "4b399c39a6d1479cd84ca591b4d7c88e24d38a96",
       "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
       "categories": [
         "agent runtime",
@@ -2245,7 +2253,7 @@
         "single-writer JSONL session store"
       ],
       "decision": "track",
-      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
+      "decision_reason": "The runtime still flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks at the refreshed release head. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
       "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
       "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
     },
