@@ -1,17 +1,17 @@
 # docling-project/docling
 
 - Repository: https://github.com/docling-project/docling
-- Review date: 2026-09-19
-- Current commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
-- Commit date: 2026-09-18T09:18:30Z
+- Review date: 2026-11-24
+- Current commit reviewed: `22b80a43d1baf8f7d51ae9b690e33b917a983ff4`
+- Commit date: 2026-11-24T15:21:45+01:00
 - Branch: `main`
-- Previous commit reviewed: `8050c42be2b179504445cb8f3c75655e27cbb662`
-- Material changes since previous review: version bump to 2.129.0 and refreshed current-head verification; the threaded PDF pipeline and recovery model remain the same mechanism.
+- Previous commit reviewed: `890dd42d017497c955a56a1d2cfc3f0af5bc2aa9`
+- Material changes since previous review: the current head adds a table-structure guard that skips TableFormer decode when a table has no words, preserves the table text as a child cluster, and discards degenerate structures without losing reading-order text. The broader threaded PDF pipeline remains the same.
 - Decision: track
 
 ## Problem Fit
 
-This repository informs `document-ai-ocr`, especially batch PDF conversion, page-number retention under failure, confidence propagation, and mixed backend/runtime control. The reusable mechanism is the threaded PDF pipeline with explicit recovery and post-assembly image materialization, not the broader format-adapter surface around it.
+This repository informs `document-ai-ocr`, especially batch PDF conversion, page-number retention under failure, confidence propagation, and table-structure fallback when the decoder has no usable tokens. The reusable mechanism is the threaded PDF pipeline with explicit recovery, plus the new text-preserving empty-table guard, not the broader format-adapter surface around it.
 
 ## Verified Flow
 
@@ -33,8 +33,9 @@ Principal components:
 - `StandardPdfPipeline` coordinates producer, stage workers, timeout handling, and result integration.
 - Backend adapters isolate PDF/HTML/word-processing specifics from the pipeline skeleton.
 - Datamodel objects carry page sizes, confidence, errors, and conversion status.
+- `TableStructureModel` now short-circuits empty token sets, keeps the table text as a child cluster, and discards degenerate TableFormer structures without dropping the text-bearing table shell.
 
-Most interesting mechanism: the pipeline treats failure as a first-class outcome. Pages that fail to parse are still retained in the document, timeout is explicitly surfaced as `PARTIAL_SUCCESS`, and the final document aggregates confidence from page-level scores instead of collapsing them into a single opaque result.
+Most interesting mechanism: the pipeline treats failure as a first-class outcome. Pages that fail to parse are still retained in the document, timeout is explicitly surfaced as `PARTIAL_SUCCESS`, and the table stage now preserves text under tables whose structure prediction is empty or degenerate instead of silently dropping the content.
 
 Baseline comparison: a conventional document conversion tool either returns a flat success/failure result or drops failed pages from the output. Docling keeps page numbering stable, preserves error structure, and continues to produce usable output for the pages that did succeed.
 
@@ -66,6 +67,7 @@ Experimental or incomplete for our needs:
 - The surface is broad and product-shaped.
 - Source-level provenance is page-oriented, but not an explicit evidence-envelope model.
 - Backend/model combinations remain externally coupled.
+- The new empty-table fallback is source-backed, but the adoption proof still needs a mixed batch run under realistic OCR/model latency and resource pressure.
 
 Hidden costs and failure modes:
 
@@ -75,7 +77,7 @@ Hidden costs and failure modes:
 
 Adoption experiment:
 
-Run one internal batch on mixed-quality PDFs, force a page failure and a blocking-stage timeout, then confirm the final document still preserves page numbering, error items, and confidence aggregation without hanging the worker process.
+Run one internal batch on mixed-quality PDFs, force a page failure, a blocking-stage timeout, and a table with no words, then confirm the final document still preserves page numbering, error items, confidence aggregation, and table text without hanging the worker process.
 
 ## Candidate Patterns
 
@@ -83,3 +85,4 @@ Run one internal batch on mixed-quality PDFs, force a page failure and a blockin
 - `page-number-preserving partial-success pipeline`
 - `timeout-bounded stage shutdown`
 - `confidence aggregation across page outputs`
+- `text-preserving empty-table fallback`
