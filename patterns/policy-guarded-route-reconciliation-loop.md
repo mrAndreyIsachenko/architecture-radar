@@ -3,7 +3,7 @@
 - Canonical name: Policy-Guarded Route Reconciliation Loop
 - Aliases: route reconciliation loop, reconnect-safe route propagation, policy-synchronized tunnel update loop, access-controlled route refresh
 - Avoided duplicate names: VPN sync loop, route syncer, control-plane poller, reconnect handler
-- Last updated: 2026-10-07
+- Last updated: 2026-11-27
 
 ## Problem
 
@@ -36,6 +36,7 @@ The loop keeps raw node state, policy state, and derived reachability state dist
 - Policy-event tunnel reconciliation: Firezone routes portal authorization and relay updates through a gateway event loop that mutates route, DNS, and tunnel state.
 - Connectivity-status projection: NetBird normalizes peers, relays, DNS, SSH, and session expiry into one operator-facing snapshot so route health can be observed coherently.
 - Key-revocation tunnel reconciliation: `dyber-pqc/DyberVPN` normalizes peer keys, hot-reloads policy and CRL state, and scans revoked peers on a periodic timer so reconnects do not resurrect stale access.
+- Cluster-forwarded route reconciliation: `openzro/openzro` watches headless-service membership, persists route selection, and prefixes destination identity into remote relay messages so pod turnover does not lose the current route owner.
 
 ## Known Repositories
 
@@ -43,6 +44,7 @@ The loop keeps raw node state, policy state, and derived reachability state dist
 - `firezone/firezone` reviewed at `ac4e69ea9d86f21b26d09106d9ac1a5afacb5b55`.
 - `netbirdio/netbird` reviewed at `791401060d2b95e5f51e3439c0649729132f571e`.
 - `dyber-pqc/DyberVPN` reviewed at `943cf5012dc370a5768550eab6a0b7a3c71711c7`.
+- `openzro/openzro` reviewed at `43ee3574da0c423d88d88f115ab28ddd6850b42b`.
 
 ## Comparison Of Implementations
 
@@ -53,6 +55,8 @@ Firezone is strongest when the main problem is event-driven tunnel mutation. Its
 NetBird is strongest when the main problem is operator observability. Its status conversion layer collapses connectivity, DNS, relay, and session metadata into a single snapshot.
 
 `dyber-pqc/DyberVPN` is strongest when the main problem is access-control churn around a tunnel. Its policy engine refuses truncated identity matches, reloads policy and CRL state explicitly, and scans revoked peers on a timer so reconnects do not silently re-open access.
+
+`openzro/openzro` is strongest when the main problem is route ownership across a clustered overlay. Its discovery loop and destination-framed forwarder keep the current route owner visible when pods move or restart.
 
 The conventional baseline is a tunnel client that applies route and DNS changes opportunistically. That is easier to build, but it loses the explicit reconciliation contract needed for least-privilege private networking.
 
@@ -95,3 +99,5 @@ The conventional baseline is a tunnel client that applies route and DNS changes 
 - E1 source verified: DyberVPN `crates/dybervpn-tunnel/src/policy.rs::normalize_peer_key`, `PolicyEngine::evaluate`, and `reload` enforce full-key matching and policy hot reload.
 - E1 source verified: DyberVPN `crates/dybervpn-tunnel/src/revocation.rs::check_key`, `revoke_key`, `suspend_key`, `reinstate_key`, and `reload` maintain the CRL lifecycle.
 - E2 test verified: DyberVPN `crates/dybervpn-tunnel/src/policy.rs` and `revocation.rs` tests cover collision rejection, policy-from-JSON loading, and revocation roundtrip.
+- E1 source verified: `openzro/openzro` `management/client/rest/routes.go`, `client/internal/routeselector/routeselector.go`, `relay/server/cluster/discovery.go`, and `relay/server/cluster/forwarder.go` implement route persistence, pod discovery, and destination-framed relay dispatch.
+- E2 test verified: `openzro/openzro` `management/client/rest/routes_test.go`, `relay/server/cluster/forwarder_test.go`, and `client/internal/connect_test.go` cover CRUD, relay dispatch, and reconnect-related persistence.

@@ -135,7 +135,21 @@ items:
     priority: high
     status: open
     created: 2026-10-13
-    last_updated: 2026-10-13
+    last_updated: 2026-11-27
+
+  - id: 2026-11-27-openzro-reconnect-recovery
+    family: privacy-networking-vpn
+    source_report: reports/2026-11-27.md
+    source_repository: openzro/openzro
+    mechanism: cluster-forwarded route reconciliation loop
+    evidence_gap: Source and tests show route CRUD, destination-framed forwarding, and headless-service discovery, but they do not validate live multi-pod reconnect churn or pod turnover under sustained traffic.
+    validation_type: reconnect-recovery
+    proposed_validation: Run a two-pod deployment, force one peer to restart or move, and confirm route selection, discovery reconciliation, and forwarded traffic continue to reach the current owner without stale pod membership.
+    success_condition: Route ownership converges to the live pod, forwarded traffic still reaches the selected peer, and stale pod membership is removed without manual repair.
+    priority: high
+    status: open
+    created: 2026-11-27
+    last_updated: 2026-11-27
 
   - id: 2026-09-19-fprime-operational-routing
     family: satellites-space-systems
@@ -387,7 +401,21 @@ items:
     priority: medium
     status: open
     created: 2026-10-01
-    last_updated: 2026-10-01
+    last_updated: 2026-11-27
+
+  - id: 2026-11-27-fractal-indexer-reorg-failure-injection
+    family: blockchain-intelligence
+    source_report: reports/2026-11-27.md
+    source_repository: fractal-bitcoin/fractal-indexer
+    mechanism: WAL-backed ClickHouse reorg repair
+    evidence_gap: Source shows WAL-backed sync, revert-row generation, and mutation polling, but it does not validate live reorg churn or storage-pressure recovery on the repair path.
+    validation_type: failure-injection
+    proposed_validation: Run the indexer with WAL enabled against a chain source that injects a real reorg, then verify revert rows, orphan cleanup, and height reconciliation converge without duplicate materializations.
+    success_condition: Reorged rows are removed, repaired rows converge to the current chain height, and no duplicate materializations remain after mutation polling completes.
+    priority: high
+    status: open
+    created: 2026-11-27
+    last_updated: 2026-11-27
 
   - id: 2026-09-28-agentledger-failure-injection
     family: ai-llm-systems

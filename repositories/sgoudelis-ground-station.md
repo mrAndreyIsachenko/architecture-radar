@@ -1,84 +1,84 @@
 # sgoudelis/ground-station
 
 - Repository: https://github.com/sgoudelis/ground-station
-- Review date: 2026-10-01
-- Current commit reviewed: `430d4aa774a58df46ed3290782dbcde8ea2f1e3f`
-- Commit date: 2026-10-01T05:47:06+03:00
+- Review date: 2026-11-27
+- Current commit reviewed: `83aa44f674014189036762f1f59fdafd38b5702c`
+- Commit date: 2026-11-27T13:16:05+02:00
 - Branch: `main`
-- Previous commit reviewed: none
-- Material changes since previous review: first review
-- Decision: track
+- Previous commit reviewed: `430d4aa774a58df46ed3290782dbcde8ea2f1e3f`
+- Material changes since previous review: current head refreshes the release-note surface while keeping the same persisted orbital-sync snapshot and observation-session envelope intact.
+- Decision: selected
 
 ## Problem Fit
 
-This repository informs `satellites-space-systems`, especially session lifecycle management, internal observation isolation, antenna/SDR control, and scheduled observation state. The reusable mechanism is the explicit session-and-tracker envelope around SDR ownership so automated observations can survive restarts and remain separate from human sessions.
+This repository informs `satellites-space-systems`, especially delayed-connectivity command and telemetry loops, observation scheduling, and restart recovery for orbital sync state. The reusable mechanism is the explicit sync-state and persistence envelope around source refreshes so automated observations can survive restarts and remain separate from human sessions.
 
 ## Verified Flow
 
-`SessionService.configure_sdr` writes session configuration and registers the SDR relationship in `SessionTracker` -> `SessionService.start_streaming` asks the process manager to start or join the worker and unregisters the relationship if startup fails -> `SessionService.register_internal_observation` synthesizes an internal session ID, registers the observation as internal, configures the SDR, and starts streaming -> `SessionTracker` keeps separate maps for SDR ownership, VFO selection, metadata, and internal-session membership -> `cleanup_sdr_session` and `cleanup_internal_observation` stop the worker, clear tracker state, and remove the session/configuration entry -> the backend tests verify internal-session registration, metadata, SDR/VFO mapping, isolation from user sessions, and cleanup behavior -> the broader backend and frontend suites cover tracker slots, session routing, and hardware/status UI behavior.
+`logic.synchronize_satellite_data_internal` acquires `_sync_lock`, emits a sync-state object, fetches each enabled source in order, and persists the resulting `SatelliteSyncState` -> `persist.save_orbital_sync_state` stores the terminal snapshot in `TrackingState` -> `persist.load_orbital_sync_state` rehydrates the saved snapshot on startup -> `startup.py` loads that snapshot before the background task manager starts -> `syncstate.py` projects the phase, source status, and progress counters into a UI-facing model -> the backend tests cover successful sync, source-failure persistence, and empty-source handling.
 
-- E1 source verified: `backend/session/service.py::SessionService.configure_sdr`, `start_streaming`, `register_internal_observation`, and `cleanup_internal_observation` implement the session lifecycle envelope for automated observations.
-- E1 source verified: `backend/session/tracker.py::SessionTracker` maintains separate maps for SDR ownership, VFO selection, metadata, and internal-session membership.
-- E1 source verified: `backend/common/appconfig.py::load_app_config` and `DEFAULT_APP_CONFIG` define the runtime settings used by the backend/session stack.
-- E2 test verified: `backend/tests/test_session_internal_observations.py` verifies registration, metadata, SDR/VFO mapping, user-vs-internal isolation, counting, unregistration, and cleanup.
-- E2 test verified: `backend/tests/test_tracker_runner_slots.py` verifies tracker-slot allocation, stop behavior, orphan repair, and observation-slot isolation from target-slot limits.
-- E2 test verified: `backend/tests/test_sdrtakeover.py` verifies internal-observation-aware client conflict reporting.
+- E1 source verified: `backend/tlesync/logic.py::synchronize_satellite_data_internal` drives the ordered refresh and progress-tracking path.
+- E1 source verified: `backend/tlesync/persist.py::load_orbital_sync_state` and `save_orbital_sync_state` persist and restore the terminal orbital-sync snapshot.
+- E1 source verified: `backend/server/startup.py` hydrates the persisted sync state on startup before the background scheduler begins work.
+- E1 source verified: `backend/celestial/syncstate.py` projects sync phase, source status, and progress counters into a UI-facing model.
+- E2 test verified: `backend/tests/testsync.py` verifies source success, fetch failure persistence, and empty-source handling.
+- E2 test verified: `backend/tests/testperformancemonitor.py` exercises the operational monitoring surface around the sync loop.
 
 ## Architecture
 
 Principal components:
 
-- `backend/session/service.py` for the façade that coordinates configuration, worker startup, and cleanup.
-- `backend/session/tracker.py` for the in-memory runtime model of sessions, SDR ownership, VFO state, metadata, and internal observations.
-- `backend/common/appconfig.py` for runtime configuration defaults and persisted settings.
-- The backend test suite for session lifecycle, tracker slot allocation, and internal observation isolation.
-- The frontend test suite and e2e flows for UI/state surfaces around passes, hardware, and navigation.
+- `backend/tlesync/logic.py` for the ordered orbital-sync loop and source iteration.
+- `backend/tlesync/persist.py` for snapshot persistence and restoration.
+- `backend/server/startup.py` for startup hydration before background task execution.
+- `backend/celestial/syncstate.py` for the projected status model.
+- The backend tests for ordered refresh, failure persistence, and empty-source behavior.
 
-Most interesting mechanism: internal observation sessions are first-class runtime objects. They are tagged as internal, mapped to SDRs and VFOs, and cleaned up through the same service boundary that handles human sessions, so automatic observations do not leak into user state or vice versa.
+Most interesting mechanism: sync state is materialized as an explicit snapshot, persisted, and rehydrated before the scheduler starts. That makes the operational envelope recoverable across restart boundaries instead of relying on a transient progress bar.
 
-Baseline comparison: a conventional ground-station UI might keep only a flat list of connected clients. This repo makes session identity, SDR ownership, and observation scope explicit, which is the part that survives beyond the UI.
+Baseline comparison: a conventional ground-station app might keep the progress indicator in memory and recompute only from the current screen state. This repo makes the sync lifecycle explicit, which is the part that survives beyond the UI.
 
 ## Reuse Guidance
 
 Reusable:
 
-- Model automated observations as internal sessions with explicit metadata and ownership.
-- Keep session configuration, tracker ownership, and worker lifecycle separate but coordinated through one façade.
-- Maintain separate lifecycle cleanup paths for internal observations and user sessions.
-- Use tests that assert isolation, slot accounting, and orphan cleanup.
+- Model automated sync as an explicit snapshot with a persisted terminal state.
+- Keep source fetch, persistence, and startup hydration separate but coordinated through one flow.
+- Preserve the distinction between progress projection and durable state.
+- Use tests that assert failure persistence, hydration, and empty-source behavior.
 
 Do not copy:
 
-- Do not copy the full frontend or decoder surface if you only need the session lifecycle pattern.
-- Do not treat the tracker maps as durable storage; they are runtime coordination state.
-- Do not assume the current tests validate a live SDR/rotator field deployment.
+- Do not copy the entire UI or observation surface if you only need the sync-state mechanism.
+- Do not treat the projected sync-state object as the source of truth; the persisted snapshot is.
+- Do not assume the current tests validate a live SDR, antenna, or ground-station deployment.
 
 ## Quality, Limits, And Adoption Conditions
 
 Production-quality signals:
 
-- The repository has a very large backend and frontend test surface plus e2e coverage.
-- Internal observations have explicit isolation tests and slot-accounting tests.
-- The app is actively maintained, with current commits and release activity.
+- The repository has a focused backend test surface around orbital sync and operational monitoring.
+- Sync persistence and startup hydration are source-backed instead of implied.
+- The current head keeps the same persistence boundary while refreshing the release notes.
 
 Experimental or incomplete for our needs:
 
-- The core session tracker is an in-memory runtime model, not a persistence layer.
-- The strongest evidence is session and UI behavior, not a live field exercise with real SDR hardware.
+- The strongest evidence is ordered sync and persistence behavior, not a live field exercise with real hardware.
+- The current run still does not validate a rotator, SDR, or antenna deployment.
 - Several paths remain hardware-dependent and are therefore harder to validate in CI.
 
 Hidden costs and failure modes:
 
-- Session cleanup must stay aligned with the process manager or the runtime can leak stale ownership.
-- The internal-session model is only as good as the caller's cleanup discipline.
+- Snapshot hydration must stay aligned with the persisted state model or the runtime can present stale progress.
+- Source refresh ordering must remain stable or the projected sync-state can drift from the actual fetch loop.
 - Hardware-dependent state can diverge from the simulated or mocked test environment.
 
 Adoption experiment:
 
-Run an internal observation through connect, stream, stop, and cleanup, then restart the backend and confirm the session tracker and observation flags recover coherently without leaking the internal observation into the normal user-session view.
+Run a live orbital-sync session through source refresh, persistence, restart, and rehydration, then confirm the projected sync state matches the persisted snapshot and does not regress to a stale phase after restart.
 
 ## Candidate Patterns
 
 - `Evidence-Carrying Execution Envelopes`
-- `internal observation session envelope`
-- `session-to-SDR ownership façade`
+- `persisted orbital sync snapshot`
+- `sync-state progress tracker`

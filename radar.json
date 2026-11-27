@@ -2159,24 +2159,24 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "backend/session/service.py",
-        "backend/session/tracker.py",
-        "backend/common/appconfig.py",
-        "backend/tests/test_session_internal_observations.py",
-        "backend/tests/test_tracker_runner_slots.py",
-        "backend/tests/test_sdrtakeover.py"
+        "backend/tlesync/logic.py",
+        "backend/tlesync/persist.py",
+        "backend/server/startup.py",
+        "backend/celestial/syncstate.py",
+        "backend/tests/testsync.py",
+        "backend/tests/testperformancemonitor.py"
       ],
       "operational_blockers": [
         "needs live SDR or rotator validation for observation-session isolation"
       ],
       "first_seen": "2026-10-01",
-      "last_reviewed": "2026-10-01",
-      "commit_reviewed": "430d4aa774a58df46ed3290782dbcde8ea2f1e3f",
-      "previous_commit_reviewed": null,
+      "last_reviewed": "2026-11-27",
+      "commit_reviewed": "83aa44f674014189036762f1f59fdafd38b5702c",
+      "previous_commit_reviewed": "430d4aa774a58df46ed3290782dbcde8ea2f1e3f",
       "categories": [
         "ground station",
-        "session lifecycle",
-        "telemetry observability"
+        "telemetry observability",
+        "sync persistence"
       ],
       "maturity": "track",
       "novelty_score": 3,
@@ -2186,13 +2186,99 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
-        "internal observation session envelope",
-        "session-to-SDR ownership façade"
+        "persisted orbital sync snapshot",
+        "sync-state progress tracker"
       ],
-      "decision": "track",
-      "decision_reason": "The session service and tracker make internal observations first-class runtime objects with explicit SDR ownership and cleanup. That is a useful ground-station mechanism, but it still needs live hardware validation to prove reconnect and cleanup behavior under field conditions.",
-      "revisit_reason": "Review after live SDR or rotator validation changes confidence in the session tracker and cleanup envelope.",
-      "next_revisit_condition": "Revisit after hardware-backed observation sessions or a material change to session tracker semantics."
+      "decision": "selected",
+      "decision_reason": "The ordered orbital-sync loop persists a terminal snapshot and rehydrates it on startup before the scheduler runs. The mechanism is reusable for delayed-connectivity systems, but it still needs live hardware validation to prove reconnect and cleanup behavior under field conditions.",
+      "revisit_reason": "Review after live SDR or rotator validation changes confidence in the sync-state hydration envelope.",
+      "next_revisit_condition": "Revisit after hardware-backed observation sessions or a material change to sync-state persistence semantics."
+    },
+    {
+      "repository": "openzro/openzro",
+      "URL": "https://github.com/openzro/openzro",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "management/client/rest/routes.go",
+        "client/internal/routeselector/routeselector.go",
+        "relay/server/cluster/discovery.go",
+        "relay/server/cluster/forwarder.go",
+        "management/client/rest/routes_test.go",
+        "relay/server/cluster/forwarder_test.go",
+        "client/internal/connect_test.go"
+      ],
+      "operational_blockers": [
+        "needs live multi-pod reconnect-churn validation"
+      ],
+      "first_seen": "2026-11-27",
+      "last_reviewed": "2026-11-27",
+      "commit_reviewed": "43ee3574da0c423d88d88f115ab28ddd6850b42b",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "privacy networking",
+        "route reconciliation",
+        "cluster relay"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Policy-Guarded Route Reconciliation Loop"
+      ],
+      "candidate_patterns": [
+        "cluster-forwarded route reconciliation",
+        "destination-framed relay envelope",
+        "headless-service peer discovery reconcile loop"
+      ],
+      "decision": "selected",
+      "decision_reason": "Route selection, headless-service discovery, and destination-framed forwarding make route ownership explicit across a clustered overlay. The mechanism is directly reusable, but it still needs live multi-pod reconnect churn to prove convergence under turnover.",
+      "revisit_reason": "Review after live cluster churn or a material change to discovery or forwarding semantics.",
+      "next_revisit_condition": "Revisit after a release that changes relay forwarding, route selection persistence, or cluster discovery behavior."
+    },
+    {
+      "repository": "fractal-bitcoin/fractal-indexer",
+      "URL": "https://github.com/fractal-bitcoin/fractal-indexer",
+      "artifact_type": "repository",
+      "external_artifacts": [],
+      "runtime_paths": [
+        "main.go",
+        "task/block.go",
+        "task/serial/sync_block.go",
+        "task/serial/sync_revert.go",
+        "store/process_sync.go",
+        "api/lib/brc20_swap/indexer/indexer.go",
+        "api/lib/brc20_swap/indexer/store_into_data_test.go",
+        "task/serial/inscription_key_test.go"
+      ],
+      "operational_blockers": [
+        "needs live reorg and storage-pressure validation"
+      ],
+      "first_seen": "2026-11-27",
+      "last_reviewed": "2026-11-27",
+      "commit_reviewed": "74339027c25e19c8ee1a69ff34daf0de45242d3c",
+      "previous_commit_reviewed": null,
+      "categories": [
+        "incremental indexing",
+        "reorg recovery",
+        "transaction interpretation"
+      ],
+      "maturity": "track",
+      "novelty_score": 4,
+      "relevance_score": 5,
+      "evidence_quality": "high",
+      "extracted_patterns": [
+        "Reorg-Safe Materialization Windows"
+      ],
+      "candidate_patterns": [
+        "WAL-backed ClickHouse reorg repair",
+        "orphan-part mutation polling"
+      ],
+      "decision": "selected",
+      "decision_reason": "WAL-backed sync, explicit revert rows, and orphan cleanup give the indexer a repair path that does not pretend the head is final. The mechanism is highly reusable, but it still needs live reorg validation under storage pressure.",
+      "revisit_reason": "Review after live chain churn or a material change to WAL and mutation-polling behavior.",
+      "next_revisit_condition": "Revisit after a release that changes reorg repair, mutation polling, or WAL-backed sync semantics."
     },
     {
       "repository": "deepseek-ai/deepseek-harness",
@@ -2200,29 +2286,23 @@
       "artifact_type": "repository",
       "external_artifacts": [],
       "runtime_paths": [
-        "packages/session/session-persistence/src/index.ts",
-        "packages/session/session-persistence-jsonl/src/index.ts",
-        "packages/session/session-checkpoint-policy/src/index.ts",
-        "packages/session/session-persistence-jsonl/src/lease.ts",
-        "packages/session/session-checkpoint-policy/tests/crash-recovery.e2e.ts",
-        "packages/session/session-checkpoint-policy/tests/session-checkpoint-policy.spec.ts",
-        "packages/session/session-persistence-jsonl/tests/lease.spec.ts",
-        "packages/sandbox/sandbox-policy/src/index.ts"
+        "apps/cli/src/profile-boot.ts",
+        "apps/cli/src/process-shutdown.ts",
+        "apps/cli/tests/process-shutdown.spec.ts",
+        "apps/cli/tests/web-agent-shutdown.e2e.ts"
       ],
       "operational_blockers": [
         "needs live process-kill and restart validation",
-        "flush-before-dispatch and lease semantics still need contention proof",
-        "needs a real packaged session against the bundled runtime",
-        "needs live process-kill and restart validation on the same semantic checkpoint path"
+        "needs a real packaged session against the bundled runtime"
       ],
       "first_seen": "2026-10-04",
-      "last_reviewed": "2026-10-13",
-      "commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
+      "last_reviewed": "2026-11-27",
+      "commit_reviewed": "4b399c39a6d1479cd84ca591b4d7c88e24d38a96",
       "previous_commit_reviewed": "d743267388641bc76f17c45ce8b4c231aed1d32c",
       "categories": [
         "agent runtime",
         "durable workflows",
-        "session persistence",
+        "shutdown recovery",
         "runtime recovery"
       ],
       "maturity": "track",
@@ -2233,21 +2313,14 @@
         "Evidence-Carrying Execution Envelopes"
       ],
       "candidate_patterns": [
-        "semantic checkpoint barrier before dispatch",
-        "durable sandbox-mode replay",
-        "single-owner session write lease",
-        "session-normalized synchronous harness",
-        "bundled runtime resolution guardrail",
-        "notification-tree subscription",
         "bounded subprocess shutdown",
-        "replay-safe session harness",
-        "exact-version plugin approval",
-        "single-writer JSONL session store"
+        "profile composition guardrail",
+        "single-owner shutdown promise"
       ],
-      "decision": "track",
-      "decision_reason": "The runtime flushes durable session state before model and top-level tool dispatch, persists sandbox mode as replayable session state, and backs the contract with JSONL generation storage plus lease checks. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
-      "revisit_reason": "Revisit after a material change to checkpoint policy, session persistence, or sandbox replay semantics.",
-      "next_revisit_condition": "Revisit after a material change to session flush-before-dispatch, JSONL storage, or restart-recovery behavior."
+      "decision": "selected",
+      "decision_reason": "The profile boot layer and process-shutdown coordinator turn exit behavior into a bounded single-owner envelope instead of an unbounded race. The mechanism is reusable, but it still needs a live process-kill and restart proof on the same session ledger.",
+      "revisit_reason": "Revisit after a material change to shutdown coordination, profile boot composition, or restart-recovery behavior.",
+      "next_revisit_condition": "Revisit after a material change to CLI shutdown, profile boot, or restart-recovery semantics."
     },
     {
       "repository": "TencentCloud/TencentDB-Agent-Memory",
