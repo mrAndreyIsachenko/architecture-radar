@@ -3,7 +3,7 @@
 - Canonical name: Reorg-Safe Materialization Windows
 - Aliases: reorg-safe indexing, rollback-window indexing, reorg-aware incremental indexing, finalized/provisional block split
 - Avoided duplicate names: eventual chain sync, naive block replay, raw head polling
-- Last updated: 2026-10-01
+- Last updated: 2026-11-27
 
 ## Problem
 
@@ -35,6 +35,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - Postgres-first finality split: Chaindexing keeps indexing finality separate from side-effect finality, repairs canonical tables at the fork point, and records durable checkpoint/outbox state so reorged rows and pending effects are reconciled together.
 - ExEx batcher: Shadow-index consumes reth `ChainCommitted`, `ChainReverted`, and `ChainReorged` notifications, transforms reverted and committed ranges with signed rows, and advances the cursor only after a successful ClickHouse flush.
 - Rollback-aware EVM poller: Chain-indexer keeps the live tip and derived block records separate, validates parent hashes while advancing, deletes orphaned blocks on reorg, and fans out log decoding through a concurrent batch fetch path.
+- WAL-backed ClickHouse repair: `fractal-bitcoin/fractal-indexer` separates provisional block materialization, explicit revert-row generation, and ClickHouse orphan cleanup so a repaired chain segment can be re-materialized without treating the head as final.
 
 - HyperSync / ClickHouse backfill indexer: `eabz/evm-indexer` scans stored logs, compares decoded module rows, purges only the changed module range with a new epoch, and reinserts the repaired rows without re-syncing the chain.
 
@@ -50,6 +51,7 @@ Persist checkpoint state separately from derived materializations, and split rec
 - `Layr-Labs/chain-indexer` reviewed at `7d774750b49b0d8b527edc2124bb6f248f56d006`.
 
 - `eabz/evm-indexer` reviewed at `e4ca46486837b85aadccd009ca742f1799801a67`.
+- `fractal-bitcoin/fractal-indexer` reviewed at `74339027c25e19c8ee1a69ff34daf0de45242d3c`.
 
 ## Comparison Of Implementations
 
@@ -71,6 +73,8 @@ Chain-indexer applies the same rule to an EVM poller and in-memory persistence l
 
 `eabz/evm-indexer` shows the same boundary as a module-scoped backfill loop on top of HyperSync and ClickHouse. It keeps the coverage floor explicit, compares stored logs against decoded module rows before mutating anything, then purges and reinserts only the changed module range under a new epoch. The trade-off is a strong dependence on ClickHouse repair semantics and a live operational run that still needs to prove the repair path under real reorg churn.
 
+`fractal-bitcoin/fractal-indexer` shows the same boundary in a WAL-backed indexer with explicit revert rows and orphan cleanup. It pushes repair into the same control plane as forward sync, which is useful when the sink must be repaired instead of recomputed from scratch.
+
 ## Failure Modes
 
 - Misconfigured thresholds can push provisional data into the finalized path too early.
@@ -82,6 +86,7 @@ Chain-indexer applies the same rule to an EVM poller and in-memory persistence l
 - Hash-probe retries can over-disconnect on load-balanced or lagging backends when the probe target is not the canonical node.
 - A cursor that advances before a sink flush can corrupt replay after restart.
 - A module repair path can silently double count if the epoch floor is wrong or the backfill is run against the wrong coverage window.
+- A reorg-repair path can leave orphaned rows behind if the mutation cleanup loop stalls or targets the wrong range.
 
 ## Trade-Offs
 
@@ -138,3 +143,5 @@ Chain-indexer applies the same rule to an EVM poller and in-memory persistence l
 - E1 source verified: `eabz/evm-indexer/src/reorg/fork.rs:1-108,110-196` implements the bounded growing-window fork-point search.
 - E1 source verified: `eabz/evm-indexer/src/pipeline/backfill.rs:1-33,61-218` scans stored logs, compares decoded rows, purges only changed module rows, and reinserts the repaired rows.
 - E2 test verified: `eabz/evm-indexer/src/reorg/tests.rs:67-200` and `src/pipeline/sync_tests.rs:1-240` cover shallow/deep forks, holes, start-block floors, and restart / failure behavior.
+- E1 source verified: `fractal-bitcoin/fractal-indexer` `main.go`, `task/block.go`, `task/serial/sync_block.go`, `task/serial/sync_revert.go`, and `store/process_sync.go` implement the WAL-backed forward sync, revert rows, and ClickHouse orphan cleanup loop.
+- E2 test verified: `fractal-bitcoin/fractal-indexer` `api/lib/brc20_swap/indexer/store_into_data_test.go` and `task/serial/inscription_key_test.go` cover the data-shaping and parser behaviors around the repair path.
